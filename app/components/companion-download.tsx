@@ -17,6 +17,11 @@ export default function CompanionDownload() {
             'Install our desktop companion for Windows or Linux to contribute public avatar IDs discovered while you play VRChat.',
           )}
         </p>
+        <p>
+          {tr(
+            'To upload, generate an API key on your Account page, then sign in to VRChat in the companion.',
+          )}
+        </p>
       </div>
       <a className="standard-button" href={companionReleaseUrl} target="_blank" rel="noopener noreferrer">
         <Download size={16} aria-hidden="true" />

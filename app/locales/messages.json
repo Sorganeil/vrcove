@@ -529,7 +529,8 @@
     "Desktop companion": "Aplicación de escritorio complementaria",
     "Want to help grow the avatar database?": "¿Quieres ayudar a ampliar la base de datos de avatares?",
     "Install our desktop companion for Windows or Linux to contribute public avatar IDs discovered while you play VRChat.": "Instala nuestro complemento de escritorio para Windows o Linux y contribuye con los ID de avatares públicos descubiertos mientras juegas a VRChat.",
-    "Download companion": "Descargar aplicación"
+    "Download companion": "Descargar aplicación",
+    "To upload, generate an API key on your Account page, then sign in to VRChat in the companion.": "Para subir avatares, genera una clave de API en tu página de Cuenta y luego inicia sesión en VRChat desde la aplicación."
   },
   "fr": {
     "Language": "Langue",
@@ -1061,7 +1062,8 @@
     "Desktop companion": "Application de bureau complémentaire",
     "Want to help grow the avatar database?": "Envie de contribuer à la base de données d’avatars ?",
     "Install our desktop companion for Windows or Linux to contribute public avatar IDs discovered while you play VRChat.": "Installez notre compagnon pour Windows ou Linux et contribuez avec les identifiants des avatars publics découverts pendant vos sessions VRChat.",
-    "Download companion": "Télécharger l’application"
+    "Download companion": "Télécharger l’application",
+    "To upload, generate an API key on your Account page, then sign in to VRChat in the companion.": "Pour envoyer des avatars, générez une clé API sur votre page Compte, puis connectez-vous à VRChat dans l’application."
   },
   "de": {
     "Language": "Sprache",
@@ -1593,7 +1595,8 @@
     "Desktop companion": "Desktop-Begleit-App",
     "Want to help grow the avatar database?": "Möchtest du helfen, die Avatar-Datenbank zu erweitern?",
     "Install our desktop companion for Windows or Linux to contribute public avatar IDs discovered while you play VRChat.": "Installiere unsere Desktop-App für Windows oder Linux, um beim Spielen von VRChat entdeckte öffentliche Avatar-IDs beizutragen.",
-    "Download companion": "Begleit-App herunterladen"
+    "Download companion": "Begleit-App herunterladen",
+    "To upload, generate an API key on your Account page, then sign in to VRChat in the companion.": "Zum Hochladen erstellst du auf deiner Kontoseite einen API-Schlüssel und meldest dich dann in der App bei VRChat an."
   },
   "ja": {
     "Language": "言語",
@@ -2125,7 +2128,8 @@
     "Desktop companion": "デスクトップコンパニオン",
     "Want to help grow the avatar database?": "アバターデータベースの拡充に協力しませんか？",
     "Install our desktop companion for Windows or Linux to contribute public avatar IDs discovered while you play VRChat.": "Windows または Linux 用のデスクトップコンパニオンをインストールして、VRChat のプレイ中に見つかった公開アバターの ID を提供できます。",
-    "Download companion": "コンパニオンをダウンロード"
+    "Download companion": "コンパニオンをダウンロード",
+    "To upload, generate an API key on your Account page, then sign in to VRChat in the companion.": "アップロードするには、アカウントページでAPIキーを生成し、アプリでVRChatにログインしてください。"
   },
   "ru": {
     "Language": "Язык",
@@ -2657,7 +2661,8 @@
     "Desktop companion": "Приложение-компаньон",
     "Want to help grow the avatar database?": "Хотите помочь пополнить базу аватаров?",
     "Install our desktop companion for Windows or Linux to contribute public avatar IDs discovered while you play VRChat.": "Установите наше приложение для Windows или Linux, чтобы отправлять ID публичных аватаров, обнаруженных во время игры в VRChat.",
-    "Download companion": "Скачать приложение"
+    "Download companion": "Скачать приложение",
+    "To upload, generate an API key on your Account page, then sign in to VRChat in the companion.": "Чтобы загружать аватары, создайте API-ключ на странице «Аккаунт», затем войдите в VRChat в приложении."
   },
   "uk": {
     "Language": "Мова",
@@ -3189,7 +3194,8 @@
     "Desktop companion": "Застосунок-компаньйон",
     "Want to help grow the avatar database?": "Хочете допомогти поповнити базу аватарів?",
     "Install our desktop companion for Windows or Linux to contribute public avatar IDs discovered while you play VRChat.": "Установіть наш застосунок для Windows або Linux, щоб надсилати ID публічних аватарів, знайдених під час гри у VRChat.",
-    "Download companion": "Завантажити застосунок"
+    "Download companion": "Завантажити застосунок",
+    "To upload, generate an API key on your Account page, then sign in to VRChat in the companion.": "Щоб завантажувати аватари, створіть API-ключ на сторінці «Обліковий запис», а потім увійдіть у VRChat у застосунку."
   },
   "zh-CN": {
     "Language": "语言",
@@ -3721,7 +3727,8 @@
     "Desktop companion": "桌面伴侣",
     "Want to help grow the avatar database?": "想帮助扩充虚拟形象数据库吗？",
     "Install our desktop companion for Windows or Linux to contribute public avatar IDs discovered while you play VRChat.": "安装适用于 Windows 或 Linux 的桌面伴侣，即可贡献在游玩 VRChat 时发现的公开虚拟形象 ID。",
-    "Download companion": "下载桌面伴侣"
+    "Download companion": "下载桌面伴侣",
+    "To upload, generate an API key on your Account page, then sign in to VRChat in the companion.": "要上传，请先在账户页面生成 API 密钥，然后在应用中登录 VRChat。"
   },
   "ko": {
     "Language": "언어",
@@ -4253,6 +4260,7 @@
     "Desktop companion": "데스크톱 도우미",
     "Want to help grow the avatar database?": "아바타 데이터베이스 확장에 도움을 주고 싶으신가요?",
     "Install our desktop companion for Windows or Linux to contribute public avatar IDs discovered while you play VRChat.": "Windows 또는 Linux용 데스크톱 도우미를 설치하여 VRChat을 플레이하는 동안 발견한 공개 아바타 ID를 기여해 주세요.",
-    "Download companion": "도우미 다운로드"
+    "Download companion": "도우미 다운로드",
+    "To upload, generate an API key on your Account page, then sign in to VRChat in the companion.": "업로드하려면 계정 페이지에서 API 키를 생성한 다음 앱에서 VRChat에 로그인하세요."
   }
 }
