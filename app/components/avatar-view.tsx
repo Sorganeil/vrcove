@@ -16,9 +16,10 @@ import { useApp } from '../lib/app-context';
 import type { Avatar } from '../lib/avatar';
 import { Picture, Platform } from './avatar-media';
 import { useAvatarActions } from './avatar-actions';
-import { RawJson, detailLink } from './vrchat-details';
-import { Reviews } from '../pages/cove-account';
-import { AddToCollection } from '../pages/cove-social';
+import { RawJson } from './raw-json';
+import { detailLink } from './detail-links';
+import { Reviews } from './reviews';
+import { AddToCollection } from './add-to-collection';
 
 /* One avatar, shown in the quick-view modal or as a full page (/avatar/<id>). */
 export default function AvatarView({ avatar: a, page }: { avatar: Avatar; page: boolean }) {

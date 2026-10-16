@@ -4,7 +4,8 @@ import LanguagePicker from '../components/language-picker';
 import { t as tr, useLocale } from '../lib/i18n';
 import { useState, useEffect, useRef } from 'react';
 import PrivacyApproach from '../components/privacy-approach';
-import { detailLink, Photo } from '../components/vrchat-details';
+import { detailLink } from '../components/detail-links';
+import { Photo } from '../components/photo';
 import {
   Search,
   Users,

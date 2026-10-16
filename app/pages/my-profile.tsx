@@ -4,7 +4,7 @@ import { api, resetVRChatSession } from '../lib/api';
 import { t as tr, useLocale } from '../lib/i18n';
 import { useApp } from '../lib/app-context';
 import ProfileEditor from '../components/profile-editor';
-import { DetailView } from '../components/vrchat-details';
+import { DetailView } from '../components/detail-view';
 import { RequireVRChat, SectionPage } from '../components/section-page';
 
 /** The connected VRChat account's own profile, with editing and disconnect. */

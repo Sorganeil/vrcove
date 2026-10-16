@@ -3,7 +3,7 @@ import UserStatus, { userPresence } from '../components/user-status';
 import { api, useVRChatSession } from '../lib/api';
 import { t as tr, useLocale } from '../lib/i18n';
 import { useState, useEffect } from 'react';
-import { detailLink } from '../components/vrchat-details';
+import { detailLink } from '../components/detail-links';
 import {
   Users,
   Globe2,

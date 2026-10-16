@@ -6,7 +6,7 @@ import { useApp } from '../lib/app-context';
 import { sectionLabels } from '../lib/navigation';
 import LanguagePicker from './language-picker';
 import { SearchIcon } from './nav-icons';
-import { CovePicture } from '../pages/cove-account';
+import { CovePicture } from './cove-picture';
 
 /** Header with the current section, language, search and VRCove account. */
 export default function Topbar({ onMenu, onSearch }: { onMenu: () => void; onSearch: () => void }) {

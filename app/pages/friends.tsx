@@ -7,7 +7,7 @@ import { Picture } from '../components/avatar-media';
 import Loading from '../components/loading';
 import Pager from '../components/pager';
 import UserStatus from '../components/user-status';
-import { detailLink } from '../components/vrchat-details';
+import { detailLink } from '../components/detail-links';
 import { ErrorBanner, RequireVRChat, SectionPage } from '../components/section-page';
 
 /** Online and offline VRChat friends. */

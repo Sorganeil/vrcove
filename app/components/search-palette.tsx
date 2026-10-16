@@ -2,7 +2,7 @@ import { api } from '../lib/api';
 import { t as tr, useLocale } from '../lib/i18n';
 import { useState, useEffect, useRef } from 'react';
 import { Search, X, LoaderCircle, UserRound, ArrowUpRight, ShieldCheck } from 'lucide-react';
-import { openDetail, type Kind } from './vrchat-details';
+import { openDetail, type Kind } from './detail-links';
 function Thumb({ src }: { src?: string }) {
   useLocale();
   const [failed, setFailed] = useState(false);

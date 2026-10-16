@@ -3,7 +3,7 @@ import { api } from '../lib/api';
 import { formatDate, t as tr, useLocale } from '../lib/i18n';
 import { useState, useEffect } from 'react';
 import { LoaderCircle, Upload, Monitor, Smartphone, Users, RefreshCw } from 'lucide-react';
-import { detailLink } from '../components/vrchat-details';
+import { detailLink } from '../components/detail-links';
 function Photo({ url, name }: any) {
   useLocale();
   const [fail, setFail] = useState(false);

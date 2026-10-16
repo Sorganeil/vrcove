@@ -1,11 +1,11 @@
 import VRChatGate from './vrchat-gate';
 import UserStatus from './user-status';
-import { entityPath, copyEntityLink } from '../lib/routes';
+import { copyEntityLink } from '../lib/routes';
 import { api } from '../lib/api';
-import { formatDate, formatNumber, t as tr, useLocale } from '../lib/i18n';
-import { useState, useEffect, useRef } from 'react';
-import { Reviews } from '../pages/cove-account';
-import { AddToCollection } from '../pages/cove-social';
+import { t as tr, useLocale } from '../lib/i18n';
+import { useState, useEffect } from 'react';
+import { Reviews } from './reviews';
+import { AddToCollection } from './add-to-collection';
 import {
   Users,
   Globe2,
@@ -23,244 +23,24 @@ import {
   BadgeCheck,
   LogIn,
   LogOut,
-  Braces,
-  Download,
 } from 'lucide-react';
-export type Kind = 'world' | 'user' | 'group';
-export type RawKind = Kind | 'avatar';
-type Target = { kind: Kind; id: string };
-export function Photo({ url, fallbackUrl, name, alt = '' }: any) {
-  useLocale();
-  const sources = [...new Set<string>([url, fallbackUrl].filter(Boolean))];
-  const requestKey = JSON.stringify(sources);
-  const [attempt, setAttempt] = useState({ requestKey, index: 0 });
-  const index = attempt.requestKey === requestKey ? attempt.index : 0;
-  const current = sources[index];
-  if (current)
-    return (
-      <img
-        key={requestKey + index}
-        src={'/api/image?url=' + encodeURIComponent(current)}
-        alt={alt}
-        onError={() => setAttempt({ requestKey, index: index + 1 })}
-        referrerPolicy="no-referrer"
-        loading="lazy"
-      />
-    );
-  return name ? (
-    <div className="initial-fallback" aria-hidden="true">
-      {[...String(name).trim()][0]?.toUpperCase() || '?'}
-    </div>
-  ) : (
-    <div className="image-fallback">
-      <UserRound strokeWidth={0.8} />
-      <span>{tr('Preview unavailable')}</span>
-    </div>
-  );
-}
-const date = (s?: string) =>
-  s && Number.isFinite(new Date(s).getTime())
-    ? formatDate(/^\d{4}-\d{2}-\d{2}$/.test(s) ? s + 'T12:00:00' : s)
-    : '-';
-const count = (n?: number) => (typeof n === 'number' ? formatNumber(n) : '?');
-const regionNames: Record<string, string> = { us: 'US West', use: 'US East', eu: 'Europe', jp: 'Japan' };
-const regionOf = (instance: string) => /~region\(([a-z]+)\)/.exec(instance)?.[1] || 'us';
-const platformName = (p: string) =>
-  p === 'standalonewindows' ? 'PC' : p === 'android' ? 'Android / Quest' : p === 'ios' ? 'iOS' : p;
-const safeLinks = (links: unknown) =>
-  (Array.isArray(links) ? links : []).filter(
-    (l: unknown): l is string => typeof l === 'string' && /^https:\/\//.test(l),
-  );
-const joinStates: Record<string, string> = {
-  open: 'Anyone can join',
-  request: 'Join by request',
-  invite: 'Invite only',
-  closed: 'Closed',
-};
-function trustRank(tags: string[] = []) {
-  if (tags.includes('system_trust_veteran')) return 'Trusted User';
-  if (tags.includes('system_trust_trusted')) return 'Known User';
-  if (tags.includes('system_trust_known')) return 'User';
-  if (tags.includes('system_trust_basic')) return 'New User';
-  return 'Visitor';
-}
-const userImage = (u: any) =>
-  u.profilePicOverride || u.userIcon || u.currentAvatarImageUrl || u.currentAvatarThumbnailImageUrl;
-const userThumb = (u: any) => u.userIcon || u.profilePicOverride || u.currentAvatarThumbnailImageUrl;
-export const detailHref = (kind: Kind, id: string) => entityPath(kind, id);
-/* Quick-view modal from anywhere; DetailHost (mounted once in Atlas) renders it. Full pages live at /world/<id>, /user/<id>, /group/<id>. */
-export function openDetail(kind: Kind, id: string) {
-  window.dispatchEvent(new CustomEvent<Target>('vrcove:detail', { detail: { kind, id } }));
-}
-/* A plain click opens the quick view; modified clicks (new tab, etc.) and page-mode links go to the full page. */
-export function detailLink(kind: Kind, id: string, page = false) {
-  return {
-    href: detailHref(kind, id),
-    onClick: (e: any) => {
-      if (page || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button) return;
-      e.preventDefault();
-      openDetail(kind, id);
-    },
-  };
-}
-function useLoad(path: string | null, user: any) {
-  const [state, setState] = useState<{ path: string | null; data: any; error: string }>({
-    path: null,
-    data: null,
-    error: '',
-  });
-  useEffect(() => {
-    if (!path || !user) return;
-    let alive = true;
-    api(path)
-      .then((data) => {
-        if (alive) setState({ path, data, error: '' });
-      })
-      .catch((e) => {
-        if (alive) setState({ path, data: null, error: e.message });
-      });
-    return () => {
-      alive = false;
-    };
-  }, [path, user?.id]);
-  return state.path === path ? state : { path, data: null, error: '' };
-}
-/* Full, unfiltered VRChat JSON for an object, fetched only when opened. `local` adds another record to inspect (e.g. the catalog snapshot). */
-export function RawJson({
-  kind,
-  id,
-  user,
-  notify,
-  local,
-  localLabel = 'Our database',
-}: {
-  kind: RawKind;
-  id: string;
-  user: any;
-  notify: (s: string) => void;
-  local?: unknown;
-  localLabel?: string;
-}) {
-  useLocale();
-  const [open, setOpen] = useState(false),
-    [tab, setTab] = useState<'live' | 'local'>(user ? 'live' : 'local');
-  const live = useLoad(
-    open && user && tab === 'live' ? '/account/raw?kind=' + kind + '&id=' + encodeURIComponent(id) : null,
-    user,
-  );
-  const value = tab === 'local' ? local : live.data;
-  const text = value === undefined || value === null ? '' : JSON.stringify(value, null, 2);
-  function download() {
-    const url = URL.createObjectURL(new Blob([text], { type: 'application/json' })),
-      a = document.createElement('a');
-    a.href = url;
-    a.download = id + (tab === 'local' ? '.catalog' : '') + '.json';
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-  return (
-    <details className="raw-json" onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)}>
-      <summary>
-        {kind === 'avatar' ? (
-          <>
-            <Download size={14} />
-            {tr('View metadata')}
-          </>
-        ) : (
-          <>
-            <Braces size={14} />
-            {tr('View metadata')}
-          </>
-        )}
-      </summary>
-      {open && (
-        <div className="raw-json-body">
-          <div className="raw-json-bar">
-            {local !== undefined && (
-              <div className="chips">
-                <button className={tab === 'live' ? 'chosen' : ''} onClick={() => setTab('live')}>
-                  {tr('Live VRChat')}
-                </button>
-                <button className={tab === 'local' ? 'chosen' : ''} onClick={() => setTab('local')}>
-                  {localLabel}
-                </button>
-              </div>
-            )}
-            <span />
-            {text && (
-              <>
-                <button
-                  className="standard-button"
-                  onClick={() =>
-                    navigator.clipboard
-                      .writeText(text)
-                      .then(() => notify(tr('JSON copied')))
-                      .catch(() => notify(tr('Clipboard access is unavailable.')))
-                  }
-                >
-                  <Copy size={13} />
-                  {tr('Copy')}
-                </button>
-                <button className="standard-button" onClick={download}>
-                  <Download size={13} />
-                  {tr('Download')}
-                </button>
-              </>
-            )}
-          </div>
-          {tab === 'live' && !user ? (
-            <p className="fineprint">{tr('Connect your VRChat account to load the live record.')}</p>
-          ) : tab === 'live' && live.error ? (
-            <p className="fineprint">{live.error}</p>
-          ) : text ? (
-            <pre>{text}</pre>
-          ) : (
-            <div className="loading-inline">
-              <LoaderCircle size={14} className="spin" />
-              {tr('Loading…')}
-            </div>
-          )}
-        </div>
-      )}
-    </details>
-  );
-}
-function Section({ title, state, empty, children }: any) {
-  useLocale();
-  if (state.error)
-    return (
-      <section className="entity-section">
-        <h3>{title}</h3>
-        <p className="fineprint">{state.error}</p>
-      </section>
-    );
-  if (!state.data)
-    return (
-      <section className="entity-section">
-        <h3>{title}</h3>
-        <div className="loading-inline">
-          <LoaderCircle size={14} className="spin" />
-          {tr('Loading…')}
-        </div>
-      </section>
-    );
-  if (!state.data.length)
-    return empty ? (
-      <section className="entity-section">
-        <h3>{title}</h3>
-        <p className="fineprint">{empty}</p>
-      </section>
-    ) : null;
-  return (
-    <section className="entity-section">
-      <h3>
-        {title}
-        <small>{state.data.length}</small>
-      </h3>
-      {children}
-    </section>
-  );
-}
+import { Kind, detailHref, detailLink } from './detail-links';
+import { Section } from './detail-section';
+import { Photo } from './photo';
+import { RawJson } from './raw-json';
+import { useLoad } from '../lib/use-load';
+import {
+  count,
+  date,
+  joinStates,
+  platformName,
+  regionNames,
+  regionOf,
+  safeLinks,
+  trustRank,
+  userImage,
+  userThumb,
+} from '../lib/vrchat-format';
 export function DetailView({
   coveAccount,
   kind,
@@ -1050,78 +830,6 @@ export function DetailView({
             <ExternalLink size={12} />
           </a>
         </aside>
-      </div>
-    </div>
-  );
-}
-export default function DetailHost({ coveAccount, user, onLogin, notify }: any) {
-  useLocale();
-  const [stack, setStack] = useState<Target[]>([]);
-  const ref = useRef<HTMLDivElement>(null);
-  const target = stack.at(-1);
-  useEffect(() => {
-    const open = (e: Event) => {
-      const t = (e as CustomEvent<Target>).detail;
-      setStack((s) => (s.at(-1)?.id === t.id ? s : [...s, t].slice(-10)));
-    };
-    const close = () => setStack([]);
-    window.addEventListener('vrcove:detail', open);
-    window.addEventListener('hashchange', close);
-    return () => {
-      window.removeEventListener('vrcove:detail', open);
-      window.removeEventListener('hashchange', close);
-    };
-  }, []);
-  useEffect(() => {
-    if (!target) return;
-    ref.current?.focus();
-    const old = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = old;
-    };
-  }, [target?.id]);
-  if (!target) return null;
-  const close = () => setStack([]);
-  return (
-    <div
-      className="modal-backdrop"
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) close();
-      }}
-    >
-      <div
-        className="modal wide"
-        role="dialog"
-        aria-modal="true"
-        aria-label={target.kind + ' details'}
-        tabIndex={-1}
-        ref={ref}
-        onKeyDown={(e) => {
-          if (e.key === 'Escape') {
-            e.stopPropagation();
-            close();
-          }
-        }}
-      >
-        <button className="modal-close" onClick={close} aria-label={tr('Close')}>
-          ×
-        </button>
-        <DetailView
-          key={target.kind + target.id}
-          coveAccount={coveAccount}
-          kind={target.kind}
-          id={target.id}
-          user={user}
-          onLogin={() => {
-            close();
-            onLogin();
-          }}
-          notify={notify}
-          mode="modal"
-          onBack={stack.length > 1 ? () => setStack((s) => s.slice(0, -1)) : undefined}
-          onClose={close}
-        />
       </div>
     </div>
   );
