@@ -1,6 +1,6 @@
 # VRCove
 
-A privacy-focused VRChat web frontend, with avatar search built in.
+A privacy-focused VRChat web frontend, with avatar search built in. Works on PC, phone and Quest.
 
 [Website](https://vrcove.st) · [GitHub](https://github.com/Sorganeil/vrcove)
 
@@ -15,6 +15,14 @@ Browse avatars, worlds, users and groups. Link VRChat to manage friends, favorit
 - No friend-location history or play-time tracking. Account data loads only when you open a section or press Refresh.
 - Bookmarks and notes stay in your browser. You can export and import them as a backup.
 - Linked VRChat sessions are stored encrypted. The full breakdown of what is and isn't shared is on the site's privacy page.
+
+### Built for phones and Quest
+
+No PC? No problem. VRCove runs in any modern browser, so it works on Quest, Android, iPhone, iPad and other mobile-only setups, not just Windows.
+
+- Most VRChat tools are Windows desktop apps. VRCove brings avatar search, your friends list and account tools to Quest and phone players too.
+- Install it as an app (PWA) on Android or iOS and it opens full screen from your home screen, like a native app. On iPhone and iPad, use Share, then Add to Home Screen in Safari.
+- No Electron, bundled Chromium or separate webview to download. It runs on the browser you already have.
 
 ### Avatar search
 
@@ -31,11 +39,6 @@ Browse avatars, worlds, users and groups. Link VRChat to manage friends, favorit
 
 - Link VRChat to manage friends, friend requests, favorites, notifications and your current avatar.
 - See every avatar and world you've uploaded, including private ones.
-
-### Installable app (PWA)
-
-- Install VRCove from your browser on desktop or phone and it opens in its own window like a native app.
-- No Electron, bundled Chromium or separate webview to download. It runs on the browser you already have.
 
 ## Development
 
