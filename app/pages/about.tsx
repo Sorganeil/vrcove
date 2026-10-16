@@ -1,4 +1,4 @@
-import { t as tr, useLocale } from './i18n';
+import { t as tr, useLocale } from '../lib/i18n';
 import {
   ShieldCheck,
   Search,

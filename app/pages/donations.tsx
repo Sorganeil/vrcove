@@ -1,4 +1,4 @@
-import { t as tr, useLocale } from './i18n';
+import { t as tr, useLocale } from '../lib/i18n';
 import { useState } from 'react';
 import { Heart, Copy, Check, ArrowUpRight, Bitcoin } from 'lucide-react';
 

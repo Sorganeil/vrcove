@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import catalogs from './locales/messages.json';
+import catalogs from '../locales/messages.json';
 
 export const languages = [
   { code: 'en', name: 'English' },

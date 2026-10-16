@@ -1,6 +1,6 @@
-import { t as tr, useLocale } from './i18n';
+import { t as tr, useLocale } from '../lib/i18n';
 import { ShieldCheck, ArrowUpRight } from 'lucide-react';
-import { useVRChatSession, type VRChatSessionIssue } from './api';
+import { useVRChatSession, type VRChatSessionIssue } from '../lib/api';
 // Signed-out prompt shared by every page that needs a linked VRChat session.
 // A session that expired or was revoked says reconnect; a browser that never connected says connect.
 export function gateTitle(coveAccount: any, issue: VRChatSessionIssue | null) {

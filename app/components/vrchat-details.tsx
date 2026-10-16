@@ -1,11 +1,11 @@
 import VRChatGate from './vrchat-gate';
 import UserStatus from './user-status';
-import { entityPath, copyEntityLink } from './routes';
-import { api } from './api';
-import { formatDate, formatNumber, t as tr, useLocale } from './i18n';
+import { entityPath, copyEntityLink } from '../lib/routes';
+import { api } from '../lib/api';
+import { formatDate, formatNumber, t as tr, useLocale } from '../lib/i18n';
 import { useState, useEffect, useRef } from 'react';
-import { Reviews } from './cove-account';
-import { AddToCollection } from './cove-social';
+import { Reviews } from '../pages/cove-account';
+import { AddToCollection } from '../pages/cove-social';
 import {
   Users,
   Globe2,
@@ -20,7 +20,6 @@ import {
   ChevronLeft,
   Copy,
   Maximize2,
-  ShieldCheck,
   BadgeCheck,
   LogIn,
   LogOut,

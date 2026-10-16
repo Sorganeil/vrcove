@@ -1,9 +1,9 @@
-import VRChatGate from './vrchat-gate';
-import { api } from './api';
-import { formatDate, t as tr, useLocale } from './i18n';
+import VRChatGate from '../components/vrchat-gate';
+import { api } from '../lib/api';
+import { formatDate, t as tr, useLocale } from '../lib/i18n';
 import { useState, useEffect } from 'react';
-import { LoaderCircle, ShieldCheck, Upload, Monitor, Smartphone, Users, RefreshCw } from 'lucide-react';
-import { detailLink } from './vrchat-details';
+import { LoaderCircle, Upload, Monitor, Smartphone, Users, RefreshCw } from 'lucide-react';
+import { detailLink } from '../components/vrchat-details';
 function Photo({ url, name }: any) {
   useLocale();
   const [fail, setFail] = useState(false);

@@ -1,9 +1,9 @@
-import { gateTitle } from './vrchat-gate';
-import UserStatus, { userPresence } from './user-status';
-import { api, useVRChatSession } from './api';
-import { t as tr, useLocale } from './i18n';
+import { gateTitle } from '../components/vrchat-gate';
+import UserStatus, { userPresence } from '../components/user-status';
+import { api, useVRChatSession } from '../lib/api';
+import { t as tr, useLocale } from '../lib/i18n';
 import { useState, useEffect } from 'react';
-import { detailLink } from './vrchat-details';
+import { detailLink } from '../components/vrchat-details';
 import {
   Users,
   Globe2,

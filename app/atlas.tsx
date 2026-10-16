@@ -1,6 +1,6 @@
-import VRChatGate from './vrchat-gate';
-import UserStatus from './user-status';
-import { entityPath, copyEntityLink, type EntityKind } from './routes';
+import VRChatGate from './components/vrchat-gate';
+import UserStatus from './components/user-status';
+import { entityPath, copyEntityLink, type EntityKind } from './lib/routes';
 import {
   api,
   useVRChatSession,
@@ -8,11 +8,11 @@ import {
   vrchatAccountState,
   resetVRChatSession,
   expireVRChatSession,
-} from './api';
-import LanguagePicker from './language-picker';
-import { formatDate, t as tr, useLocale } from './i18n';
+} from './lib/api';
+import LanguagePicker from './components/language-picker';
+import { formatDate, t as tr, useLocale } from './lib/i18n';
 import { useState, useEffect, useRef, type ComponentType } from 'react';
-import Dashboard from './dashboard';
+import Dashboard from './pages/dashboard';
 import {
   HomeIcon,
   AvatarIcon,
@@ -25,16 +25,16 @@ import {
   BookmarkIcon,
   NotificationIcon,
   SettingsIcon,
-} from './nav-icons';
-import BrowserTools from './browser-tools';
-import SearchPalette from './search-palette';
-import DetailHost, { DetailView, RawJson, detailLink, type Kind } from './vrchat-details';
-import MyUploads from './my-uploads';
-import InstallApp from './install-app';
-import Donations from './donations';
-import About from './about';
-import AccountPage, { Reviews, CovePicture } from './cove-account';
-import { ProfilePage, CollectionsPage, CollectionPage, AddToCollection } from './cove-social';
+} from './components/nav-icons';
+import BrowserTools from './pages/browser-tools';
+import SearchPalette from './components/search-palette';
+import DetailHost, { DetailView, RawJson, detailLink, type Kind } from './components/vrchat-details';
+import MyUploads from './pages/my-uploads';
+import InstallApp from './components/install-app';
+import Donations from './pages/donations';
+import About from './pages/about';
+import AccountPage, { Reviews, CovePicture } from './pages/cove-account';
+import { ProfilePage, CollectionsPage, CollectionPage, AddToCollection } from './pages/cove-social';
 import {
   Compass,
   Search,

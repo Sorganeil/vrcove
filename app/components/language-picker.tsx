@@ -1,5 +1,5 @@
 import { Languages } from 'lucide-react';
-import { languages, setLocale, t, useLocale, type Locale } from './i18n';
+import { languages, setLocale, t, useLocale, type Locale } from '../lib/i18n';
 
 export default function LanguagePicker({ compact = false }: { compact?: boolean }) {
   const locale = useLocale();

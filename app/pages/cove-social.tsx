@@ -1,5 +1,5 @@
-import { entityPath, covePath, appLink, goTo, openQuickView, type EntityKind } from './routes';
-import { t as tr, useLocale } from './i18n';
+import { entityPath, covePath, appLink, goTo, openQuickView, type EntityKind } from '../lib/routes';
+import { t as tr, useLocale } from '../lib/i18n';
 import { useState, useEffect, useRef } from 'react';
 import {
   LoaderCircle,

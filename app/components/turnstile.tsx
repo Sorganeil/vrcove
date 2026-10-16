@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { t as tr, useLocale } from './i18n';
+import { t as tr, useLocale } from '../lib/i18n';
 
 declare global {
   interface Window {

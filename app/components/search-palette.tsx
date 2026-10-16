@@ -1,5 +1,5 @@
-import { api } from './api';
-import { t as tr, useLocale } from './i18n';
+import { api } from '../lib/api';
+import { t as tr, useLocale } from '../lib/i18n';
 import { useState, useEffect, useRef } from 'react';
 import { Search, X, LoaderCircle, UserRound, ArrowUpRight, ShieldCheck } from 'lucide-react';
 import { openDetail, type Kind } from './vrchat-details';

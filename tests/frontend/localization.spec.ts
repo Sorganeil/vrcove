@@ -118,7 +118,7 @@ test('formats dates and numbers in the chosen language and retains English fallb
   await page.goto('/');
   await page.locator('.topbar select').selectOption('de');
   const result = await page.evaluate(async () => {
-    const path = '/app/i18n.ts';
+    const path = '/app/lib/i18n.ts';
     const i18n = await import(/* @vite-ignore */ path);
     return {
       number: i18n.formatNumber(12345.5),

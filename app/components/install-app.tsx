@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Download, Share, SquarePlus, X } from 'lucide-react';
-import { t as tr, useLocale } from './i18n';
+import { t as tr, useLocale } from '../lib/i18n';
 
 type PromptEvent = Event & {
   prompt: () => Promise<void>;

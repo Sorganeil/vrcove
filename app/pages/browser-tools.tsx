@@ -1,10 +1,10 @@
-import VRChatGate from './vrchat-gate';
-import { api } from './api';
-import LanguagePicker from './language-picker';
-import { t as tr, useLocale } from './i18n';
+import VRChatGate from '../components/vrchat-gate';
+import { api } from '../lib/api';
+import LanguagePicker from '../components/language-picker';
+import { t as tr, useLocale } from '../lib/i18n';
 import { useState, useEffect, useRef } from 'react';
-import PrivacyApproach from './privacy-approach';
-import { detailLink, Photo } from './vrchat-details';
+import PrivacyApproach from '../components/privacy-approach';
+import { detailLink, Photo } from '../components/vrchat-details';
 import {
   Search,
   Users,

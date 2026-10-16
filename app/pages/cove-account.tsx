@@ -1,8 +1,8 @@
-import { api, useVRChatSession, useSessionTime, vrchatAccountState } from './api';
-export { api, ApiError } from './api';
-import { formatDate, t as tr, useLocale } from './i18n';
+import { api, useVRChatSession, useSessionTime, vrchatAccountState } from '../lib/api';
+export { api, ApiError } from '../lib/api';
+import { formatDate, t as tr, useLocale } from '../lib/i18n';
 import { useState, useEffect } from 'react';
-import Turnstile from './turnstile';
+import Turnstile from '../components/turnstile';
 import {
   ShieldCheck,
   LoaderCircle,
@@ -27,7 +27,7 @@ import {
   Tablet,
   X,
 } from 'lucide-react';
-import { covePath, appLink } from './routes';
+import { covePath, appLink } from '../lib/routes';
 type Me = {
   recoveryCodesRemaining: number;
   picture: string;

@@ -1,4 +1,4 @@
-import { t as tr, useLocale } from './i18n';
+import { t as tr, useLocale } from '../lib/i18n';
 
 type Presence = { status?: string; statusDescription?: string; state?: string; location?: string };
 export function userPresence(user: Presence, offline?: boolean) {
