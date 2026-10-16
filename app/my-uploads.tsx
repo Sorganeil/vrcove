@@ -1,3 +1,4 @@
+import VRChatGate from './vrchat-gate';
 import {api} from './api';
 import {formatDate,t as tr,useLocale} from './i18n';
 import {useState,useEffect} from 'react';
@@ -7,12 +8,12 @@ function Photo({url,name}:any){useLocale();const [fail,setFail]=useState(false);
 const date=(s?:string)=>s&&Number.isFinite(new Date(s).getTime())?formatDate(s):'-';
 const platforms=(item:any)=>new Set<string>((item.unityPackages||[]).filter((p:any)=>p.variant!=='impostor').map((p:any)=>p.platform));
 /* Avatars and worlds uploaded by the signed-in account, including private ones. */
-export default function MyUploads({user,onLogin,onAvatar}:{user:any;onLogin:()=>void;onAvatar:(raw:any)=>void}){useLocale();
+export default function MyUploads({coveAccount,user,onLogin,onAvatar}:{coveAccount:any;user:any;onLogin:()=>void;onAvatar:(raw:any)=>void}){useLocale();
  const [kind,setKind]=useState<'avatars'|'worlds'>('avatars'),[status,setStatus]=useState('all'),[offset,setOffset]=useState(0),[reload,setReload]=useState(0);
  const [state,setState]=useState<{key:string;rows:any[]|null;error:string}>({key:'',rows:null,error:''});
  const key=kind+':'+offset+':'+reload;
  useEffect(()=>{if(!user)return;let alive=true;api('/account/my-'+kind+'?offset='+offset).then(rows=>{if(alive)setState({key,rows:Array.isArray(rows)?rows:[],error:''});}).catch(e=>{if(alive)setState({key,rows:null,error:e.message});});return()=>{alive=false;};},[key,user?.id]);
- if(!user)return <div className="empty-state"><ShieldCheck size={30}/><h3>{tr("Connect your VRChat account")}</h3><p>{tr("Your uploaded avatars and worlds load from your VRChat session.")}</p><button className="primary" onClick={onLogin}>{tr("Connect VRChat")}</button></div>;
+ if(!user)return <VRChatGate coveAccount={coveAccount} section={tr("My uploads")} onConnect={onLogin}/>;
  const current=state.key===key?state:{rows:null,error:''};
  const rows=(current.rows||[]).filter(r=>status==='all'||r.releaseStatus===status);
  return <div className="entity-page uploads-page"><div className="page-title"><div><h1>{tr("My uploads")}</h1><p>{tr("Avatars and worlds published from your account, including private ones.")}</p></div><button className="standard-button" onClick={()=>setReload(r=>r+1)}><RefreshCw size={14}/>{tr("Refresh")}</button></div>

@@ -8,7 +8,7 @@ const types=[['avatars','Avatars'],['users','People'],['worlds','Worlds'],['grou
 type Type=typeof types[number][0];
 type Row={key:string;name:string;sub:string;image?:string;wide?:boolean;open:()=>void};
 /* Pop-up search over the whole app: avatars come from the public catalog, everything else from the VRChat session. */
-export default function SearchPalette({close,user,onLogin,onAvatar}:{close:()=>void;user:any;onLogin:()=>void;onAvatar:(a:any)=>void}){useLocale();
+export default function SearchPalette({coveAccount,close,user,onLogin,onAvatar}:{coveAccount:any;close:()=>void;user:any;onLogin:()=>void;onAvatar:(a:any)=>void}){useLocale();
  const [type,setType]=useState<Type>('avatars'),[q,setQ]=useState(''),[rows,setRows]=useState<Row[]>([]),[busy,setBusy]=useState(false),[error,setError]=useState(''),[active,setActive]=useState(0);
  const input=useRef<HTMLInputElement>(null),dialog=useRef<HTMLDivElement>(null);
  const needsLogin=type!=='avatars'&&!user;
@@ -26,7 +26,7 @@ export default function SearchPalette({close,user,onLogin,onAvatar}:{close:()=>v
   <div className="palette-input"><Search size={20}/><input ref={input} value={q} onChange={e=>setQ(e.target.value)} onKeyDown={keys} maxLength={100} placeholder={tr('Search {type}…',{type:tr(types.find(t=>t[0]===type)![1])})} aria-label={tr("Search")} role="combobox" aria-expanded={rows.length>0} aria-controls="palette-results" aria-activedescendant={rows[active]?'palette-'+active:undefined}/>{busy?<LoaderCircle className="spin" size={18}/>:q&&<button aria-label={tr("Clear search")} onClick={()=>{setQ('');input.current?.focus();}}><X size={16}/></button>}<button className="palette-esc" onClick={close} aria-label={tr("Close search")}>Esc</button></div>
   <div className="chips palette-types" role="tablist">{types.map(([v,l])=><button key={v} role="tab" aria-selected={type===v} className={type===v?'chosen':''} onClick={()=>{setType(v);input.current?.focus();}}>{tr(l)}</button>)}</div>
   <div className="palette-results" id="palette-results" role="listbox">
-   {needsLogin?<div className="palette-empty"><ShieldCheck size={24}/><p>{tr("Connect your VRChat account to search {type}.",{type:tr(types.find(t=>t[0]===type)![1])})}</p><button className="primary" onClick={()=>{close();onLogin();}}>{tr("Connect VRChat")}</button></div>
+   {needsLogin?<div className="palette-empty"><ShieldCheck size={24}/><p>{tr(coveAccount?"Link VRChat to search {type}.":"Sign in to VRCove and link VRChat to search {type}.",{type:tr(types.find(t=>t[0]===type)![1])})}</p><button className="primary" onClick={()=>{close();onLogin();}}>{tr("Connect VRChat")}</button></div>
    :error?<div className="error-banner" role="alert">{error}</div>
    :!q.trim()?<div className="palette-empty"><p>{tr("Type to search. Use ↑ ↓ to move, Enter to open, Tab to switch type.")}</p></div>
    :!busy&&!rows.length?<div className="palette-empty"><p>{tr("No results for “{query}”.",{query:q.trim()})}</p></div>

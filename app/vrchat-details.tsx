@@ -1,3 +1,4 @@
+import VRChatGate from './vrchat-gate';
 import UserStatus from './user-status';
 import {entityPath,copyEntityLink} from './routes';
 import {api} from './api';
@@ -55,7 +56,7 @@ function Section({title,state,empty,children}:any){useLocale();
  if(!state.data.length)return empty?<section className="entity-section"><h3>{title}</h3><p className="fineprint">{empty}</p></section>:null;
  return <section className="entity-section"><h3>{title}<small>{state.data.length}</small></h3>{children}</section>;
 }
-export function DetailView({kind,id,user,onLogin,notify,mode,onBack,onClose}:{kind:Kind;id:string;user:any;onLogin:()=>void;notify:(s:string)=>void;mode:'page'|'modal';onBack?:()=>void;onClose?:()=>void}){useLocale();
+export function DetailView({coveAccount,kind,id,user,onLogin,notify,mode,onBack,onClose}:{coveAccount:any;kind:Kind;id:string;user:any;onLogin:()=>void;notify:(s:string)=>void;mode:'page'|'modal';onBack?:()=>void;onClose?:()=>void}){useLocale();
  const page=mode==='page';
  const main=useLoad(user?'/account/'+kind+'?id='+id:null,user);
  const [patch,setPatch]=useState<any>({}),[busy,setBusy]=useState(''),[confirm,setConfirm]=useState<any>(null),[region,setRegion]=useState('us');
@@ -77,7 +78,7 @@ export function DetailView({kind,id,user,onLogin,notify,mode,onBack,onClose}:{ki
  const confirmBox=confirm&&<div className="detail-confirm" role="alertdialog" aria-label={tr("Confirm action")}><p>{confirm.text}</p><button className="primary" disabled={!!busy} onClick={async()=>{const r=await act(confirm.action,confirm.id,confirm.done);if(r)setPatch((p:any)=>({...p,...confirm.patch}));}}>{tr("Confirm")}</button><button className="standard-button" onClick={()=>setConfirm(null)}>{tr("Cancel")}</button></div>;
  const toolbar=<div className="detail-toolbar"><button className="text-link" onClick={()=>copyEntityLink(kind,id).then(()=>notify(tr("Link copied"))).catch(()=>notify(tr("Clipboard access is unavailable.")))}><Copy size={13}/>{tr("Copy link")}</button>{onBack&&<button className="text-link" onClick={onBack}><ChevronLeft size={14}/>{tr("Back")}</button>}{!page&&<a className="text-link" href={detailHref(kind,id)} onClick={()=>onClose?.()}><Maximize2 size={13}/>{tr("Open full page")}</a>}</div>;
  const idRow=<div className="avatar-id"><code>{id}</code><button aria-label={tr("Copy ID")} onClick={()=>navigator.clipboard.writeText(id).then(()=>notify(tr("ID copied"))).catch(()=>notify(tr("Clipboard access is unavailable.")))}><Copy size={14}/></button></div>;
- if(!user)return <div className={page?'entity-page':'confirm-content'}>{toolbar}<div className="empty-state"><ShieldCheck size={30}/><h3>{tr("Connect your VRChat account")}</h3><p>{tr("Worlds, profiles and groups load from your VRChat session.")}</p><button className="primary" onClick={onLogin}>{tr("Connect VRChat")}</button></div>{page&&<Reviews kind={kind} id={id}/>}</div>;
+ if(!user)return <div className={page?'entity-page':'confirm-content'}>{toolbar}<VRChatGate coveAccount={coveAccount} section={tr(kind==='world'?"this world":kind==='user'?"this profile":"this group")} onConnect={onLogin}/>{page&&<Reviews kind={kind} id={id}/>}</div>;
  if(!data)return <div className={page?'entity-page':'confirm-content'}>{toolbar}{main.error?<div className="empty-state"><h3>{tr("Unavailable")}</h3><p>{main.error}</p></div>:<div className="loading-state"><LoaderCircle className="spin"/>{tr("Loading from VRChat…")}</div>}</div>;
 
  let image,eyebrow,title,subtitle,body,meta,actions,extras;
@@ -123,7 +124,7 @@ export function DetailView({kind,id,user,onLogin,notify,mode,onBack,onClose}:{ki
  return <div className="entity-page">{toolbar}<div className={'entity-hero '+kind}><div className="entity-hero-image">{image}</div><div className="entity-hero-copy"><div className="eyebrow">{eyebrow}</div><h1>{title}</h1><p className="creator">{subtitle}</p></div></div>
   <div className="entity-layout"><div className="entity-main">{body}{actions}{confirmBox}{extras}<Reviews kind={kind} id={id} name={typeof data.name==='string'?data.name:data.displayName}/><RawJson kind={kind} id={id} user={user} notify={notify}/></div><aside className="entity-aside"><div className="detail-meta">{meta}</div>{idRow}<a className="text-link" href={'https://vrchat.com/home/'+kind+'/'+id} target="_blank" rel="noreferrer">{tr("Open on vrchat.com")}<ExternalLink size={12}/></a></aside></div></div>;
 }
-export default function DetailHost({user,onLogin,notify}:any){useLocale();
+export default function DetailHost({coveAccount,user,onLogin,notify}:any){useLocale();
  const [stack,setStack]=useState<Target[]>([]);const ref=useRef<HTMLDivElement>(null);const target=stack.at(-1);
  useEffect(()=>{const open=(e:Event)=>{const t=(e as CustomEvent<Target>).detail;setStack(s=>s.at(-1)?.id===t.id?s:[...s,t].slice(-10));};const close=()=>setStack([]);window.addEventListener('vrcove:detail',open);window.addEventListener('hashchange',close);return()=>{window.removeEventListener('vrcove:detail',open);window.removeEventListener('hashchange',close);};},[]);
  useEffect(()=>{if(!target)return;ref.current?.focus();const old=document.body.style.overflow;document.body.style.overflow='hidden';return()=>{document.body.style.overflow=old;};},[target?.id]);
@@ -131,6 +132,6 @@ export default function DetailHost({user,onLogin,notify}:any){useLocale();
  const close=()=>setStack([]);
  return <div className="modal-backdrop" onMouseDown={e=>{if(e.target===e.currentTarget)close();}}><div className="modal wide" role="dialog" aria-modal="true" aria-label={target.kind+' details'} tabIndex={-1} ref={ref} onKeyDown={e=>{if(e.key==='Escape'){e.stopPropagation();close();}}}>
   <button className="modal-close" onClick={close} aria-label={tr("Close")}>×</button>
-  <DetailView key={target.kind+target.id} kind={target.kind} id={target.id} user={user} onLogin={()=>{close();onLogin();}} notify={notify} mode="modal" onBack={stack.length>1?()=>setStack(s=>s.slice(0,-1)):undefined} onClose={close}/>
+  <DetailView key={target.kind+target.id} coveAccount={coveAccount} kind={target.kind} id={target.id} user={user} onLogin={()=>{close();onLogin();}} notify={notify} mode="modal" onBack={stack.length>1?()=>setStack(s=>s.slice(0,-1)):undefined} onClose={close}/>
  </div></div>;
 }
