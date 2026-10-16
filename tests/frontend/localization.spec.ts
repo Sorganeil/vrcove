@@ -30,7 +30,8 @@ test('switching language preserves account input and route, settings selectors s
  await page.locator('.topbar select').selectOption('uk');
  await expect(username).toHaveValue('draft_username');
  await expect(page.getByRole('button',{name:'Створити обліковий запис',exact:true})).toBeVisible();
- expect(new URL(page.url()).hash).toBe('#account');
+ // Old #account links are rewritten to the shareable path.
+ expect(new URL(page.url()).pathname).toBe('/account');
  await page.goto('/#settings');
  await expect(page.locator('.language-settings select')).toHaveValue('uk');
  await page.locator('.language-settings select').selectOption('ja');

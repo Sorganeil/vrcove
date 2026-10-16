@@ -45,3 +45,13 @@ test('avatar deep links and legacy links open the correct page',async({page})=>{
  await expect(page).toHaveURL(new RegExp('/avatar/'+avatar+'$'));
  await expect(page.getByRole('heading',{name:'Shared Avatar',exact:true})).toBeVisible();
 });
+
+test('old # section links become shareable paths and the app renders no # links',async({page})=>{
+ await page.goto('/#about');
+ await expect(page).toHaveURL(/\/about$/);
+ await expect(page.getByRole('heading',{name:'VRChat in your browser, without the tracking.'})).toBeVisible();
+ await page.goto('/#home');
+ await expect(page).toHaveURL(/:\d+\/$/);
+ await page.goto('/account');
+ await expect(page.locator('a[href^="#"]')).toHaveCount(0);
+});
