@@ -11,7 +11,9 @@
     "build": "tsc --noEmit && vite build",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test:frontend": "playwright test"
+    "test:frontend": "playwright test",
+    "format": "prettier --write app tests",
+    "format:check": "prettier --check app tests"
   },
   "dependencies": {
     "lucide-react": "^1.31.0",
@@ -29,6 +31,7 @@
     "eslint": "9.39.4",
     "eslint-plugin-react-hooks": "7.1.1",
     "globals": "14.0.0",
+    "prettier": "3.9.9",
     "tailwindcss": "4.2.1",
     "typescript": "5.9.3",
     "typescript-eslint": "8.59.3",
