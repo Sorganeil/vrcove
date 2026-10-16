@@ -3,7 +3,7 @@ export {api,ApiError} from './api';
 import {formatDate,t as tr,useLocale} from './i18n';
 import {useState,useEffect} from 'react';
 import Turnstile from './turnstile';
-import {ShieldCheck,LoaderCircle,Link2,Unlink,LogOut,KeyRound,Trash2,Star,UserRound,TriangleAlert,ArrowRight,Check,EyeOff,Globe2,Lock,Library,ArrowUpRight} from 'lucide-react';
+import {ShieldCheck,LoaderCircle,Link2,Unlink,LogOut,KeyRound,Trash2,Star,UserRound,TriangleAlert,ArrowRight,Check,EyeOff,Globe2,Lock,Library,ArrowUpRight,Upload} from 'lucide-react';
 type Me={recoveryCodesRemaining:number;picture:string;username:string;created:string;bio:string;status:string;public:boolean;links:{id:number;vrchatId:string;displayName:string;username?:string;linked:string;active?:boolean;sessionExpires?:number}[]};
 export const day=(s:string)=>{const d=new Date(s+'T00:00:00Z');return isNaN(+d)?s:formatDate(d.toISOString(),{year:'numeric',month:'short',day:'numeric',timeZone:'UTC'});};
 /* Mirrors similarNames in internal/server/accounts.go. */
@@ -82,7 +82,7 @@ export default function AccountPage({user,configured,onLogin,notify,onAccountCha
    <div className="cove-panel"><div className="eyebrow">{tr("SIGNED IN")}</div><h3><CovePicture picture={me.picture} username={me.username} size={40}/>{me.username}</h3><p className="fineprint">{tr("Member since")} {day(me.created)}{tr(". Your username is public on your reviews.")}</p><button className="standard-button" disabled={!!busy} onClick={logout}><LogOut size={14}/>{tr("Sign out")}</button></div>
    <div className="cove-panel login-content"><div className="eyebrow">{tr("PROFILE PICTURE")}</div><h3>{tr("Your VRCove picture")}</h3>
     <CovePicture picture={me.picture} username={me.username} size={80}/>
-    <label>{tr("Upload profile picture")}<input type="file" accept="image/png,image/jpeg,image/gif" disabled={!!busy} onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(file)void uploadPicture(file);}}/></label>
+    <label className={'standard-button picture-upload'+(busy?' disabled':'')}><Upload size={14}/>{tr("Upload profile picture")}<input type="file" accept="image/png,image/jpeg,image/gif" disabled={!!busy} onChange={e=>{const file=e.target.files?.[0];e.target.value='';if(file)void uploadPicture(file);}}/></label>
     <p className="fineprint">{tr("PNG, JPEG or GIF, up to 2 MB. Pictures are cropped to a square. Visible to others when your profile is public.")}</p>
     {busy==='picture'&&<span role="status"><LoaderCircle size={14} className="spin"/>{tr("Saving picture…")}</span>}
     {me.picture&&<button className="standard-button" disabled={!!busy} onClick={removePicture}><Trash2 size={14}/>{tr("Remove picture")}</button>}
