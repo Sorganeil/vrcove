@@ -34,7 +34,7 @@ func TestLinkedSessionFailures(t *testing.T) {
 					t.Error("late session failure can overwrite another active account")
 				}
 			}
-			if got := h.do(get("/veil/me")); got.Code != 200 {
+			if got := h.do(get("/cove/me")); got.Code != 200 {
 				t.Fatal("session failure signed out VRCove")
 			}
 		})

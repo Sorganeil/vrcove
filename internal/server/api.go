@@ -25,7 +25,7 @@ var (
 
 const (
 	pendingLifetime = 10 * time.Minute
-	sessionLifetime = 12 * time.Hour
+	sessionLifetime = 14 * 24 * time.Hour
 )
 
 // jsLength counts UTF-16 code units, matching the frontend's length limits.
@@ -44,13 +44,17 @@ func (s *Server) handleAPI(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	p := r.URL.Path[len("/api"):]
+	// Cached pages and shared picture links may still use the old prefix.
+	if rest, ok := strings.CutPrefix(p, "/veil/"); ok {
+		p = "/cove/" + rest
+	}
 	if r.Method != http.MethodGet {
 		if r.Header.Get("Origin") != s.cfg.PublicOrigin {
 			writeError(w, http.StatusForbidden, "Request origin did not match.")
 			return
 		}
 		limit := int64(8192)
-		if p == "/veil/picture" {
+		if p == "/cove/picture" {
 			limit = maxAccountPictureBytes
 		}
 		if r.ContentLength > limit {
@@ -79,8 +83,8 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, p string) error {
 	case p == "/image":
 		return s.image(w, r)
 	}
-	if rest, ok := strings.CutPrefix(p, "/veil/"); ok {
-		return s.veil(w, r, rest)
+	if rest, ok := strings.CutPrefix(p, "/cove/"); ok {
+		return s.cove(w, r, rest)
 	}
 	if s.cfg.SessionKey == nil {
 		writeError(w, http.StatusServiceUnavailable, "Account connection is not configured on this deployment.")

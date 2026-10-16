@@ -22,7 +22,7 @@ func (s *Server) accountPictureURL(r *http.Request, id int64, username string) s
 	if err := s.accounts.QueryRowContext(r.Context(), "SELECT version FROM account_pictures WHERE account_id = ?", id).Scan(&version); err != nil {
 		return ""
 	}
-	return "/api/veil/picture?username=" + url.QueryEscape(username) + "&v=" + version
+	return "/api/cove/picture?username=" + url.QueryEscape(username) + "&v=" + version
 }
 
 func (s *Server) saveAccountPicture(w http.ResponseWriter, r *http.Request, a *account) error {

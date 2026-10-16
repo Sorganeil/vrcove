@@ -8,14 +8,14 @@ async function setup(page:Page){
  let betaExpires=expires;
  let alphaExpires=expires;
  const headers=()=>({'X-VRChat-Session-Expires':String(expires),'X-VRChat-Session-User':active.id});
- const account=()=>({username:'veil_identity',created:'2026-10-15',bio:'',public:false,picture:'',links:[alpha,beta].map((u,i)=>({id:i+1,vrchatId:u.id,displayName:u.displayName,username:i===0?'alpha_login':'beta_login',linked:'2026-10-15',active:active.id===u.id,sessionExpires:i===1?betaExpires:alphaExpires}))});
+ const account=()=>({username:'cove_identity',created:'2026-10-15',bio:'',public:false,picture:'',links:[alpha,beta].map((u,i)=>({id:i+1,vrchatId:u.id,displayName:u.displayName,username:i===0?'alpha_login':'beta_login',linked:'2026-10-15',active:active.id===u.id,sessionExpires:i===1?betaExpires:alphaExpires}))});
  await page.route('**/api/stats',r=>r.fulfill({json:{accountsConfigured:true,loginConfigured:true,indexed:0}}));
- await page.route('**/api/veil/me',r=>r.fulfill({json:account()}));
+ await page.route('**/api/cove/me',r=>r.fulfill({json:account()}));
  await page.route('**/api/account/me',r=>r.fulfill({headers:headers(),json:active}));
  await page.route('**/api/account/user?*',r=>{const id=new URL(r.request().url()).searchParams.get('id');return r.fulfill({json:id===active.id?active:id===alpha.id?alpha:beta});});
  await page.route('**/api/account/user-worlds?*',r=>r.fulfill({json:[]}));
  await page.route('**/api/account/user-groups?*',r=>r.fulfill({json:[]}));
- await page.route('**/api/veil/reviews?*',r=>r.fulfill({status:503,json:{error:'disabled'}}));
+ await page.route('**/api/cove/reviews?*',r=>r.fulfill({status:503,json:{error:'disabled'}}));
  await page.route('**/api/catalog?*',r=>r.fulfill({json:{avatars:[],total:0}}));
  await page.route('**/api/account/switch',r=>{active=r.request().postDataJSON().id===1?alpha:beta;return r.fulfill({headers:headers(),json:{user:active}});});
  return {get active(){return active;},set active(next){active=next;},set betaExpires(next:number){betaExpires=next;},set alphaExpires(next:number){alphaExpires=next;},headers};
@@ -34,7 +34,7 @@ test('multiple linked accounts switch active profiles and subsequent actions use
  await selector(page).selectOption(beta.id);
  await expect(page.locator('.my-vrchat-profile .entity-hero h1')).toHaveText(beta.displayName);
  await expect(page.locator('.my-vrchat-profile .description')).toHaveText(beta.bio);
- await expect(page.locator('.account-chip')).toHaveText('veil_identity');
+ await expect(page.locator('.account-chip')).toHaveText('cove_identity');
  await page.getByRole('button',{name:'Edit profile',exact:true}).click();
  const dialog=page.getByRole('dialog',{name:'Edit profile'});
  await dialog.getByLabel('Bio',{exact:false}).fill('Only Beta changes');
@@ -42,7 +42,7 @@ test('multiple linked accounts switch active profiles and subsequent actions use
  await expect(dialog).toHaveCount(0);
  await expect(page.locator('.my-vrchat-profile .description')).toHaveText('Only Beta changes');
  await page.evaluate(()=>{window.location.hash='#account';});
- const row=page.locator('.veil-links li').filter({hasText:alpha.displayName});
+ const row=page.locator('.cove-links li').filter({hasText:alpha.displayName});
  await row.getByRole('button',{name:'Use account',exact:true}).click();
  await expect(selector(page)).toHaveValue(alpha.id);
  await expect(row.getByRole('button',{name:'Active',exact:true})).toBeDisabled();
@@ -63,7 +63,7 @@ test('reconnecting a chosen account supports two-factor verification and keeps t
  await page.route('**/api/account/2fa',r=>{state.active=beta;state.betaExpires=Date.now()+3_600_000;return r.fulfill({headers:state.headers(),json:{user:beta}});});
  await page.goto('/#account');
  await expect(selector(page)).toHaveValue(alpha.id);
- await page.locator('.veil-links li').filter({hasText:beta.displayName}).getByRole('button',{name:'Reconnect',exact:true}).click();
+ await page.locator('.cove-links li').filter({hasText:beta.displayName}).getByRole('button',{name:'Reconnect',exact:true}).click();
  const dialog=page.getByRole('dialog',{name:'Connect VRChat'});
  await expect(dialog.getByLabel('VRChat username')).toHaveValue('beta_login');
  await expect(dialog.getByLabel('Password',{exact:true})).toHaveValue('');
@@ -82,7 +82,7 @@ test('reconnecting a chosen account supports two-factor verification and keeps t
  await dialog.getByRole('button',{name:'Verify & connect',exact:true}).click();
  await expect(dialog).toHaveCount(0);
  await expect(selector(page)).toHaveValue(beta.id);
- await expect(page.locator('.account-chip')).toHaveText('veil_identity');
+ await expect(page.locator('.account-chip')).toHaveText('cove_identity');
 });
 
 test('an expired or invalid target does not disconnect the active account',async({page})=>{
@@ -144,7 +144,7 @@ test('verified active sessions override stale link metadata and revoked sessions
  state.alphaExpires=0;
  state.betaExpires=0;
  await page.goto('/#account');
- const row=page.locator('.veil-links li').filter({hasText:alpha.displayName});
+ const row=page.locator('.cove-links li').filter({hasText:alpha.displayName});
  await expect(row.getByRole('button',{name:'Active',exact:true})).toBeDisabled();
  await expect(row).toContainText('Active session in this browser');
  await expect(row).not.toContainText('Reconnect to use this account');

@@ -5,7 +5,7 @@ const missing='wrld_00000000-0000-0000-0000-000000000004';
 const avatar='avtr_00000000-0000-0000-0000-000000000005';
 
 test('favorites switches between avatars and paginated worlds, including unavailable worlds',async({page})=>{
- await page.route('**/api/veil/me',r=>r.fulfill({json:{username:'tester',links:[{vrchatId:'usr_test'}]}}));
+ await page.route('**/api/cove/me',r=>r.fulfill({json:{username:'tester',links:[{vrchatId:'usr_test'}]}}));
  await page.route('**/api/account/me',r=>r.fulfill({json:{id:'usr_test',displayName:'Tester'}}));
  await page.route('**/api/catalog?*',r=>r.fulfill({json:{avatars:[{id:avatar,name:'Saved avatar',author:'Creator',rating:'Good',tags:[]}],total:1}}));
  await page.route('**/api/account/favorites?*',r=>{

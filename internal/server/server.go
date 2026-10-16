@@ -40,6 +40,10 @@ type Config struct {
 	// are disabled.
 	Accounts   *sql.DB
 	AccountKey []byte
+	// TurnstileSiteKey and TurnstileSecret enable Cloudflare Turnstile on
+	// registration. Both must be set; without them signup has no challenge.
+	TurnstileSiteKey string
+	TurnstileSecret  string
 }
 
 type Server struct {
@@ -258,6 +262,13 @@ func (s *Server) handleStatic(w http.ResponseWriter, r *http.Request) {
 	h.Set("X-Frame-Options", "DENY")
 	h.Set("Content-Security-Policy", "frame-ancestors 'none'; base-uri 'none'; object-src 'none'")
 	name := strings.TrimPrefix(path.Clean("/"+r.URL.Path), "/")
+	if name == "robots.txt" {
+		s.robots(w)
+		return
+	}
+	if s.sitemap(w, r, name) {
+		return
+	}
 	if name == "" || name == ".gitkeep" {
 		name = "index.html"
 	}

@@ -4,7 +4,7 @@ import {useState,useEffect} from 'react';
 import {LoaderCircle,ShieldCheck,Upload,Monitor,Smartphone,Users,RefreshCw} from 'lucide-react';
 import {detailLink} from './vrchat-details';
 function Photo({url,name}:any){useLocale();const [fail,setFail]=useState(false);useEffect(()=>setFail(false),[url]);return url&&!fail?<img src={'/api/image?url='+encodeURIComponent(url)} alt="" onError={()=>setFail(true)} referrerPolicy="no-referrer" loading="lazy"/>:<div className="initial-fallback" aria-hidden="true">{[...String(name||'?').trim()][0]?.toUpperCase()||'?'}</div>;}
-const date=(s?:string)=>s&&Number.isFinite(new Date(s).getTime())?formatDate(s):'—';
+const date=(s?:string)=>s&&Number.isFinite(new Date(s).getTime())?formatDate(s):'-';
 const platforms=(item:any)=>new Set<string>((item.unityPackages||[]).filter((p:any)=>p.variant!=='impostor').map((p:any)=>p.platform));
 /* Avatars and worlds uploaded by the signed-in account, including private ones. */
 export default function MyUploads({user,onLogin,onAvatar}:{user:any;onLogin:()=>void;onAvatar:(raw:any)=>void}){useLocale();

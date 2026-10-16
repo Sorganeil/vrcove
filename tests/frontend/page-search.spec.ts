@@ -5,7 +5,7 @@ const group='grp_00000000-0000-0000-0000-000000000002';
 const world='wrld_00000000-0000-0000-0000-000000000003';
 
 test.beforeEach(async({page})=>{
- await page.route('**/api/veil/me',r=>r.fulfill({json:{username:'tester',links:[{vrchatId:user}]}}));
+ await page.route('**/api/cove/me',r=>r.fulfill({json:{username:'tester',links:[{vrchatId:user}]}}));
  await page.route('**/api/account/me',r=>r.fulfill({json:{id:user,displayName:'Tester'}}));
 });
 
@@ -49,7 +49,7 @@ test('world search queries VRChat, paginates and restores popular worlds on clea
  await expect(page.locator('.world-card')).toContainText('Popular world');
 });
 
-test('groups search switches between memberships and discovery',async({page},testInfo)=>{
+test('groups search defaults to discovery and can switch to memberships',async({page},testInfo)=>{
  await page.route('**/api/account/groups',r=>r.fulfill({json:[{groupId:group,name:'My community'}]}));
  await page.route('**/api/account/search?*',r=>{
   const q=new URL(r.request().url()).searchParams;
@@ -58,21 +58,16 @@ test('groups search switches between memberships and discovery',async({page},tes
  });
  await page.goto('/#groups');
  const scope=page.getByRole('group',{name:'Group search scope'});
- await expect(scope.getByRole('button',{name:'My groups',exact:true})).toHaveAttribute('aria-pressed','true');
- await expect(page.locator('.search-result')).toContainText('My community');
+ await expect(scope.getByRole('button',{name:'All groups',exact:true})).toHaveAttribute('aria-pressed','true');
+ await expect(page.getByRole('heading',{name:'Discover groups',exact:true})).toBeVisible();
  const search=page.getByRole('searchbox',{name:'Search groups',exact:true});
- await search.fill('missing');
- await expect(page.getByRole('heading',{name:'No results found'})).toBeVisible();
- await search.fill('community');
- await expect(page.locator('.search-result')).toContainText('My community');
- await scope.getByRole('button',{name:'All groups',exact:true}).click();
- await expect(search).toHaveValue('community');
  await expect(search).toHaveAttribute('placeholder','Search all groups…');
+ await search.fill('community');
  await page.locator('form').getByRole('button',{name:'Search',exact:true}).click();
  await expect(page.locator('.search-result')).toContainText('Found community');
  await expect(page.locator('.search-result-name')).toHaveAttribute('href','/group/'+group);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width);
- await page.screenshot({path:`/tmp/veil-group-search-${testInfo.project.name}.png`,fullPage:true});
+ await page.screenshot({path:`/tmp/cove-group-search-${testInfo.project.name}.png`,fullPage:true});
  await search.fill('empty');
  await search.press('Enter');
  await expect(page.getByRole('heading',{name:'No results found'})).toBeVisible();
@@ -84,6 +79,27 @@ test('groups search switches between memberships and discovery',async({page},tes
  await scope.getByRole('button',{name:'All groups',exact:true}).click();
  await expect(page.getByRole('heading',{name:'Discover groups',exact:true})).toBeVisible();
  await expect(page.locator('.search-result')).toHaveCount(0);
+});
+
+test('my groups page lists memberships from the VRChat section',async({page})=>{
+ await page.route('**/api/account/groups',r=>r.fulfill({json:[{groupId:group,name:'My community'},{groupId:'grp_00000000-0000-0000-0000-000000000004',name:'Other club'}]}));
+ await page.route('**/api/account/search?*',r=>r.abort());
+ await page.goto('/#home');
+ const nav=page.locator('section.nav-group[aria-label="VRChat"]');
+ const menu=page.getByRole('button',{name:'Open navigation',exact:true});
+ if(await menu.isVisible())await menu.click();
+ await nav.getByRole('button',{name:'My groups'}).click();
+ await expect(page).toHaveURL(/#my-groups$/);
+ await expect(page.getByRole('heading',{level:1,name:'My groups'})).toBeVisible();
+ await expect(page.getByRole('group',{name:'Group search scope'})).toHaveCount(0);
+ await expect(page.locator('.search-result')).toHaveCount(2);
+ const search=page.getByRole('searchbox',{name:'Search groups',exact:true});
+ await expect(search).toHaveAttribute('placeholder','Search my groups…');
+ await search.fill('other');
+ await expect(page.locator('.search-result')).toHaveCount(1);
+ await expect(page.locator('.search-result')).toContainText('Other club');
+ await page.reload();
+ await expect(page.getByRole('heading',{level:1,name:'My groups'})).toBeVisible();
 });
 
 test('users and avatars keep their own search routes and show results',async({page})=>{
@@ -117,7 +133,7 @@ test('profile edit button keeps primary button contrast',async({page},testInfo)=
  const luminance=(color:string)=>{const rgb=color.match(/\d+/g)!.slice(0,3).map(Number).map(v=>{v/=255;return v<=0.04045?v/12.92:((v+0.055)/1.055)**2.4;});return rgb[0]*0.2126+rgb[1]*0.7152+rgb[2]*0.0722;};
  const values=[luminance(colors.text),luminance(colors.background)].sort((a,b)=>a-b);
  expect((values[1]+0.05)/(values[0]+0.05)).toBeGreaterThanOrEqual(4.5);
- await page.screenshot({path:`/tmp/veil-profile-contrast-${testInfo.project.name}.png`,fullPage:true});
+ await page.screenshot({path:`/tmp/cove-profile-contrast-${testInfo.project.name}.png`,fullPage:true});
  await edit.click();
  await expect(page.getByRole('dialog',{name:'Edit profile',exact:true})).toBeVisible();
 });

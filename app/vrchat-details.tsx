@@ -3,8 +3,8 @@ import {entityPath,copyEntityLink} from './routes';
 import {api} from './api';
 import {formatDate,formatNumber,t as tr,useLocale} from './i18n';
 import {useState,useEffect,useRef} from 'react';
-import {Reviews} from './veil-account';
-import {AddToCollection} from './veil-social';
+import {Reviews} from './cove-account';
+import {AddToCollection} from './cove-social';
 import {Users,Globe2,UserRound,ExternalLink,LoaderCircle,Send,Play,UserPlus,UserMinus,MapPin,ChevronLeft,Copy,Maximize2,ShieldCheck,BadgeCheck,LogIn,LogOut,Braces,Download} from 'lucide-react';
 export type Kind='world'|'user'|'group';
 export type RawKind=Kind|'avatar';
@@ -18,8 +18,8 @@ export function Photo({url,fallbackUrl,name,alt=''}:any){useLocale();
  if(current)return <img key={requestKey+index} src={'/api/image?url='+encodeURIComponent(current)} alt={alt} onError={()=>setAttempt({requestKey,index:index+1})} referrerPolicy="no-referrer" loading="lazy"/>;
  return name?<div className="initial-fallback" aria-hidden="true">{[...String(name).trim()][0]?.toUpperCase()||'?'}</div>:<div className="image-fallback"><UserRound strokeWidth={.8}/><span>{tr("Preview unavailable")}</span></div>;
 }
-const date=(s?:string)=>s&&Number.isFinite(new Date(s).getTime())?formatDate(/^\d{4}-\d{2}-\d{2}$/.test(s)?s+'T12:00:00':s):'—';
-const count=(n?:number)=>typeof n==='number'?formatNumber(n):'—';
+const date=(s?:string)=>s&&Number.isFinite(new Date(s).getTime())?formatDate(/^\d{4}-\d{2}-\d{2}$/.test(s)?s+'T12:00:00':s):'-';
+const count=(n?:number)=>typeof n==='number'?formatNumber(n):'?';
 const regionNames:Record<string,string>={us:'US West',use:'US East',eu:'Europe',jp:'Japan'};
 const regionOf=(instance:string)=>/~region\(([a-z]+)\)/.exec(instance)?.[1]||'us';
 const platformName=(p:string)=>p==='standalonewindows'?'PC':p==='android'?'Android / Quest':p==='ios'?'iOS':p;
@@ -86,7 +86,7 @@ export function DetailView({kind,id,user,onLogin,notify,mode,onBack,onClose}:{ki
   eyebrow=<><Globe2 size={13}/>{tr("WORLD")}{w.releaseStatus&&w.releaseStatus!=='public'?' / '+w.releaseStatus.toUpperCase():''}</>;
   title=w.name;subtitle=<>{tr("by")} {w.authorId?<a {...link('user',w.authorId)}>{w.authorName}</a>:w.authorName}</>;
   body=<p className="description">{w.description||tr("The creator hasn’t added a description.")}</p>;
-  meta=<><span>{tr("Players online")}<strong>{count(w.occupants)} ({count(w.publicOccupants)} {tr("public,")} {count(w.privateOccupants)} {tr("private)")}</strong></span><span>{tr("Capacity")}<strong>{count(w.capacity)}{w.recommendedCapacity?' · recommended '+w.recommendedCapacity:''}</strong></span><span>{tr("Visits")}<strong>{count(w.visits)}</strong></span><span>{tr("Favorites")}<strong>{count(w.favorites)}</strong></span><span>{tr("Platforms")}<strong>{w.platforms?.length?w.platforms.map(platformName).join(', '):'—'}</strong></span><span>{tr("Published")}<strong>{date(w.publicationDate&&w.publicationDate!=='none'?w.publicationDate:w.created)}</strong></span><span>{tr("Last updated")}<strong>{date(w.updated)}</strong></span></>;
+  meta=<><span>{tr("Players online")}<strong>{count(w.occupants)} ({count(w.publicOccupants)} {tr("public,")} {count(w.privateOccupants)} {tr("private)")}</strong></span><span>{tr("Capacity")}<strong>{count(w.capacity)}{w.recommendedCapacity?' · recommended '+w.recommendedCapacity:''}</strong></span><span>{tr("Visits")}<strong>{count(w.visits)}</strong></span><span>{tr("Favorites")}<strong>{count(w.favorites)}</strong></span><span>{tr("Platforms")}<strong>{w.platforms?.length?w.platforms.map(platformName).join(', '):'-'}</strong></span><span>{tr("Published")}<strong>{date(w.publicationDate&&w.publicationDate!=='none'?w.publicationDate:w.created)}</strong></span><span>{tr("Last updated")}<strong>{date(w.updated)}</strong></span></>;
   const tags=(w.tags||[]).filter((t:string)=>t.startsWith('author_tag_'));
   actions=<>{tags.length>0&&<div className="tags">{tags.map((t:string)=><span key={t}>{t.replace(/^author_tag_/,'').replaceAll('_',' ')}</span>)}</div>}
    <div className="detail-section"><h3>{tr("Public instances")}{w.instances?.length>0&&<small>{w.instances.length}</small>}</h3>{w.instances?.length?<div className="instance-list">{w.instances.map((i:any)=>instanceRow(w.id+':'+i.id,'#'+i.id.split('~')[0],i.users,w.capacity))}</div>:<p className="fineprint">{tr("VRChat lists no open public instances right now.")}</p>}
@@ -110,7 +110,7 @@ export function DetailView({kind,id,user,onLogin,notify,mode,onBack,onClose}:{ki
   title=<span className="group-title">{g.iconUrl&&<span className="group-icon"><Photo url={g.iconUrl} fallbackUrl={g.bannerUrl} name={g.name}/></span>}{g.name}</span>;
   subtitle=<>{g.shortCode}.{g.discriminator}{owner.data&&<> {tr("· owned by")} <a {...link('user',owner.data.id)}>{owner.data.displayName}</a></>}</>;
   body=<><p className="description">{g.description||tr("No description.")}</p>{safeLinks(g.links).length>0&&<div className="bio-links">{safeLinks(g.links).map(l=><a key={l} className="text-link" href={l} target="_blank" rel="noreferrer nofollow">{l.replace(/^https:\/\/(www\.)?/,'').slice(0,60)}<ExternalLink size={12}/></a>)}</div>}</>;
-  meta=<><span>{tr("Members")}<strong>{count(g.memberCount)}{typeof g.onlineMemberCount==='number'?' ('+count(g.onlineMemberCount)+' online)':''}</strong></span><span>{tr("Joining")}<strong>{joinStates[g.joinState]||g.joinState||'—'}</strong></span><span>{tr("Your membership")}<strong>{status==='member'?'Member':status==='requested'?'Request pending':status==='invited'?'Invited':status==='banned'?'Banned':'Not a member'}</strong></span>{g.languages?.length>0&&<span>{tr("Languages")}<strong>{g.languages.join(', ')}</strong></span>}<span>{tr("Created")}<strong>{date(g.createdAt)}</strong></span></>;
+  meta=<><span>{tr("Members")}<strong>{count(g.memberCount)}{typeof g.onlineMemberCount==='number'?' ('+count(g.onlineMemberCount)+' online)':''}</strong></span><span>{tr("Joining")}<strong>{joinStates[g.joinState]||g.joinState||'-'}</strong></span><span>{tr("Your membership")}<strong>{status==='member'?'Member':status==='requested'?'Request pending':status==='invited'?'Invited':status==='banned'?'Banned':'Not a member'}</strong></span>{g.languages?.length>0&&<span>{tr("Languages")}<strong>{g.languages.join(', ')}</strong></span>}<span>{tr("Created")}<strong>{date(g.createdAt)}</strong></span></>;
   const tags=(g.tags||[]).filter((t:string)=>!t.startsWith('admin_')&&!t.startsWith('system_'));
   actions=<>{tags.length>0&&<div className="tags">{tags.map((t:string)=><span key={t}>{t.replaceAll('_',' ')}</span>)}</div>}
    {g.rules&&<div className="detail-section"><h3>{tr("Rules")}</h3><p className="description rules">{g.rules}</p></div>}

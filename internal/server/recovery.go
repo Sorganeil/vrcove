@@ -23,7 +23,7 @@ func recoveryHash(code string) []byte {
 }
 
 func (s *Server) generateRecoveryCodes(w http.ResponseWriter, r *http.Request, a *account) error {
-	if !s.limiter.allow("veil-user:"+strings.ToLower(a.Username), s.now()) {
+	if !s.limiter.allow("cove-user:"+strings.ToLower(a.Username), s.now()) {
 		return errStatus(http.StatusTooManyRequests, "Too many attempts. Wait 10 minutes.")
 	}
 	body, err := requestJSON(r)
@@ -94,7 +94,7 @@ func (s *Server) recoverAccount(w http.ResponseWriter, r *http.Request) error {
 	username, _ := str(body, "username")
 	username = strings.TrimSpace(username)
 	now := s.now()
-	if !s.limiter.allow("veil-recover:"+clientIP(r), now) || !s.limiter.allow("veil-user:"+strings.ToLower(username), now) {
+	if !s.limiter.allow("cove-recover:"+clientIP(r), now) || !s.limiter.allow("cove-user:"+strings.ToLower(username), now) {
 		return errStatus(http.StatusTooManyRequests, "Too many recovery attempts. Wait 10 minutes.")
 	}
 	code, _ := str(body, "code")

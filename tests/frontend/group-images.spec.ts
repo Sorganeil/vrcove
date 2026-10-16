@@ -8,7 +8,7 @@ const banner='https://assets.vrchat.com/banner.png';
 const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=','base64');
 
 test('group browser and discovery fall back from missing or broken icons to banners',async({page})=>{
- await page.route('**/api/veil/me',r=>r.fulfill({json:{username:'tester',links:[{vrchatId:user}]}}));
+ await page.route('**/api/cove/me',r=>r.fulfill({json:{username:'tester',links:[{vrchatId:user}]}}));
  await page.route('**/api/account/me',r=>r.fulfill({json:{id:user,displayName:'Tester'}}));
  const groups=[
   {groupId:group,name:'Banner community',iconUrl:null,bannerUrl:banner},
@@ -33,15 +33,17 @@ test('group browser and discovery fall back from missing or broken icons to bann
   await unavailable.scrollIntoViewIfNeeded();
   await expect(unavailable.locator('.initial-fallback')).toHaveText('U');
  }
- await page.goto('/#groups');
+ await page.goto('/#my-groups');
  await verifyImages();
- await page.getByRole('searchbox',{name:'Search groups',exact:true}).fill('community');
- await page.getByRole('button',{name:'All groups',exact:true}).click();
+ await page.goto('/#groups');
+ const search=page.getByRole('searchbox',{name:'Search groups',exact:true});
+ await search.fill('community');
+ await search.press('Enter');
  await verifyImages();
 });
 
 test('profile groups use banners when icons are missing or fail',async({page})=>{
- await page.route('**/api/veil/me',r=>r.fulfill({json:{username:'independent_handle',links:[{vrchatId:user}]}}));
+ await page.route('**/api/cove/me',r=>r.fulfill({json:{username:'independent_handle',links:[{vrchatId:user}]}}));
  await page.route('**/api/account/me',r=>r.fulfill({json:{id:user,displayName:'Test user'}}));
  await page.route('**/api/account/user?*',r=>r.fulfill({json:{id:user,displayName:'Test user'}}));
  await page.route('**/api/account/user-worlds?*',r=>r.fulfill({json:[]}));

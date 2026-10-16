@@ -58,7 +58,7 @@ func accountCookie(t *testing.T, w *httptest.ResponseRecorder) *http.Cookie {
 
 func (h *harness) signup(name, password string) *http.Cookie {
 	h.t.Helper()
-	w := h.do(post("/veil/signup", jsonBody(`{"username":"`+name+`","password":"`+password+`"}`)))
+	w := h.do(post("/cove/signup", jsonBody(`{"username":"`+name+`","password":"`+password+`"}`)))
 	return accountCookie(h.t, w)
 }
 
@@ -76,7 +76,7 @@ func (h *harness) linkedSignup(name, password string) *http.Cookie {
 	}
 	vrcID := fmt.Sprintf("usr_00000000-0000-0000-0000-%012x", id)
 	h.stubVRChatUser(vrcID, "DifferentHandle")
-	w := h.do(vrchatSession(h.t, as(post("/veil/link", jsonBody(`{}`)), c)))
+	w := h.do(vrchatSession(h.t, as(post("/cove/link", jsonBody(`{}`)), c)))
 	if w.Code != 200 {
 		h.t.Fatalf("fixture link: %d %s", w.Code, w.Body)
 	}
@@ -89,7 +89,7 @@ func newConnectedHarness(t *testing.T) *harness {
 	h, _ := newAccountHarness(t)
 	h.accountCookie = h.signup("connected_fixture", "synthetic passphrase")
 	h.stubVRChatUser(testVRCUser, "DifferentHandle")
-	w := h.do(vrchatSession(t, post("/veil/link", jsonBody(`{}`))))
+	w := h.do(vrchatSession(t, post("/cove/link", jsonBody(`{}`))))
 	if w.Code != 200 {
 		t.Fatalf("fixture link: %d %s", w.Code, w.Body)
 	}
@@ -126,7 +126,7 @@ func TestPasswordHashing(t *testing.T) {
 
 func TestAccountLifecycle(t *testing.T) {
 	h, _ := newAccountHarness(t)
-	if w := h.do(get("/veil/me")); w.Code != 401 {
+	if w := h.do(get("/cove/me")); w.Code != 401 {
 		t.Fatalf("anonymous me = %d", w.Code)
 	}
 	for body, want := range map[string]string{
@@ -135,7 +135,7 @@ func TestAccountLifecycle(t *testing.T) {
 		`{"username":"quietfox","password":"short"}`:                 "at least 10",
 		`{"username":"quietfox123","password":"QUIETFOX123"}`:        "can’t be your username",
 	} {
-		if w := h.do(post("/veil/signup", jsonBody(body))); w.Code != 400 || !strings.Contains(errorMessage(t, w), want) {
+		if w := h.do(post("/cove/signup", jsonBody(body))); w.Code != 400 || !strings.Contains(errorMessage(t, w), want) {
 			t.Errorf("%s: %d %s", body, w.Code, w.Body)
 		}
 	}
@@ -143,46 +143,46 @@ func TestAccountLifecycle(t *testing.T) {
 	if !cookie.HttpOnly || !cookie.Secure || cookie.SameSite != http.SameSiteStrictMode || cookie.Path != "/" {
 		t.Errorf("cookie flags = %+v", cookie)
 	}
-	if w := h.do(post("/veil/signup", jsonBody(`{"username":"quietfox","password":"another passphrase"}`))); w.Code != 409 {
+	if w := h.do(post("/cove/signup", jsonBody(`{"username":"quietfox","password":"another passphrase"}`))); w.Code != 409 {
 		t.Errorf("case-insensitive duplicate = %d", w.Code)
 	}
-	me := decode(t, h.do(as(get("/veil/me"), cookie))).(map[string]any)
+	me := decode(t, h.do(as(get("/cove/me"), cookie))).(map[string]any)
 	if me["username"] != "QuietFox" || me["created"] != time.Now().UTC().Format("2006-01-02") {
 		t.Errorf("me = %v", me)
 	}
 
-	if w := h.do(post("/veil/login", jsonBody(`{"username":"quietfox","password":"wrong passphrase"}`))); w.Code != 401 {
+	if w := h.do(post("/cove/login", jsonBody(`{"username":"quietfox","password":"wrong passphrase"}`))); w.Code != 401 {
 		t.Errorf("wrong password = %d", w.Code)
 	}
-	if w := h.do(post("/veil/login", jsonBody(`{"username":"nobody","password":"wrong passphrase"}`))); w.Code != 401 || errorMessage(t, w) != "Wrong username or password." {
+	if w := h.do(post("/cove/login", jsonBody(`{"username":"nobody","password":"wrong passphrase"}`))); w.Code != 401 || errorMessage(t, w) != "Wrong username or password." {
 		t.Errorf("unknown user = %d %s", w.Code, w.Body)
 	}
-	second := accountCookie(t, h.do(post("/veil/login", jsonBody(`{"username":"QUIETFOX","password":"a long passphrase"}`))))
+	second := accountCookie(t, h.do(post("/cove/login", jsonBody(`{"username":"QUIETFOX","password":"a long passphrase"}`))))
 
 	// Changing the password signs out every other session.
-	w := h.do(as(post("/veil/password", jsonBody(`{"current":"a long passphrase","next":"a newer passphrase"}`)), cookie))
+	w := h.do(as(post("/cove/password", jsonBody(`{"current":"a long passphrase","next":"a newer passphrase"}`)), cookie))
 	third := accountCookie(t, w)
 	for name, c := range map[string]*http.Cookie{"first": cookie, "second": second} {
-		if w := h.do(as(get("/veil/me"), c)); w.Code != 401 {
+		if w := h.do(as(get("/cove/me"), c)); w.Code != 401 {
 			t.Errorf("%s session still valid after password change", name)
 		}
 	}
-	if w := h.do(as(get("/veil/me"), third)); w.Code != 200 {
+	if w := h.do(as(get("/cove/me"), third)); w.Code != 200 {
 		t.Errorf("new session = %d", w.Code)
 	}
 
-	w = h.do(as(post("/veil/logout", jsonBody(`{}`)), third))
+	w = h.do(as(post("/cove/logout", jsonBody(`{}`)), third))
 	if w.Code != 200 || !strings.Contains(w.Header().Get("Set-Cookie"), "Max-Age=0") {
 		t.Errorf("logout = %d %v", w.Code, w.Header())
 	}
-	if w := h.do(as(get("/veil/me"), third)); w.Code != 401 {
+	if w := h.do(as(get("/cove/me"), third)); w.Code != 401 {
 		t.Error("session valid after logout")
 	}
 }
 
 func TestAccountsDisabled(t *testing.T) {
 	h := newHarness(t)
-	if w := h.do(post("/veil/signup", jsonBody(`{"username":"quietfox","password":"a long passphrase"}`))); w.Code != 503 {
+	if w := h.do(post("/cove/signup", jsonBody(`{"username":"quietfox","password":"a long passphrase"}`))); w.Code != 503 {
 		t.Errorf("signup without ACCOUNT_KEY = %d", w.Code)
 	}
 	if _, err := New(Config{PublicOrigin: origin, Accounts: h.srv.db, AccountKey: []byte("short")}, nil, nil); err == nil {
@@ -192,8 +192,8 @@ func TestAccountsDisabled(t *testing.T) {
 
 func TestReviews(t *testing.T) {
 	h, _ := newAccountHarness(t)
-	target := "/veil/reviews?kind=world&id=" + testWorld
-	if w := h.do(post("/veil/review", jsonBody(`{"kind":"world","id":"`+testWorld+`","rating":5}`))); w.Code != 401 {
+	target := "/cove/reviews?kind=world&id=" + testWorld
+	if w := h.do(post("/cove/review", jsonBody(`{"kind":"world","id":"`+testWorld+`","rating":5}`))); w.Code != 401 {
 		t.Errorf("anonymous review = %d", w.Code)
 	}
 	alice, bob := h.linkedSignup("alice_v", "alice passphrase"), h.linkedSignup("bob_v", "bob passphrase!")
@@ -206,16 +206,16 @@ func TestReviews(t *testing.T) {
 		`{"kind":"world","id":"` + testWorld + `","rating":4,"body":"a\u0007"}`:                           400,
 		`{"kind":"world","id":"` + testWorld + `","rating":4,"body":"` + strings.Repeat("x", 2001) + `"}`: 400,
 	} {
-		if w := h.do(as(post("/veil/review", jsonBody(body)), alice)); w.Code != want {
+		if w := h.do(as(post("/cove/review", jsonBody(body)), alice)); w.Code != want {
 			t.Errorf("%.80s = %d %s", body, w.Code, w.Body)
 		}
 	}
-	h.do(as(post("/veil/review", jsonBody(`{"kind":"world","id":"`+testWorld+`","rating":2,"body":"first take"}`)), alice))
+	h.do(as(post("/cove/review", jsonBody(`{"kind":"world","id":"`+testWorld+`","rating":2,"body":"first take"}`)), alice))
 	// A second post replaces the first rather than adding another review.
-	if w := h.do(as(post("/veil/review", jsonBody(`{"kind":"world","id":"`+testWorld+`","rating":4,"body":"  <b>Cozy</b>\r\nworld  "}`)), alice)); w.Code != 200 {
+	if w := h.do(as(post("/cove/review", jsonBody(`{"kind":"world","id":"`+testWorld+`","rating":4,"body":"  <b>Cozy</b>\r\nworld  "}`)), alice)); w.Code != 200 {
 		t.Fatalf("review = %d %s", w.Code, w.Body)
 	}
-	h.do(as(post("/veil/review", jsonBody(`{"kind":"world","id":"`+testWorld+`","rating":1}`)), bob))
+	h.do(as(post("/cove/review", jsonBody(`{"kind":"world","id":"`+testWorld+`","rating":1}`)), bob))
 
 	list := decode(t, h.do(get(target))).(map[string]any)
 	if list["count"].(float64) != 2 || list["average"].(float64) != 2.5 || list["mine"] != nil || list["signedIn"] != false {
@@ -232,7 +232,7 @@ func TestReviews(t *testing.T) {
 		t.Error("internal IDs exposed")
 	}
 
-	h.do(as(post("/veil/review/delete", jsonBody(`{"kind":"world","id":"`+testWorld+`"}`)), bob))
+	h.do(as(post("/cove/review/delete", jsonBody(`{"kind":"world","id":"`+testWorld+`"}`)), bob))
 	if n := decode(t, h.do(get(target))).(map[string]any)["count"].(float64); n != 1 {
 		t.Errorf("count after delete = %v", n)
 	}
@@ -255,29 +255,29 @@ func vrchatSession(t *testing.T, r *http.Request) *http.Request {
 func TestVRChatLinks(t *testing.T) {
 	h, path := newAccountHarness(t)
 	alice := h.signup("moonlit", "alice passphrase")
-	if w := h.do(as(post("/veil/link", jsonBody(`{}`)), alice)); w.Code != 401 {
+	if w := h.do(as(post("/cove/link", jsonBody(`{}`)), alice)); w.Code != 401 {
 		t.Errorf("link without a VRChat session = %d", w.Code)
 	}
 
 	h.stubVRChatUser(testVRCUser, "SunnyOtter")
-	w := h.do(vrchatSession(t, as(post("/veil/link", jsonBody(`{}`)), alice)))
+	w := h.do(vrchatSession(t, as(post("/cove/link", jsonBody(`{}`)), alice)))
 	if body := decode(t, w).(map[string]any); body["similarName"] != false {
 		t.Errorf("link = %v", body)
 	}
-	links := decode(t, h.do(as(get("/veil/me"), alice))).(map[string]any)["links"].([]any)
+	links := decode(t, h.do(as(get("/cove/me"), alice))).(map[string]any)["links"].([]any)
 	if len(links) != 1 || links[0].(map[string]any)["vrchatId"] != testVRCUser || links[0].(map[string]any)["displayName"] != "SunnyOtter" {
 		t.Fatalf("links = %v", links)
 	}
 	// Linking again is idempotent.
-	h.do(vrchatSession(t, as(post("/veil/link", jsonBody(`{}`)), alice)))
-	if n := len(decode(t, h.do(as(get("/veil/me"), alice))).(map[string]any)["links"].([]any)); n != 1 {
+	h.do(vrchatSession(t, as(post("/cove/link", jsonBody(`{}`)), alice)))
+	if n := len(decode(t, h.do(as(get("/cove/me"), alice))).(map[string]any)["links"].([]any)); n != 1 {
 		t.Errorf("links after relink = %d", n)
 	}
 
 	// The link is private: nothing public mentions it, and the database file
 	// holds neither the VRChat ID nor the display name in plain text.
-	h.do(as(post("/veil/review", jsonBody(`{"kind":"world","id":"`+testWorld+`","rating":5}`)), alice))
-	if public := h.do(get("/veil/reviews?kind=world&id=" + testWorld)).Body.String(); strings.Contains(public, testVRCUser) || strings.Contains(public, "SunnyOtter") {
+	h.do(as(post("/cove/review", jsonBody(`{"kind":"world","id":"`+testWorld+`","rating":5}`)), alice))
+	if public := h.do(get("/cove/reviews?kind=world&id=" + testWorld)).Body.String(); strings.Contains(public, testVRCUser) || strings.Contains(public, "SunnyOtter") {
 		t.Errorf("public reviews leak the link: %s", public)
 	}
 	h.srv.accounts.Exec("PRAGMA wal_checkpoint(TRUNCATE)")
@@ -290,31 +290,31 @@ func TestVRChatLinks(t *testing.T) {
 	}
 
 	// Linked accounts can't be self-reviewed; others can.
-	if w := h.do(as(post("/veil/review", jsonBody(`{"kind":"user","id":"`+testVRCUser+`","rating":5}`)), alice)); w.Code != 403 {
+	if w := h.do(as(post("/cove/review", jsonBody(`{"kind":"user","id":"`+testVRCUser+`","rating":5}`)), alice)); w.Code != 403 {
 		t.Errorf("self review = %d", w.Code)
 	}
-	if w := h.do(as(post("/veil/review", jsonBody(`{"kind":"user","id":"`+otherVRCUser+`","rating":5}`)), alice)); w.Code != 200 {
+	if w := h.do(as(post("/cove/review", jsonBody(`{"kind":"user","id":"`+otherVRCUser+`","rating":5}`)), alice)); w.Code != 200 {
 		t.Errorf("review of another user = %d", w.Code)
 	}
 
 	// One VRChat account belongs to at most one VRCove account.
 	bob := h.signup("sunnyotter_alt", "bob passphrase!")
-	if w := h.do(vrchatSession(t, as(post("/veil/link", jsonBody(`{}`)), bob))); w.Code != 409 {
+	if w := h.do(vrchatSession(t, as(post("/cove/link", jsonBody(`{}`)), bob))); w.Code != 409 {
 		t.Errorf("second owner = %d %s", w.Code, w.Body)
 	}
 	// A VRCove name resembling the VRChat name is flagged.
 	h.stubVRChatUser(otherVRCUser, "Sunny.Otter")
-	if body := decode(t, h.do(vrchatSession(t, as(post("/veil/link", jsonBody(`{}`)), bob)))).(map[string]any); body["similarName"] != true {
+	if body := decode(t, h.do(vrchatSession(t, as(post("/cove/link", jsonBody(`{}`)), bob)))).(map[string]any); body["similarName"] != true {
 		t.Errorf("similar name not flagged: %v", body)
 	}
 
 	id := links[0].(map[string]any)["id"].(float64)
-	h.do(as(post("/veil/unlink", jsonBody(fmt.Sprintf(`{"id":%v}`, id))), bob)) // not bob's link
-	if n := len(decode(t, h.do(as(get("/veil/me"), alice))).(map[string]any)["links"].([]any)); n != 1 {
+	h.do(as(post("/cove/unlink", jsonBody(fmt.Sprintf(`{"id":%v}`, id))), bob)) // not bob's link
+	if n := len(decode(t, h.do(as(get("/cove/me"), alice))).(map[string]any)["links"].([]any)); n != 1 {
 		t.Error("another account removed the link")
 	}
-	h.do(as(post("/veil/unlink", jsonBody(fmt.Sprintf(`{"id":%v}`, id))), alice))
-	if n := len(decode(t, h.do(as(get("/veil/me"), alice))).(map[string]any)["links"].([]any)); n != 0 {
+	h.do(as(post("/cove/unlink", jsonBody(fmt.Sprintf(`{"id":%v}`, id))), alice))
+	if n := len(decode(t, h.do(as(get("/cove/me"), alice))).(map[string]any)["links"].([]any)); n != 0 {
 		t.Error("unlink failed")
 	}
 }
@@ -323,15 +323,15 @@ func TestDeleteAccount(t *testing.T) {
 	h, _ := newAccountHarness(t)
 	alice := h.signup("moonlit", "alice passphrase")
 	h.stubVRChatUser(testVRCUser, "SunnyOtter")
-	h.do(vrchatSession(t, as(post("/veil/link", jsonBody(`{}`)), alice)))
-	h.do(as(post("/veil/review", jsonBody(`{"kind":"world","id":"`+testWorld+`","rating":5}`)), alice))
-	if w := h.do(as(post("/veil/delete", jsonBody(`{"password":"wrong"}`)), alice)); w.Code != 401 {
+	h.do(vrchatSession(t, as(post("/cove/link", jsonBody(`{}`)), alice)))
+	h.do(as(post("/cove/review", jsonBody(`{"kind":"world","id":"`+testWorld+`","rating":5}`)), alice))
+	if w := h.do(as(post("/cove/delete", jsonBody(`{"password":"wrong"}`)), alice)); w.Code != 401 {
 		t.Errorf("delete with wrong password = %d", w.Code)
 	}
-	if w := h.do(as(post("/veil/delete", jsonBody(`{"password":"alice passphrase"}`)), alice)); w.Code != 200 {
+	if w := h.do(as(post("/cove/delete", jsonBody(`{"password":"alice passphrase"}`)), alice)); w.Code != 200 {
 		t.Fatalf("delete = %d %s", w.Code, w.Body)
 	}
-	if n := decode(t, h.do(get("/veil/reviews?kind=world&id="+testWorld))).(map[string]any)["count"].(float64); n != 0 {
+	if n := decode(t, h.do(get("/cove/reviews?kind=world&id="+testWorld))).(map[string]any)["count"].(float64); n != 0 {
 		t.Error("reviews survived account deletion")
 	}
 	for _, table := range []string{"accounts", "account_sessions", "vrchat_links", "reviews"} {
@@ -343,19 +343,19 @@ func TestDeleteAccount(t *testing.T) {
 	}
 	// The VRChat account can be linked afresh.
 	fresh := h.signup("newname", "fresh passphrase")
-	if w := h.do(vrchatSession(t, as(post("/veil/link", jsonBody(`{}`)), fresh))); w.Code != 200 {
+	if w := h.do(vrchatSession(t, as(post("/cove/link", jsonBody(`{}`)), fresh))); w.Code != 200 {
 		t.Errorf("relink after deletion = %d", w.Code)
 	}
 }
 
 func TestSimilarNames(t *testing.T) {
 	for _, c := range []struct {
-		veil, vrc string
+		cove, vrc string
 		want      bool
 	}{{"SunnyOtter", "sunny_otter", true}, {"otter", "SunnyOtter", true}, {"sunnyotter2", "SunnyOtter", true},
 		{"moonlit", "SunnyOtter", false}, {"ott", "SunnyOtter", false}, {"x", "", false}} {
-		if got := similarNames(c.veil, c.vrc); got != c.want {
-			t.Errorf("similarNames(%q, %q) = %v", c.veil, c.vrc, got)
+		if got := similarNames(c.cove, c.vrc); got != c.want {
+			t.Errorf("similarNames(%q, %q) = %v", c.cove, c.vrc, got)
 		}
 	}
 }
@@ -376,7 +376,7 @@ func TestVRCoveRequiredForVRChat(t *testing.T) {
 		t.Fatal("VRChat-only requests reached upstream")
 	}
 	a := h.signup("unlinked", "synthetic passphrase")
-	for _, path := range []string{"/veil/review", "/veil/collections/create"} {
+	for _, path := range []string{"/cove/review", "/cove/collections/create"} {
 		if w := h.do(as(post(path, jsonBody(`{}`)), a)); w.Code != 403 {
 			t.Errorf("unlinked %s = %d", path, w.Code)
 		}
@@ -409,7 +409,7 @@ func TestLoginLinksAndBindsVRChat(t *testing.T) {
 	if session == nil || session.AccountID == 0 || session.UserID != testVRCUser {
 		t.Fatalf("unbound login session: %+v", session)
 	}
-	me := decode(t, h.do(as(get("/veil/me"), alice))).(map[string]any)
+	me := decode(t, h.do(as(get("/cove/me"), alice))).(map[string]any)
 	if len(me["links"].([]any)) != 1 {
 		t.Fatal("login did not link VRChat")
 	}
@@ -431,7 +431,7 @@ func TestLoginLinksAndBindsVRChat(t *testing.T) {
 	if link["username"] != "vrc" {
 		t.Fatalf("reconnect username = %v", link["username"])
 	}
-	if got := h.do(as(post("/veil/unlink", jsonBody(fmt.Sprintf(`{"id":%v}`, link["id"]))), alice)); got.Code != 200 {
+	if got := h.do(as(post("/cove/unlink", jsonBody(fmt.Sprintf(`{"id":%v}`, link["id"]))), alice)); got.Code != 200 {
 		t.Fatalf("unlink = %d", got.Code)
 	}
 	if got := h.do(request(alice)); got.Code != 403 {

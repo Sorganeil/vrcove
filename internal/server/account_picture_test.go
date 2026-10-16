@@ -30,13 +30,13 @@ func TestAccountPictures(t *testing.T) {
 	a := h.signup("picture_owner", "synthetic passphrase")
 	other := h.signup("other_person", "synthetic passphrase")
 	raw := pictureFixture(t)
-	if w := h.do(post("/veil/picture", bytes.NewReader(raw))); w.Code != 401 {
+	if w := h.do(post("/cove/picture", bytes.NewReader(raw))); w.Code != 401 {
 		t.Errorf("anonymous upload = %d", w.Code)
 	}
-	w := h.do(as(post("/veil/picture", bytes.NewReader(raw)), a))
+	w := h.do(as(post("/cove/picture", bytes.NewReader(raw)), a))
 	me := decode(t, w).(map[string]any)
 	picture := me["picture"].(string)
-	if !strings.HasPrefix(picture, "/api/veil/picture?username=picture_owner&v=") {
+	if !strings.HasPrefix(picture, "/api/cove/picture?username=picture_owner&v=") {
 		t.Fatalf("picture URL = %q", picture)
 	}
 	path := strings.TrimPrefix(picture, "/api")
@@ -53,27 +53,27 @@ func TestAccountPictures(t *testing.T) {
 	if err != nil || cfg.Width != 256 || cfg.Height != 256 {
 		t.Fatalf("normalized image = %+v %v", cfg, err)
 	}
-	profile := decode(t, h.do(as(get("/veil/profile?username=picture_owner"), a))).(map[string]any)
+	profile := decode(t, h.do(as(get("/cove/profile?username=picture_owner"), a))).(map[string]any)
 	if profile["picture"] != picture {
 		t.Fatal("profile missing picture")
 	}
-	h.do(as(post("/veil/profile", jsonBody(`{"public":true}`)), a))
+	h.do(as(post("/cove/profile", jsonBody(`{"public":true}`)), a))
 	if got := h.do(get(path)); got.Code != 200 {
 		t.Errorf("public picture = %d", got.Code)
 	}
-	h.do(as(post("/veil/profile", jsonBody(`{"public":false}`)), a))
+	h.do(as(post("/cove/profile", jsonBody(`{"public":false}`)), a))
 	if got := h.do(get(path)); got.Code != 404 {
 		t.Errorf("picture visible after making profile private: %d", got.Code)
 	}
-	removed := decode(t, h.do(as(post("/veil/picture/remove", jsonBody(`{}`)), a))).(map[string]any)
+	removed := decode(t, h.do(as(post("/cove/picture/remove", jsonBody(`{}`)), a))).(map[string]any)
 	if removed["picture"] != "" {
 		t.Error("removed picture still returned")
 	}
 	if got := h.do(as(get(path), a)); got.Code != 404 {
 		t.Errorf("removed picture = %d", got.Code)
 	}
-	h.do(as(post("/veil/picture", bytes.NewReader(raw)), a))
-	if got := h.do(as(post("/veil/delete", jsonBody(`{"password":"synthetic passphrase"}`)), a)); got.Code != 200 {
+	h.do(as(post("/cove/picture", bytes.NewReader(raw)), a))
+	if got := h.do(as(post("/cove/delete", jsonBody(`{"password":"synthetic passphrase"}`)), a)); got.Code != 200 {
 		t.Fatal(got.Body.String())
 	}
 	var count int
@@ -89,23 +89,23 @@ func TestAccountPictureValidation(t *testing.T) {
 	h, _ := newAccountHarness(t)
 	a := h.signup("picture_owner", "synthetic passphrase")
 	for _, data := range [][]byte{nil, []byte("<svg xmlns='http://www.w3.org/2000/svg'></svg>"), []byte("not an image")} {
-		if w := h.do(as(post("/veil/picture", bytes.NewReader(data)), a)); w.Code != 400 {
+		if w := h.do(as(post("/cove/picture", bytes.NewReader(data)), a)); w.Code != 400 {
 			t.Errorf("invalid picture = %d", w.Code)
 		}
 	}
-	r := as(post("/veil/picture", strings.NewReader(strings.Repeat("x", int(maxAccountPictureBytes)+1))), a)
+	r := as(post("/cove/picture", strings.NewReader(strings.Repeat("x", int(maxAccountPictureBytes)+1))), a)
 	r.ContentLength = -1
 	if w := h.do(r); w.Code != 413 {
 		t.Errorf("oversized streamed picture = %d", w.Code)
 	}
-	r = as(post("/veil/picture", bytes.NewReader(pictureFixture(t)), "Origin", "https://other.example"), a)
+	r = as(post("/cove/picture", bytes.NewReader(pictureFixture(t)), "Origin", "https://other.example"), a)
 	if w := h.do(r); w.Code != 403 {
 		t.Errorf("cross-origin picture = %d", w.Code)
 	}
 	// A syntactically valid but excessive image header is rejected before full decode.
 	var b bytes.Buffer
 	png.Encode(&b, image.NewGray(image.Rect(0, 0, 4097, 1)))
-	if w := h.do(as(post("/veil/picture", bytes.NewReader(b.Bytes())), a)); w.Code != 400 {
+	if w := h.do(as(post("/cove/picture", bytes.NewReader(b.Bytes())), a)); w.Code != 400 {
 		t.Errorf("oversized dimensions = %d", w.Code)
 	}
 }

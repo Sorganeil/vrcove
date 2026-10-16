@@ -269,8 +269,8 @@ func validPassword(username, password string) string {
 	return ""
 }
 
-// veil serves /api/veil/*: VRCove accounts, private VRChat links and reviews.
-func (s *Server) veil(w http.ResponseWriter, r *http.Request, p string) error {
+// cove serves /api/cove/*: VRCove accounts, private VRChat links and reviews.
+func (s *Server) cove(w http.ResponseWriter, r *http.Request, p string) error {
 	if s.accounts == nil {
 		writeError(w, http.StatusServiceUnavailable, "VRCove accounts are not configured on this deployment.")
 		return nil
@@ -367,19 +367,29 @@ func credentials(r *http.Request) (username, password string, err error) {
 }
 
 func (s *Server) signup(w http.ResponseWriter, r *http.Request) error {
-	if !s.limiter.allow("veil-signup:"+clientIP(r), s.now()) {
+	if !s.limiter.allow("cove-signup:"+clientIP(r), s.now()) {
 		return errStatus(http.StatusTooManyRequests, "Too many attempts. Wait 10 minutes.")
 	}
-	username, password, err := credentials(r)
+	body, err := requestJSON(r)
 	if err != nil {
 		return err
 	}
+	username, _ := str(body, "username")
+	password, _ := str(body, "password")
+	username = strings.TrimSpace(username)
 	if !usernamePattern.MatchString(username) {
 		writeError(w, http.StatusBadRequest, "Usernames are 3–32 letters, numbers, dots, dashes or underscores.")
 		return nil
 	}
 	if msg := validPassword(username, password); msg != "" {
 		writeError(w, http.StatusBadRequest, msg)
+		return nil
+	}
+	token, _ := str(body, "turnstile")
+	if ok, err := s.verifyTurnstile(r, token); err != nil {
+		return err
+	} else if !ok {
+		writeError(w, http.StatusBadRequest, "Complete the verification check and try again.")
 		return nil
 	}
 	var hash string
@@ -442,7 +452,7 @@ func (s *Server) accountLogin(w http.ResponseWriter, r *http.Request) error {
 	// Per IP and per account, so one address cannot spray many accounts and
 	// many addresses cannot hammer one.
 	now := s.now()
-	if !s.limiter.allow("veil-login:"+clientIP(r), now) || !s.limiter.allow("veil-user:"+strings.ToLower(username), now) {
+	if !s.limiter.allow("cove-login:"+clientIP(r), now) || !s.limiter.allow("cove-user:"+strings.ToLower(username), now) {
 		return errStatus(http.StatusTooManyRequests, "Too many sign-in attempts. Wait 10 minutes.")
 	}
 	if username == "" || password == "" || jsLength(username) > 64 || jsLength(password) > 1024 {
@@ -576,7 +586,7 @@ func (s *Server) accountMe(w http.ResponseWriter, r *http.Request, a *account) e
 }
 
 func (s *Server) changePassword(w http.ResponseWriter, r *http.Request, a *account) error {
-	if !s.limiter.allow("veil-user:"+strings.ToLower(a.Username), s.now()) {
+	if !s.limiter.allow("cove-user:"+strings.ToLower(a.Username), s.now()) {
 		return errStatus(http.StatusTooManyRequests, "Too many attempts. Wait 10 minutes.")
 	}
 	body, err := requestJSON(r)
@@ -615,7 +625,7 @@ func (s *Server) changePassword(w http.ResponseWriter, r *http.Request, a *accou
 
 // deleteAccount removes the account with its sessions, links and reviews.
 func (s *Server) deleteAccount(w http.ResponseWriter, r *http.Request, a *account) error {
-	if !s.limiter.allow("veil-user:"+strings.ToLower(a.Username), s.now()) {
+	if !s.limiter.allow("cove-user:"+strings.ToLower(a.Username), s.now()) {
 		return errStatus(http.StatusTooManyRequests, "Too many attempts. Wait 10 minutes.")
 	}
 	body, err := requestJSON(r)
@@ -651,8 +661,8 @@ func foldName(s string) string {
 
 // similarNames reports whether a VRCove username resembles a VRChat name
 // closely enough that someone could tie the two accounts together.
-func similarNames(veil, vrchat string) bool {
-	a, b := foldName(veil), foldName(vrchat)
+func similarNames(cove, vrchat string) bool {
+	a, b := foldName(cove), foldName(vrchat)
 	if a == "" || b == "" {
 		return false
 	}

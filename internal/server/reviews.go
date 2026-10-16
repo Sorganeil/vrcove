@@ -119,7 +119,7 @@ func cleanReview(body string) (string, bool) {
 }
 
 func (s *Server) saveReview(w http.ResponseWriter, r *http.Request, a *account) error {
-	if !s.limiter.allow("veil-review:"+strings.ToLower(a.Username), s.now()) {
+	if !s.limiter.allow("cove-review:"+strings.ToLower(a.Username), s.now()) {
 		return errStatus(http.StatusTooManyRequests, "You’re posting too quickly. Wait a few minutes.")
 	}
 	in, err := requestJSON(r)

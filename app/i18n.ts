@@ -9,26 +9,27 @@ export const languages = [
  {code:'ko',name:'한국어'},
 ] as const;
 export type Locale = typeof languages[number]['code'];
-const storageKey = 'veilchat-language';
+const storageKey = 'vrcove-language', legacyStorageKey = 'veilchat-language';
 const listeners = new Set<() => void>();
 export function resolveLocale(value:string):Locale|undefined {
  const base=value.toLowerCase().split(/[-_]/)[0];
  return languages.find(language=>language.code.toLowerCase().split('-')[0]===base)?.code;
 }
 function preferredLocale():Locale {
- try { const saved=localStorage.getItem(storageKey); if(saved&&resolveLocale(saved))return resolveLocale(saved)!; } catch { /* Storage is optional. */ }
+ try { const saved=localStorage.getItem(storageKey)??localStorage.getItem(legacyStorageKey); if(saved&&resolveLocale(saved))return resolveLocale(saved)!; } catch { /* Storage is optional. */ }
  for(const language of navigator.languages||[navigator.language]) { const supported=resolveLocale(language);if(supported)return supported; }
  return 'en';
 }
 let locale:Locale=preferredLocale();
-function updateDocument(){document.documentElement.lang=locale;document.title=t('VRCove — Independent VRChat frontend');}
+// Pages opened by path keep the server-rendered title written for search engines.
+function updateDocument(){document.documentElement.lang=locale;if(window.location.pathname==='/')document.title=t('VRCove | Private VRChat Web Client with Avatar Search');}
 function updateLocale(next:Locale){if(next===locale)return;locale=next;updateDocument();listeners.forEach(listener=>listener());}
 export function setLocale(next:Locale){
  if(!languages.some(language=>language.code===next))return;
- try{localStorage.setItem(storageKey,next);}catch{/* Keep the selection for this session. */}
+ try{localStorage.setItem(storageKey,next);localStorage.removeItem(legacyStorageKey);}catch{/* Keep the selection for this session. */}
  updateLocale(next);
 }
-window.addEventListener('storage',event=>{if(event.key===storageKey)updateLocale(preferredLocale());});
+window.addEventListener('storage',event=>{if(event.key===storageKey||event.key===legacyStorageKey)updateLocale(preferredLocale());});
 const subscribe=(listener:()=>void)=>{listeners.add(listener);return()=>{listeners.delete(listener);};};
 export function useLocale(){return useSyncExternalStore(subscribe,()=>locale);}
 export function t(message:string,values:Record<string,string|number>={}):string {

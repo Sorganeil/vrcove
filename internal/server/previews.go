@@ -92,7 +92,7 @@ func (s *Server) cachePreview(kind, id string, data any) {
 }
 
 func (s *Server) pagePreview(r *http.Request) (linkPreview, string) {
-	p := linkPreview{"VRCove | Independent VRChat frontend", "Browse 1.49 million public avatars, worlds, users and groups. No ads or analytics.", ""}
+	p := linkPreview{homeTitle, homeDescription, ""}
 	canonical := s.cfg.PublicOrigin + "/"
 	kind, id, ok := detailRoute(r.URL.Path)
 	if !ok {
@@ -177,16 +177,21 @@ func previewText(s string, limit int) string {
 
 func (s *Server) previewHTML(r *http.Request, data []byte) []byte {
 	p, canonical := s.pagePreview(r)
-	image := s.cfg.PublicOrigin + "/social-preview.png"
+	meta := s.pageMeta(r.URL.Path, p, canonical)
+	if _, _, ok := detailRoute(r.URL.Path); !ok {
+		p.Title, p.Description, canonical = meta.Title, meta.Description, meta.Canonical
+	}
+	// Bump the version when the card changes so chat apps refetch it.
+	image, imageSize := s.cfg.PublicOrigin+"/social-preview.png?v=2", `<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="VRCove: VRChat in your browser, without the tracking">`
 	if u, err := url.Parse(p.Image); err == nil && allowedImage(u) {
-		image = s.cfg.PublicOrigin + "/api/image?url=" + url.QueryEscape(p.Image)
+		image, imageSize = s.cfg.PublicOrigin+"/api/image?url="+url.QueryEscape(p.Image), ""
 	}
 	title, description := previewText(p.Title, 120), previewText(p.Description, 300)
 	tags := `<meta property="og:site_name" content="VRCove"><meta property="og:type" content="website">` +
 		`<meta property="og:title" content="` + title + `"><meta property="og:description" content="` + description + `">` +
-		`<meta property="og:url" content="` + html.EscapeString(canonical) + `"><meta property="og:image" content="` + html.EscapeString(image) + `">` +
+		`<meta property="og:url" content="` + html.EscapeString(canonical) + `"><meta property="og:image" content="` + html.EscapeString(image) + `">` + imageSize +
 		`<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="` + title + `">` +
 		`<meta name="twitter:description" content="` + description + `"><meta name="twitter:image" content="` + html.EscapeString(image) + `">` +
 		`<meta name="theme-color" content="#75c7e6"><link rel="canonical" href="` + html.EscapeString(canonical) + `">`
-	return []byte(strings.Replace(string(data), "</head>", tags+"</head>", 1))
+	return []byte(strings.Replace(applyPageMeta(string(data), meta), "</head>", tags+"</head>", 1))
 }

@@ -35,7 +35,7 @@ func (b *accountBrowser) login(name string) *httptest.ResponseRecorder {
 	return b.do(post("/account/login", jsonBody(`{"username":"`+name+`","password":"synthetic"}`)))
 }
 func (b *accountBrowser) links() []any {
-	return decode(b.h.t, b.do(get("/veil/me"))).(map[string]any)["links"].([]any)
+	return decode(b.h.t, b.do(get("/cove/me"))).(map[string]any)["links"].([]any)
 }
 func linkID(links []any, userID string) any {
 	for _, l := range links {
@@ -169,7 +169,7 @@ func TestMultipleVRChatSessions(t *testing.T) {
 		t.Errorf("expired switch = %d", w.Code)
 	}
 	// VRCove logout clears every saved browser session and pending login.
-	if w := b.do(post("/veil/logout", jsonBody(`{}`))); w.Code != 200 {
+	if w := b.do(post("/cove/logout", jsonBody(`{}`))); w.Code != 200 {
 		t.Fatal(w.Body.String())
 	}
 	for name := range b.cookies {

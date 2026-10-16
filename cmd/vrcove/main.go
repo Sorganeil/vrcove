@@ -66,6 +66,11 @@ func main() {
 		PublicOrigin: env("PUBLIC_ORIGIN", "http://localhost:5173"),
 		Contact:      os.Getenv("VRC_CONTACT"),
 	}
+	if site, secret := os.Getenv("TURNSTILE_SITE_KEY"), os.Getenv("TURNSTILE_SECRET_KEY"); site != "" && secret != "" {
+		cfg.TurnstileSiteKey, cfg.TurnstileSecret = site, secret
+	} else if site != "" || secret != "" {
+		log.Fatal("TURNSTILE_SITE_KEY and TURNSTILE_SECRET_KEY must be set together")
+	}
 	// Production (an https origin) only serves Cloudflare Tunnel traffic.
 	// TUNNEL_ONLY=false disables that, e.g. for debugging on the box itself.
 	origin, _ := url.Parse(cfg.PublicOrigin)

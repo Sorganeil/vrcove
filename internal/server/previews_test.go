@@ -111,19 +111,19 @@ func TestRestrictedAndUnavailablePreviewFallback(t *testing.T) {
 func TestLinkReminderPersistsDismissal(t *testing.T) {
 	h, _ := newAccountHarness(t)
 	cookie := h.signup("onboarding", "a synthetic long passphrase")
-	me := h.do(as(get("/veil/me"), cookie))
+	me := h.do(as(get("/cove/me"), cookie))
 	if !strings.Contains(me.Body.String(), `"showLinkReminder":true`) {
 		t.Fatal(me.Body.String())
 	}
-	dismissed := h.do(as(post("/veil/link-reminder/dismiss", jsonBody(`{}`)), cookie))
+	dismissed := h.do(as(post("/cove/link-reminder/dismiss", jsonBody(`{}`)), cookie))
 	if dismissed.Code != 200 || !strings.Contains(dismissed.Body.String(), `"showLinkReminder":false`) {
 		t.Fatal(dismissed.Body.String())
 	}
-	signedIn := h.do(post("/veil/login", jsonBody(`{"username":"onboarding","password":"a synthetic long passphrase"}`)))
+	signedIn := h.do(post("/cove/login", jsonBody(`{"username":"onboarding","password":"a synthetic long passphrase"}`)))
 	if signedIn.Code != 200 || !strings.Contains(signedIn.Body.String(), `"showLinkReminder":false`) {
 		t.Fatal(signedIn.Body.String())
 	}
-	if w := h.do(post("/veil/link-reminder/dismiss", jsonBody(`{}`))); w.Code != 401 {
+	if w := h.do(post("/cove/link-reminder/dismiss", jsonBody(`{}`))); w.Code != 401 {
 		t.Fatalf("anonymous dismiss: %d", w.Code)
 	}
 }

@@ -13,7 +13,7 @@ test('all languages switch immediately, survive reload and fit the viewport',asy
   await expect(page.locator('html')).toHaveAttribute('lang',code);
   await expect(page.getByRole('heading',{name,exact:true})).toBeVisible();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width);
-  if(code==='ru')await page.screenshot({path:`/tmp/veil-localization-${testInfo.project.name}.png`,fullPage:true});
+  if(code==='ru')await page.screenshot({path:`/tmp/cove-localization-${testInfo.project.name}.png`,fullPage:true});
   const bounds=await picker.boundingBox();
   expect(bounds!.x).toBeGreaterThanOrEqual(0);
   expect(bounds!.x+bounds!.width).toBeLessThanOrEqual(page.viewportSize()!.width);

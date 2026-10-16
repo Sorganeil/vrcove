@@ -134,6 +134,7 @@ func (s *Server) stats(w http.ResponseWriter, r *http.Request) error {
 		"indexed": n, "sourcePublic": 1492676, "privateExcluded": 1605632,
 		"loginConfigured":    s.cfg.SessionKey != nil && s.cfg.Contact != "",
 		"accountsConfigured": s.accounts != nil,
+		"turnstileSiteKey":   s.cfg.TurnstileSiteKey,
 	})
 	return nil
 }

@@ -11,7 +11,7 @@ const friends=[
 ];
 
 test.beforeEach(async({page})=>{
- await page.route('**/api/veil/me',r=>r.fulfill({json:{username:'tester',links:[{vrchatId:id}]}}));
+ await page.route('**/api/cove/me',r=>r.fulfill({json:{username:'tester',links:[{vrchatId:id}]}}));
  await page.route('**/api/account/me',r=>r.fulfill({json:{id,displayName:'Tester',status:'active'}}));
  await page.route('**/api/account/friends*',r=>r.fulfill({json:new URL(r.request().url()).searchParams.get('offline')==='true'?[{id:friendId,displayName:'Offline Friend',status:'busy',statusDescription:'Back tomorrow',location:'offline'}]:friends}));
  await page.route('**/api/account/worlds',r=>r.fulfill({json:[]}));

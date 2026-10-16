@@ -435,7 +435,7 @@ func TestLoginTwoFactor(t *testing.T) {
 		t.Errorf("cross-account two-factor = %d", got.Code)
 	}
 	h.accountCookie = ownerCookie
-	before := decode(t, h.do(get("/veil/me"))).(map[string]any)
+	before := decode(t, h.do(get("/cove/me"))).(map[string]any)
 	if len(before["links"].([]any)) != 0 {
 		t.Fatal("linked before two-factor verification")
 	}
@@ -470,7 +470,7 @@ func TestLoginTwoFactor(t *testing.T) {
 	if done == nil || done.AccountID == 0 || done.UserID == "" || done.Pending != nil || done.Auth != "pending_token" || done.TwoFactorAuth != "tfa_token" {
 		t.Errorf("verified session = %+v", done)
 	}
-	after := decode(t, h.do(get("/veil/me"))).(map[string]any)
+	after := decode(t, h.do(get("/cove/me"))).(map[string]any)
 	if len(after["links"].([]any)) != 1 {
 		t.Fatal("verified VRChat account was not linked")
 	}
@@ -570,7 +570,7 @@ func TestStaticFallback(t *testing.T) {
 	h := newHarness(t)
 	for _, p := range []string{"/", "/friends", "/assets/missing.js"} {
 		w := h.do(httptest.NewRequest(http.MethodGet, p, nil))
-		if w.Code != 200 || !strings.Contains(w.Body.String(), "<title>VRCove</title>") {
+		if w.Code != 200 || !strings.Contains(w.Body.String(), "<title>VRCove") {
 			t.Errorf("%s = %d", p, w.Code)
 		}
 		if w.Header().Get("X-Frame-Options") != "DENY" {

@@ -18,7 +18,7 @@ import (
 // Public profiles and avatar/world collections.
 //
 // Profiles are private by default. A public profile lists the account's
-// reviews and public collections at #veil/<username>. A public collection can
+// reviews and public collections at #cove/<username>. A public collection can
 // be opened by its unguessable link either way, but it names its owner only
 // when the owner's profile is public. Linked VRChat accounts never appear.
 
@@ -230,7 +230,7 @@ func (s *Server) updateProfile(w http.ResponseWriter, r *http.Request, a *accoun
 	return s.accountMe(w, r, a)
 }
 
-// profile serves #veil/<username>. A private profile and a missing one get
+// profile serves #cove/<username>. A private profile and a missing one get
 // the same answer.
 func (s *Server) profile(w http.ResponseWriter, r *http.Request, viewer *account) error {
 	ctx := r.Context()

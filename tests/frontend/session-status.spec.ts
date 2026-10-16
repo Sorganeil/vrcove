@@ -1,13 +1,13 @@
 import {test,expect,type Page} from '@playwright/test';
 
 const user={id:'usr_00000000-0000-0000-0000-000000000001',displayName:'VRChat Handle',status:'active'};
-const me={username:'veil_identity',created:'2026-10-15',bio:'',public:false,picture:'',links:[{id:1,vrchatId:user.id,displayName:user.displayName,username:'synthetic',linked:'2026-10-15'}]};
+const me={username:'cove_identity',created:'2026-10-15',bio:'',public:false,picture:'',links:[{id:1,vrchatId:user.id,displayName:user.displayName,username:'synthetic',linked:'2026-10-15'}]};
 async function setup(page:Page){
  await page.route('**/api/account/user?*',r=>r.fulfill({json:user}));
  await page.route('**/api/account/user-worlds?*',r=>r.fulfill({json:[]}));
  await page.route('**/api/account/user-groups?*',r=>r.fulfill({json:[]}));
  await page.route('**/api/stats',r=>r.fulfill({json:{accountsConfigured:true,loginConfigured:true,indexed:0}}));
- await page.route('**/api/veil/me',r=>r.fulfill({json:me}));
+ await page.route('**/api/cove/me',r=>r.fulfill({json:me}));
  await page.route('**/api/catalog?*',r=>r.fulfill({json:{avatars:[],total:0}}));
  await page.route('**/api/account/friends?*',r=>r.fulfill({json:[]}));
  await page.route('**/api/account/friends',r=>r.fulfill({json:[]}));

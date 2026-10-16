@@ -65,7 +65,7 @@ test('account signup, privacy, public profile and deletion',async({page,browser}
  await expect(page.getByRole('checkbox',{name:'Make my profile public'})).not.toBeChecked();
  await expect(page.getByText('Pick a name unrelated to your VRChat name.')).toBeVisible();
  const visitor=await browser.newContext();
- const hidden=await visitor.request.get(`${origin}/api/veil/profile?username=${name}`);
+ const hidden=await visitor.request.get(`${origin}/api/cove/profile?username=${name}`);
  expect(hidden.status()).toBe(404);
  await page.getByLabel('Bio',{exact:false}).fill('Independent world reviewer.');
  await page.getByRole('button',{name:'Save profile'}).click();
@@ -77,7 +77,7 @@ test('account signup, privacy, public profile and deletion',async({page,browser}
  await expect(page.getByText('Independent world reviewer.')).toBeVisible();
  await noOverflow(page);
  await page.screenshot({path:testInfo.outputPath('public-profile.png'),fullPage:true});
- const visible=await visitor.request.get(`${origin}/api/veil/profile?username=${name}`);
+ const visible=await visitor.request.get(`${origin}/api/cove/profile?username=${name}`);
  expect(visible.status()).toBe(200);
  expect(await visible.json()).not.toHaveProperty('links');
  await page.goto('/#account');
@@ -85,7 +85,7 @@ test('account signup, privacy, public profile and deletion',async({page,browser}
  await page.getByLabel('Confirm with your password').fill(password);
  await page.getByRole('button',{name:'Delete permanently'}).click();
  await expect(page.getByRole('button',{name:'Sign in',exact:true}).first()).toBeVisible();
- expect((await visitor.request.get(`${origin}/api/veil/profile?username=${name}`)).status()).toBe(404);
+ expect((await visitor.request.get(`${origin}/api/cove/profile?username=${name}`)).status()).toBe(404);
  await visitor.close();
 });
 
@@ -109,10 +109,10 @@ test('reviews keep the item name, survive edits, and link public authors',async(
  await expect(p.locator('h1')).toHaveText(name);
  await expect(p.getByRole('link',{name:'Cozy Cabin',exact:true})).toHaveAttribute('href',`/world/${world}`);
  await expect(p.getByText('Great lighting.',{exact:true})).toBeVisible();
- await page.route('**/api/veil/review/delete',r=>r.fulfill({status:503,json:{error:'Temporarily unavailable'}}));
+ await page.route('**/api/cove/review/delete',r=>r.fulfill({status:503,json:{error:'Temporarily unavailable'}}));
  await page.getByRole('button',{name:'Delete',exact:true}).click();
  await expect(page.getByRole('alert')).toHaveText('Temporarily unavailable');
- await page.unroute('**/api/veil/review/delete');
+ await page.unroute('**/api/cove/review/delete');
  await page.getByRole('button',{name:'Delete',exact:true}).click();
  await expect(page.getByRole('button',{name:'Post review'})).toBeVisible();
  await visitor.close();
@@ -141,7 +141,7 @@ test('private collections, mobile dialog focus, sharing and removal',async({page
  await expect(choice).not.toBeChecked();
  await expect(dialog.getByRole('status')).toHaveText('Removed from collection.');
  let createRequests=0;
- page.on('request',r=>{if(new URL(r.url()).pathname==='/api/veil/collections/create')createRequests++;});
+ page.on('request',r=>{if(new URL(r.url()).pathname==='/api/cove/collections/create')createRequests++;});
  await choice.click();
  await expect(choice).toBeChecked();
  await expect(dialog.getByRole('status')).toHaveText('Added to collection.');
@@ -166,19 +166,19 @@ test('private collections, mobile dialog focus, sharing and removal',async({page
  await expect(page.locator('h1')).toHaveText('Late night worlds');
  const id=page.url().split('#collection/')[1];
  const visitor=await browser.newContext();
- expect((await visitor.request.get(`${origin}/api/veil/collection?id=${id}`)).status()).toBe(404);
+ expect((await visitor.request.get(`${origin}/api/cove/collection?id=${id}`)).status()).toBe(404);
  await page.getByRole('button',{name:'Edit',exact:true}).click();
  await page.getByRole('checkbox',{name:/Public: anyone/}).check();
  await page.getByRole('button',{name:'Save',exact:true}).click();
  await expect(page.getByRole('button',{name:'Copy link'})).toBeVisible();
- const shared=await visitor.request.get(`${origin}/api/veil/collection?id=${id}`);
+ const shared=await visitor.request.get(`${origin}/api/cove/collection?id=${id}`);
  expect(shared.status()).toBe(200);const data=await shared.json();expect(data.owner).toBeNull();expect(data.items[0].id).toBe(world);
  await page.getByRole('button',{name:'Remove Cozy Cabin'}).click();
  await expect(page.getByText('Nothing here yet')).toBeVisible();
  await page.getByRole('button',{name:'Delete',exact:true}).click();
  await page.getByRole('button',{name:'Delete for good'}).click();
  await expect(page.getByRole('heading',{name:'My collections'})).toBeVisible();
- expect((await visitor.request.get(`${origin}/api/veil/collection?id=${id}`)).status()).toBe(404);
+ expect((await visitor.request.get(`${origin}/api/cove/collection?id=${id}`)).status()).toBe(404);
  await visitor.close();
 });
 
@@ -186,12 +186,12 @@ test('private collections, mobile dialog focus, sharing and removal',async({page
 test('profile pagination shows errors and retries without duplicating reviews',async({page})=>{
  let fail=true;
  const review={kind:'world',target:world,name:'First world',body:'Review one',rating:4,date:'2026-10-15'};
- await page.route('**/api/veil/profile?*',r=>{
+ await page.route('**/api/cove/profile?*',r=>{
   const offset=new URL(r.request().url()).searchParams.get('offset');
   if(offset&&fail){fail=false;return r.fulfill({status:503,json:{error:'Try again shortly'}});}
   return r.fulfill({json:{username:'public_reviewer',public:true,created:'2026-10-15',reviewCount:2,averageGiven:4,reviews:[offset?{...review,target:world.replace(/1$/,'2'),name:'Second world'}:review],collections:[],pageSize:1}});
  });
- await page.goto('/#veil/public_reviewer');
+ await page.goto('/#cove/public_reviewer');
  await page.getByRole('button',{name:'Load more'}).click();
  await expect(page.getByRole('alert')).toHaveText('Try again shortly');
  await page.getByRole('button',{name:'Load more'}).click();
@@ -211,7 +211,7 @@ test('guest actions require VRCove first and the header shows the VRCove identit
  await expect(page.getByRole('button',{name:'Link a VRChat account',exact:true})).toBeVisible();
  await page.reload();
  await expect(page.locator('.topbar .account-chip')).toHaveText(name);
- const denied=await page.request.post('/api/veil/collections/create',{headers:{Origin:origin},data:{kind:'world',name:'Unlinked'}});
+ const denied=await page.request.post('/api/cove/collections/create',{headers:{Origin:origin},data:{kind:'world',name:'Unlinked'}});
  expect(denied.status()).toBe(403);
  await page.locator('.topbar').getByRole('button',{name:'Sign out of VRCove'}).click();
  await expect(page.locator('.topbar').getByRole('button',{name:'Sign in to VRCove',exact:true})).toBeVisible();
@@ -220,7 +220,7 @@ test('guest actions require VRCove first and the header shows the VRCove identit
 
 test('VRChat connection links from the VRCove account and keeps its identity in the header',async({page})=>{
  const name=await linkedSignup(page);
- const me=await (await page.request.get('/api/veil/me')).json();
+ const me=await (await page.request.get('/api/cove/me')).json();
  const vrc={id:me.links[0].vrchatId,displayName:'Different VRChat Handle'};
  let reconnected=false;
  await page.route('**/api/account/me',r=>reconnected?r.fulfill({json:vrc}):r.fulfill({status:401,json:{code:'vrchat_session_required',error:'Reconnect VRChat'}}));
@@ -231,7 +231,7 @@ test('VRChat connection links from the VRCove account and keeps its identity in 
   await r.fulfill({json:{user:vrc}});
  });
  await page.reload();
- await page.locator('.veil-panel').getByRole('button',{name:'Reconnect',exact:true}).click();
+ await page.locator('.cove-panel').getByRole('button',{name:'Reconnect',exact:true}).click();
  const dialog=page.getByRole('dialog',{name:'Connect VRChat',exact:true});
  await expect(dialog).toBeVisible();
  await dialog.getByLabel('VRChat username').fill('synthetic_vrc');
@@ -239,7 +239,7 @@ test('VRChat connection links from the VRCove account and keeps its identity in 
  await dialog.getByRole('button',{name:'Connect to VRChat',exact:true}).click();
  await expect(dialog).toHaveCount(0);
  await expect(page.locator('.topbar .account-chip')).toHaveText(name);
- await expect(page.locator('.veil-links li').filter({hasText:'Different VRChat Handle'}).getByRole('button',{name:'Active',exact:true})).toBeDisabled();
+ await expect(page.locator('.cove-links li').filter({hasText:'Different VRChat Handle'}).getByRole('button',{name:'Active',exact:true})).toBeDisabled();
  await noOverflow(page);
 });
 
@@ -265,7 +265,7 @@ test('VRCove profile pictures upload, persist, respect privacy and can be remove
  await expect(page.getByRole('heading',{name:'Profile is public'})).toBeVisible();
  expect((await visitor.request.get(origin+picture)).status()).toBe(200);
  await page.getByRole('link',{name:'View my profile'}).click();
- await expect(page.locator('.veil-profile-hero img')).toHaveAttribute('src',picture!);
+ await expect(page.locator('.cove-profile-hero img')).toHaveAttribute('src',picture!);
  await expect(page.locator('h1')).toHaveText(name);
  await noOverflow(page);
  await page.screenshot({path:testInfo.outputPath('profile-picture.png'),fullPage:true});
@@ -306,7 +306,7 @@ test('recovery codes reset a forgotten password and can only be used once',async
  await page.getByRole('button',{name:'Reset password',exact:true}).click();
  await expect(page.getByRole('button',{name:'Forgot password? Use a recovery code',exact:true})).toBeVisible();
  // Redeeming the same code cannot change the password a second time.
- const reused=await page.request.post('/api/veil/recover',{headers:{Origin:origin},data:{username:name,code,next:'another test passphrase'}});
+ const reused=await page.request.post('/api/cove/recover',{headers:{Origin:origin},data:{username:name,code,next:'another test passphrase'}});
  expect(reused.status()).toBe(401);
  await page.getByLabel('Password',{exact:true}).fill('replacement test passphrase');
  await page.locator('form').getByRole('button',{name:'Sign in',exact:true}).click();
@@ -322,13 +322,13 @@ test('VRCove bio and status save independently of VRChat and respect profile vis
  await page.getByLabel('Bio',{exact:false}).fill(bio);
  await page.getByLabel('VRCove status',{exact:false}).fill(status);
  // Changing visibility must not discard an unsaved bio or status.
- const published=page.waitForResponse(r=>r.url().endsWith('/api/veil/profile')&&r.request().method()==='POST');
+ const published=page.waitForResponse(r=>r.url().endsWith('/api/cove/profile')&&r.request().method()==='POST');
  await page.getByRole('checkbox',{name:'Make my profile public'}).check();
  await published;
  await expect(page.getByLabel('Bio',{exact:false})).toHaveValue(bio);
  await expect(page.getByLabel('VRCove status',{exact:false})).toHaveValue(status);
  let fail=true;
- await page.route('**/api/veil/profile',r=>{
+ await page.route('**/api/cove/profile',r=>{
   if(fail){fail=false;return r.fulfill({status:503,json:{error:'Please try again'}});}
   return r.continue();
  });
@@ -342,26 +342,26 @@ test('VRCove bio and status save independently of VRChat and respect profile vis
  await expect(page.getByLabel('Bio',{exact:false})).toHaveValue(bio);
  await expect(page.getByLabel('VRCove status',{exact:false})).toHaveValue(status);
  await page.getByRole('link',{name:'View my profile',exact:true}).click();
- await expect(page.locator('.veil-profile-status')).toHaveText(status);
- await expect(page.locator('.veil-bio')).toHaveText(bio);
+ await expect(page.locator('.cove-profile-status')).toHaveText(status);
+ await expect(page.locator('.cove-bio')).toHaveText(bio);
  await expect(page.getByRole('link',{name:'Edit VRCove profile',exact:true})).toBeVisible();
  await noOverflow(page);
  await page.screenshot({path:testInfo.outputPath('vrcove-bio-status.png'),fullPage:true});
  const visitor=await browser.newContext();
- const publicProfile=await visitor.request.get(`${origin}/api/veil/profile?username=${name}`);
+ const publicProfile=await visitor.request.get(`${origin}/api/cove/profile?username=${name}`);
  expect(publicProfile.status()).toBe(200);
  expect(await publicProfile.json()).toMatchObject({bio,status});
  await page.getByRole('link',{name:'Edit VRCove profile',exact:true}).click();
- const hidden=page.waitForResponse(r=>r.url().endsWith('/api/veil/profile')&&r.request().method()==='POST');
+ const hidden=page.waitForResponse(r=>r.url().endsWith('/api/cove/profile')&&r.request().method()==='POST');
  await page.getByRole('checkbox',{name:'Make my profile public'}).uncheck();
  await hidden;
- expect((await visitor.request.get(`${origin}/api/veil/profile?username=${name}`)).status()).toBe(404);
+ expect((await visitor.request.get(`${origin}/api/cove/profile?username=${name}`)).status()).toBe(404);
  await page.getByLabel('Bio',{exact:false}).fill('');
  await page.getByLabel('VRCove status',{exact:false}).fill('');
  await page.getByRole('button',{name:'Save profile',exact:true}).click();
  await expect(page.getByRole('button',{name:'Save profile',exact:true})).toHaveCount(0);
  await page.getByRole('link',{name:'View my profile',exact:true}).click();
- await expect(page.locator('.veil-profile-status')).toHaveCount(0);
- await expect(page.locator('.veil-bio')).toHaveCount(0);
+ await expect(page.locator('.cove-profile-status')).toHaveCount(0);
+ await expect(page.locator('.cove-bio')).toHaveCount(0);
  await visitor.close();
 });

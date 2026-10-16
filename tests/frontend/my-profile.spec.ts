@@ -6,7 +6,7 @@ const group='grp_00000000-0000-0000-0000-000000000003';
 
 test('my profile shows the full VRChat profile and refreshes after editing',async({page},testInfo)=>{
  let bio='My complete VRChat biography';
- await page.route('**/api/veil/me',r=>r.fulfill({json:{username:'tester',links:[{vrchatId:id}]}}));
+ await page.route('**/api/cove/me',r=>r.fulfill({json:{username:'tester',links:[{vrchatId:id}]}}));
  await page.route('**/api/account/me',r=>r.fulfill({json:{id,displayName:'Tester',bio:'',status:'active'}}));
  await page.route('**/api/account/user?id=*',r=>r.fulfill({json:{id,displayName:'Tester',bio,pronouns:'they/them',bioLinks:['https://example.com/profile','javascript:alert(1)'],tags:['system_trust_veteran'],status:'active',statusDescription:'Exploring worlds',location:'private',dateJoined:'2020-01-02',lastLogin:'2026-10-14',lastPlatform:'standalonewindows',badges:[{id:'badge-1',name:'Community badge',description:'A showcased badge'}]}}));
  await page.route('**/api/account/user-worlds?id=*',r=>r.fulfill({json:[{id:world,name:'My published world',occupants:3}]}));
@@ -28,7 +28,7 @@ test('my profile shows the full VRChat profile and refreshes after editing',asyn
  await expect(page.getByRole('link',{name:/My community/})).toHaveAttribute('href','/group/'+group);
  await expect(page.getByRole('button',{name:'Add friend',exact:true})).toHaveCount(0);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width);
- await page.screenshot({path:`/tmp/veil-full-profile-${testInfo.project.name}.png`,fullPage:true});
+ await page.screenshot({path:`/tmp/cove-full-profile-${testInfo.project.name}.png`,fullPage:true});
  await page.getByRole('button',{name:'Edit profile',exact:true}).click();
  const dialog=page.getByRole('dialog',{name:'Edit profile',exact:true});
  await expect(dialog.getByRole('textbox',{name:/^Bio/})).toHaveValue(bio);
