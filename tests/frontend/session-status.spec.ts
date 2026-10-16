@@ -16,17 +16,18 @@ async function setup(page:Page){
 }
 const banner=(page:Page)=>page.locator('.vrchat-session-notice');
 
-test('a missing linked session is explained on reload and reconnect preserves VRCove identity',async({page})=>{
+test('a device without a VRChat session is told to connect once and keeps the VRCove identity',async({page})=>{
  await setup(page);
  let connected=false;
  const expires=Date.now()+3_600_000;
  await page.route('**/api/account/me',r=>connected?r.fulfill({headers:{'X-VRChat-Session-Expires':String(expires)},json:user}):r.fulfill({status:401,json:{code:'vrchat_session_required',error:'Your linked VRChat account is disconnected or its session has expired.'}}));
  await page.route('**/api/account/login',r=>{connected=true;return r.fulfill({headers:{'X-VRChat-Session-Expires':String(expires)},json:{user}});});
  await page.goto('/#account');
- await expect(banner(page)).toContainText('Reconnect your linked VRChat account');
+ await expect(banner(page)).toContainText('Connect VRChat on this device');
+ await expect(banner(page)).toContainText('connects separately on each device');
  await expect(banner(page)).toContainText('still signed in to VRCove');
  await expect(page.locator('.account-chip')).toHaveText(me.username);
- await banner(page).getByRole('button',{name:'Reconnect VRChat'}).click();
+ await banner(page).getByRole('button',{name:'Connect VRChat',exact:true}).click();
  const dialog=page.getByRole('dialog',{name:'Connect VRChat'});
  await expect(dialog.getByLabel('VRChat username')).toHaveValue('synthetic');
  await dialog.getByLabel('Password',{exact:true}).fill('synthetic password');
@@ -100,4 +101,36 @@ test('visible pages periodically detect revocation without an account action',as
  await page.clock.fastForward(60_001);
  await expect(banner(page)).toContainText('VRChat session is no longer valid');
  await expect(page.locator('.account-chip')).toHaveText(me.username);
+});
+
+test('the reconnect notice can be dismissed and scrolls with the page',async({page})=>{
+ await setup(page);
+ await page.route('**/api/account/me',r=>r.fulfill({status:401,json:{code:'vrchat_session_required',error:'Connect VRChat'}}));
+ await page.goto('/#account');
+ await expect(banner(page)).toBeVisible();
+ expect(await banner(page).evaluate(e=>getComputedStyle(e).position)).not.toBe('sticky');
+ await banner(page).getByRole('button',{name:'Dismiss'}).click();
+ await expect(banner(page)).toHaveCount(0);
+});
+
+test('connected devices are listed per linked account and can be ended',async({page},testInfo)=>{
+ await setup(page);
+ const day=Date.now()+13*86_400_000;
+ const sessions=[{id:7,device:'computer',browser:'Chrome',started:'2026-10-16',expires:day,current:true},{id:8,device:'phone',browser:'Safari',started:'2026-10-15',expires:day,current:false}];
+ let ended:number|undefined;
+ await page.route('**/api/cove/me',r=>r.fulfill({json:{...me,links:[{...me.links[0],sessions:ended?sessions.filter(s=>s.id!==ended):sessions}]}}));
+ await page.route('**/api/cove/vrchat-sessions/end',async r=>{ended=r.request().postDataJSON().id;await r.fulfill({json:{...me,links:[{...me.links[0],sessions:sessions.filter(s=>s.id!==ended)}]}});});
+ await page.route('**/api/account/me',r=>r.fulfill({headers:{'X-VRChat-Session-Expires':String(day)},json:user}));
+ await page.goto('/#account');
+ const devices=page.locator('.vrchat-sessions');
+ await expect(devices).toContainText('Connected devices');
+ await expect(devices.locator('li')).toHaveCount(2);
+ await expect(devices.locator('li').first()).toContainText('Computer · Chrome');
+ await expect(devices.locator('li').first()).toContainText('This browser');
+ await devices.scrollIntoViewIfNeeded();
+ await page.locator('.cove-links').screenshot({path:`/tmp/vrcove-sessions-${testInfo.project.name}.png`});
+ await devices.locator('li').filter({hasText:'Phone · Safari'}).getByRole('button',{name:'End'}).click();
+ await expect(devices.locator('li')).toHaveCount(1);
+ expect(ended).toBe(8);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width);
 });

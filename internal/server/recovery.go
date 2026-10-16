@@ -140,6 +140,9 @@ func (s *Server) recoverAccount(w http.ResponseWriter, r *http.Request) error {
 	if _, err := tx.ExecContext(r.Context(), "DELETE FROM account_sessions WHERE account_id = ?", a.ID); err != nil {
 		return err
 	}
+	if _, err := tx.ExecContext(r.Context(), "DELETE FROM vrchat_sessions WHERE account_id = ?", a.ID); err != nil {
+		return err
+	}
 	if err := tx.Commit(); err != nil {
 		return err
 	}

@@ -476,7 +476,17 @@
     "VRCove is an independent, privacy-focused VRChat web client with avatar search built in. Use it on your phone or PC, with nothing to install.": "VRCove es un cliente web de VRChat independiente y centrado en la privacidad, con búsqueda de avatares integrada. Úsalo en tu móvil o PC, sin instalar nada.",
     "View on GitHub": "Ver en GitHub",
     "Works on Android, iPhone, iPad and desktop.": "Funciona en Android, iPhone, iPad y escritorio.",
-    "Your VRChat account": "Tu cuenta de VRChat"
+    "Your VRChat account": "Tu cuenta de VRChat",
+    "Connected devices": "Dispositivos conectados",
+    "Phone": "Teléfono",
+    "Tablet": "Tableta",
+    "Computer": "Ordenador",
+    "This browser": "Este navegador",
+    "Connected {started} · expires {expires}": "Conectado el {started} · caduca el {expires}",
+    "End": "Finalizar",
+    "Session ended": "Sesión finalizada",
+    "Connect VRChat on this device": "Conecta VRChat en este dispositivo",
+    "VRChat connects separately on each device, so this one needs to connect once. Your VRChat account is still linked, and you’re still signed in to VRCove.": "VRChat se conecta por separado en cada dispositivo, así que este debe conectarse una vez. Tu cuenta de VRChat sigue vinculada y sigues con la sesión iniciada en VRCove."
   },
   "fr": {
     "Language": "Langue",
@@ -955,7 +965,17 @@
     "VRCove is an independent, privacy-focused VRChat web client with avatar search built in. Use it on your phone or PC, with nothing to install.": "VRCove est un client web VRChat indépendant et respectueux de la vie privée, avec recherche d’avatars intégrée. Utilisez-le sur téléphone ou PC, sans rien installer.",
     "View on GitHub": "Voir sur GitHub",
     "Works on Android, iPhone, iPad and desktop.": "Fonctionne sur Android, iPhone, iPad et ordinateur.",
-    "Your VRChat account": "Votre compte VRChat"
+    "Your VRChat account": "Votre compte VRChat",
+    "Connected devices": "Appareils connectés",
+    "Phone": "Téléphone",
+    "Tablet": "Tablette",
+    "Computer": "Ordinateur",
+    "This browser": "Ce navigateur",
+    "Connected {started} · expires {expires}": "Connecté le {started} · expire le {expires}",
+    "End": "Terminer",
+    "Session ended": "Session terminée",
+    "Connect VRChat on this device": "Connectez VRChat sur cet appareil",
+    "VRChat connects separately on each device, so this one needs to connect once. Your VRChat account is still linked, and you’re still signed in to VRCove.": "VRChat se connecte séparément sur chaque appareil : celui-ci doit se connecter une fois. Votre compte VRChat reste associé et vous êtes toujours connecté à VRCove."
   },
   "de": {
     "Language": "Sprache",
@@ -1434,7 +1454,17 @@
     "VRCove is an independent, privacy-focused VRChat web client with avatar search built in. Use it on your phone or PC, with nothing to install.": "VRCove ist ein unabhängiger, datenschutzfreundlicher VRChat-Webclient mit integrierter Avatarsuche. Nutze ihn auf Handy oder PC, ganz ohne Installation.",
     "View on GitHub": "Auf GitHub ansehen",
     "Works on Android, iPhone, iPad and desktop.": "Funktioniert auf Android, iPhone, iPad und Desktop.",
-    "Your VRChat account": "Dein VRChat-Konto"
+    "Your VRChat account": "Dein VRChat-Konto",
+    "Connected devices": "Verbundene Geräte",
+    "Phone": "Handy",
+    "Tablet": "Tablet",
+    "Computer": "Computer",
+    "This browser": "Dieser Browser",
+    "Connected {started} · expires {expires}": "Verbunden am {started} · läuft ab am {expires}",
+    "End": "Beenden",
+    "Session ended": "Sitzung beendet",
+    "Connect VRChat on this device": "Verbinde VRChat auf diesem Gerät",
+    "VRChat connects separately on each device, so this one needs to connect once. Your VRChat account is still linked, and you’re still signed in to VRCove.": "VRChat wird auf jedem Gerät separat verbunden, dieses Gerät muss sich also einmal verbinden. Dein VRChat-Konto bleibt verknüpft und du bist weiterhin bei VRCove angemeldet."
   },
   "ja": {
     "Language": "言語",
@@ -1913,7 +1943,17 @@
     "VRCove is an independent, privacy-focused VRChat web client with avatar search built in. Use it on your phone or PC, with nothing to install.": "VRCoveは、アバター検索を内蔵した、プライバシー重視の独立系VRChatウェブクライアントです。スマホでもPCでも、インストール不要で使えます。",
     "View on GitHub": "GitHubで見る",
     "Works on Android, iPhone, iPad and desktop.": "Android、iPhone、iPad、デスクトップで動作します。",
-    "Your VRChat account": "あなたのVRChatアカウント"
+    "Your VRChat account": "あなたのVRChatアカウント",
+    "Connected devices": "接続中のデバイス",
+    "Phone": "スマートフォン",
+    "Tablet": "タブレット",
+    "Computer": "パソコン",
+    "This browser": "このブラウザ",
+    "Connected {started} · expires {expires}": "{started}に接続 · {expires}に期限切れ",
+    "End": "終了",
+    "Session ended": "セッションを終了しました",
+    "Connect VRChat on this device": "このデバイスでVRChatに接続",
+    "VRChat connects separately on each device, so this one needs to connect once. Your VRChat account is still linked, and you’re still signed in to VRCove.": "VRChatはデバイスごとに接続するため、このデバイスでも一度接続が必要です。VRChatアカウントの連携はそのままで、VRCoveにもサインインしたままです。"
   },
   "ru": {
     "Language": "Язык",
@@ -2392,7 +2432,17 @@
     "VRCove is an independent, privacy-focused VRChat web client with avatar search built in. Use it on your phone or PC, with nothing to install.": "VRCove — независимый веб-клиент VRChat с упором на приватность и встроенным поиском аватаров. Пользуйтесь им на телефоне или ПК, ничего не устанавливая.",
     "View on GitHub": "Открыть на GitHub",
     "Works on Android, iPhone, iPad and desktop.": "Работает на Android, iPhone, iPad и компьютере.",
-    "Your VRChat account": "Ваш аккаунт VRChat"
+    "Your VRChat account": "Ваш аккаунт VRChat",
+    "Connected devices": "Подключённые устройства",
+    "Phone": "Телефон",
+    "Tablet": "Планшет",
+    "Computer": "Компьютер",
+    "This browser": "Этот браузер",
+    "Connected {started} · expires {expires}": "Подключено {started} · истекает {expires}",
+    "End": "Завершить",
+    "Session ended": "Сеанс завершён",
+    "Connect VRChat on this device": "Подключите VRChat на этом устройстве",
+    "VRChat connects separately on each device, so this one needs to connect once. Your VRChat account is still linked, and you’re still signed in to VRCove.": "VRChat подключается отдельно на каждом устройстве, поэтому это нужно подключить один раз. Ваш аккаунт VRChat по-прежнему привязан, и вы по-прежнему вошли в VRCove."
   },
   "uk": {
     "Language": "Мова",
@@ -2871,7 +2921,17 @@
     "VRCove is an independent, privacy-focused VRChat web client with avatar search built in. Use it on your phone or PC, with nothing to install.": "VRCove — незалежний вебклієнт VRChat, що дбає про приватність, із вбудованим пошуком аватарів. Користуйтеся ним на телефоні чи ПК, нічого не встановлюючи.",
     "View on GitHub": "Переглянути на GitHub",
     "Works on Android, iPhone, iPad and desktop.": "Працює на Android, iPhone, iPad і комп’ютері.",
-    "Your VRChat account": "Ваш обліковий запис VRChat"
+    "Your VRChat account": "Ваш обліковий запис VRChat",
+    "Connected devices": "Підключені пристрої",
+    "Phone": "Телефон",
+    "Tablet": "Планшет",
+    "Computer": "Комп’ютер",
+    "This browser": "Цей браузер",
+    "Connected {started} · expires {expires}": "Підключено {started} · спливає {expires}",
+    "End": "Завершити",
+    "Session ended": "Сеанс завершено",
+    "Connect VRChat on this device": "Підключіть VRChat на цьому пристрої",
+    "VRChat connects separately on each device, so this one needs to connect once. Your VRChat account is still linked, and you’re still signed in to VRCove.": "VRChat підключається окремо на кожному пристрої, тож цей потрібно підключити один раз. Ваш обліковий запис VRChat досі прив’язаний, і ви досі увійшли у VRCove."
   },
   "zh-CN": {
     "Language": "语言",
@@ -3350,7 +3410,17 @@
     "VRCove is an independent, privacy-focused VRChat web client with avatar search built in. Use it on your phone or PC, with nothing to install.": "VRCove 是一款独立、注重隐私的 VRChat 网页客户端，内置虚拟形象搜索。在手机或电脑上都能用，无需安装。",
     "View on GitHub": "在 GitHub 上查看",
     "Works on Android, iPhone, iPad and desktop.": "支持 Android、iPhone、iPad 和电脑。",
-    "Your VRChat account": "你的 VRChat 账号"
+    "Your VRChat account": "你的 VRChat 账号",
+    "Connected devices": "已连接的设备",
+    "Phone": "手机",
+    "Tablet": "平板",
+    "Computer": "电脑",
+    "This browser": "此浏览器",
+    "Connected {started} · expires {expires}": "{started} 连接 · {expires} 到期",
+    "End": "结束",
+    "Session ended": "会话已结束",
+    "Connect VRChat on this device": "在此设备上连接 VRChat",
+    "VRChat connects separately on each device, so this one needs to connect once. Your VRChat account is still linked, and you’re still signed in to VRCove.": "VRChat 需要在每台设备上分别连接，所以这台设备需要连接一次。你的 VRChat 账号仍保持关联，你也仍登录着 VRCove。"
   },
   "ko": {
     "Language": "언어",
@@ -3829,6 +3899,16 @@
     "VRCove is an independent, privacy-focused VRChat web client with avatar search built in. Use it on your phone or PC, with nothing to install.": "VRCove는 아바타 검색이 내장된 독립적이고 개인정보를 중시하는 VRChat 웹 클라이언트예요. 휴대폰이나 PC에서 설치 없이 사용하세요.",
     "View on GitHub": "GitHub에서 보기",
     "Works on Android, iPhone, iPad and desktop.": "Android, iPhone, iPad, 데스크톱에서 작동해요.",
-    "Your VRChat account": "내 VRChat 계정"
+    "Your VRChat account": "내 VRChat 계정",
+    "Connected devices": "연결된 기기",
+    "Phone": "휴대폰",
+    "Tablet": "태블릿",
+    "Computer": "컴퓨터",
+    "This browser": "이 브라우저",
+    "Connected {started} · expires {expires}": "{started} 연결 · {expires} 만료",
+    "End": "종료",
+    "Session ended": "세션이 종료되었어요",
+    "Connect VRChat on this device": "이 기기에서 VRChat 연결",
+    "VRChat connects separately on each device, so this one needs to connect once. Your VRChat account is still linked, and you’re still signed in to VRCove.": "VRChat은 기기마다 따로 연결되므로 이 기기도 한 번 연결해야 해요. VRChat 계정은 계속 연결되어 있고, VRCove에도 계속 로그인되어 있어요."
   }
 }

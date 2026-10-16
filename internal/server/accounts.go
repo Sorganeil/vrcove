@@ -339,10 +339,15 @@ func (s *Server) cove(w http.ResponseWriter, r *http.Request, p string) error {
 				}
 			}
 		}
+		if err := s.forgetBrowserSessions(r, acct.ID); err != nil {
+			return err
+		}
 		s.setAccountCookie(w, "", 0)
 		s.clearVRChatSessions(w, r)
 		writeJSON(w, http.StatusOK, map[string]bool{"ok": true})
 		return nil
+	case p == "vrchat-sessions/end" && post:
+		return s.endVRChatSession(w, r, acct)
 	case p == "recovery-codes" && post:
 		return s.generateRecoveryCodes(w, r, acct)
 	case p == "password" && post:
@@ -605,7 +610,11 @@ func (s *Server) accountMe(w http.ResponseWriter, r *http.Request, a *account) e
 		if connected != nil {
 			expires = connected.Expires
 		}
-		links = append(links, map[string]any{"active": isActive, "sessionExpires": expires, "id": id, "vrchatId": rec.VRChatID, "displayName": rec.DisplayName, "username": s.reconnectUsername(r, a.ID, rec), "linked": linked})
+		sessions, err := s.linkSessions(r.Context(), a.ID, rec.VRChatID, connected)
+		if err != nil {
+			return err
+		}
+		links = append(links, map[string]any{"active": isActive, "sessionExpires": expires, "sessions": sessions, "id": id, "vrchatId": rec.VRChatID, "displayName": rec.DisplayName, "username": s.reconnectUsername(r, a.ID, rec), "linked": linked})
 	}
 	if err := rows.Err(); err != nil {
 		return err
@@ -641,8 +650,11 @@ func (s *Server) changePassword(w http.ResponseWriter, r *http.Request, a *accou
 	if _, err := s.accounts.ExecContext(r.Context(), "UPDATE accounts SET password = ? WHERE id = ?", hash, a.ID); err != nil {
 		return err
 	}
-	// Sign out every other device.
+	// Sign out every other device, including its VRChat connections.
 	if _, err := s.accounts.ExecContext(r.Context(), "DELETE FROM account_sessions WHERE account_id = ?", a.ID); err != nil {
+		return err
+	}
+	if err := s.endOtherVRChatSessions(r, a.ID); err != nil {
 		return err
 	}
 	if err := s.startAccountSession(r.Context(), w, a.ID); err != nil {
@@ -787,6 +799,17 @@ func (s *Server) storeVRChatLink(w http.ResponseWriter, r *http.Request, a *acco
 	}
 	session.AccountID, session.UserID = a.ID, vrcID
 	session.activate = true
+	// A reconnect replaces this browser's earlier session for the same link.
+	for _, earlier := range s.browserSessions(r) {
+		if earlier.AccountID == a.ID && earlier.UserID == vrcID && earlier.SessionToken != session.SessionToken {
+			if err := s.forgetSession(ctx, earlier); err != nil {
+				return err
+			}
+		}
+	}
+	if err := s.registerVRChatSession(r, session); err != nil {
+		return err
+	}
 
 	result := map[string]any{"ok": true, "similarName": similar}
 	if connected {
@@ -815,6 +838,16 @@ func (s *Server) unlinkVRChat(w http.ResponseWriter, r *http.Request, a *account
 				s.clearNamedSession(w, s.linkedCookieName(link.VRChatID))
 				if current := s.readSession(r); current != nil && current.AccountID == a.ID && current.UserID == link.VRChatID {
 					s.clearNamedSession(w, s.cookieName())
+				}
+			}
+		}
+	}
+	if sealed != "" {
+		if plain, err := openBytes(s.keys.linkSeal, sealed, linkAAD); err == nil {
+			var link linkRecord
+			if json.Unmarshal(plain, &link) == nil {
+				if _, err := s.accounts.ExecContext(r.Context(), "DELETE FROM vrchat_sessions WHERE account_id = ? AND vrc_key = ?", a.ID, s.linkKey(link.VRChatID)); err != nil {
+					return err
 				}
 			}
 		}

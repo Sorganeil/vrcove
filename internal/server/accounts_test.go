@@ -434,7 +434,12 @@ func TestLoginLinksAndBindsVRChat(t *testing.T) {
 	if got := h.do(as(post("/cove/unlink", jsonBody(fmt.Sprintf(`{"id":%v}`, link["id"]))), alice)); got.Code != 200 {
 		t.Fatalf("unlink = %d", got.Code)
 	}
-	if got := h.do(request(alice)); got.Code != 403 {
+	// Unlinking ends the link's sessions, so the old cookie is refused outright.
+	fetches = h.fetches.Load()
+	if got := h.do(request(alice)); got.Code != 401 {
 		t.Errorf("unlinked session = %d", got.Code)
+	}
+	if h.fetches.Load() != fetches {
+		t.Fatal("unlinked session reached upstream")
 	}
 }

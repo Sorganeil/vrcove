@@ -35,6 +35,8 @@ type Session struct {
 	TwoFactorAuth  string   `json:"twoFactorAuth,omitempty"`
 	Expires        int64    `json:"expires"`
 	Pending        []string `json:"pending"`
+	// SessionToken names this browser's record in vrchat_sessions.
+	SessionToken string `json:"sid,omitempty"`
 }
 
 // sessionFailure distinguishes connection loss from rejected credentials or permissions.
@@ -134,6 +136,9 @@ func (s *Server) readSession(r *http.Request) *Session {
 		if _, err := r.Cookie(s.linkedCookieName(session.UserID)); err == nil {
 			return s.readLinkedSession(r, session.UserID, session.AccountID)
 		}
+	}
+	if !s.sessionLive(r.Context(), session) {
+		return nil
 	}
 	return session
 }

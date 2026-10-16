@@ -40,6 +40,9 @@ var accountMigrations = []string{
 	`ALTER TABLE accounts ADD COLUMN status TEXT NOT NULL DEFAULT '';`,
 	`ALTER TABLE accounts ADD COLUMN link_reminder_seen INTEGER NOT NULL DEFAULT 0;
  UPDATE accounts SET link_reminder_seen = 1 WHERE EXISTS (SELECT 1 FROM vrchat_links WHERE account_id = accounts.id);`,
+	`CREATE TABLE vrchat_sessions (id INTEGER PRIMARY KEY, token_hash BLOB NOT NULL UNIQUE, account_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+		vrc_key BLOB NOT NULL, device TEXT NOT NULL, browser TEXT NOT NULL, created TEXT NOT NULL, expires INTEGER NOT NULL);
+	CREATE INDEX vrchat_sessions_link ON vrchat_sessions(account_id, vrc_key);`,
 }
 
 func migrateAccounts(db *sql.DB) error {

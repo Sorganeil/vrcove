@@ -19,7 +19,7 @@ func (s *Server) readLinkedSession(r *http.Request, userID string, accountID int
 		return nil
 	}
 	session := unseal(c.Value, s.cfg.SessionKey, s.now())
-	if session == nil || session.AccountID != accountID || session.UserID != userID || session.Pending != nil || session.Auth == "" {
+	if session == nil || session.AccountID != accountID || session.UserID != userID || session.Pending != nil || session.Auth == "" || !s.sessionLive(r.Context(), session) {
 		return nil
 	}
 	return session

@@ -119,6 +119,11 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, p string) error {
 		if session != nil && session.AccountID == acct.ID && session.Auth != "" {
 			s.vrc(r.Context(), "/logout", session, vrcRequest{Method: http.MethodPut})
 		}
+		if session != nil && session.AccountID == acct.ID {
+			if err := s.forgetSession(r.Context(), session); err != nil {
+				return err
+			}
+		}
 		s.clearActiveSession(w, r)
 		writeJSON(w, http.StatusOK, map[string]bool{"ok": true})
 		return nil
@@ -145,6 +150,10 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, p string) error {
 	}
 	if !linked {
 		return errStatus(http.StatusForbidden, "Link VRChat to this VRCove account before using account actions.")
+	}
+	// Sessions from before session records get one on their next request.
+	if err := s.registerVRChatSession(r, session); err != nil {
+		return err
 	}
 	if expected := r.Header.Get("X-VRChat-Active-User"); p != "/account/me" && expected != "" && expected != session.UserID {
 		writeJSON(w, http.StatusConflict, map[string]string{"code": "vrchat_account_changed", "error": "The active VRChat account changed in another tab. Refresh the account before trying this action again."})
