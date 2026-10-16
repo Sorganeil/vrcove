@@ -2,7 +2,7 @@
   "id": "/",
   "name": "VRCove",
   "short_name": "VRCove",
-  "description": "A privacy-focused VRChat web client with avatar search.",
+  "description": "Private VRChat web client and avatar search for phone, Quest and PC.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

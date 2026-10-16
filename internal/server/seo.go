@@ -13,17 +13,17 @@ import (
 
 const (
 	homeTitle       = "VRCove | Private VRChat Web Client with Avatar Search"
-	homeDescription = "A privacy-focused VRChat web client for friends, worlds, groups and profiles, with avatar search built in. No ads, no analytics, no tracking."
+	homeDescription = "Search VRChat avatars, review worlds, avatars and groups, and manage friends from your phone, Quest or PC. Installable app. No ads, analytics or tracking."
 	sitemapSize     = 50000
 )
 
 // Public pages that work without a VRChat session and are worth indexing.
 var indexedSections = map[string]linkPreview{
-	"avatars":   {"VRChat Avatar Search | VRCove", "Search public VRChat avatars by name, author, platform and performance rating. PC and Quest avatars, no account, ads or tracking needed.", ""},
-	"worlds":    {"VRChat Worlds | VRCove", "Browse and search VRChat worlds from a private web client with no ads or analytics.", ""},
-	"groups":    {"VRChat Groups | VRCove", "Discover VRChat groups and communities from a private web client.", ""},
-	"users":     {"Find VRChat Users | VRCove", "Find VRChat people by name from a private web client.", ""},
-	"search":    {"Search VRChat | VRCove", "Search VRChat avatars, people, worlds and groups in one place. No ads, analytics or tracking.", ""},
+	"avatars":   {"VRChat Avatar Search | VRCove", "Search PC and Quest VRChat avatars by name, author, platform and performance. Works on phone, Quest and PC with no account, ads or tracking.", ""},
+	"worlds":    {"VRChat Worlds | VRCove", "Browse VRChat worlds and read community reviews from your phone, Quest or PC. No ads or analytics.", ""},
+	"groups":    {"VRChat Groups | VRCove", "Discover VRChat groups and read community reviews from your phone, Quest or PC. No ads or analytics.", ""},
+	"users":     {"Find VRChat Users | VRCove", "Find VRChat players by name from your phone, Quest or PC. No ads or analytics.", ""},
+	"search":    {"Search VRChat | VRCove", "Search VRChat avatars, people, worlds and groups in one place, on phone, Quest or PC. No ads, analytics or tracking.", ""},
 	"donations": {"Support VRCove", "Help keep VRCove independent, private and free of ads.", ""},
 }
 
