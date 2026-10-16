@@ -559,7 +559,8 @@
     "Small and native": "Pequeña y nativa",
     "Built with Go and Gio. No browser, Electron or runtime to install. Linux needs a tray host such as KDE Plasma to run in the background.": "Hecha con Go y Gio. Sin navegador, Electron ni entornos que instalar. En Linux necesita una bandeja del sistema, como KDE Plasma, para funcionar en segundo plano.",
     "View source": "Ver código fuente",
-    "Get the companion": "Obtener la aplicación"
+    "Get the companion": "Obtener la aplicación",
+    "Companion": "Complemento"
   },
   "fr": {
     "Language": "Langue",
@@ -1121,7 +1122,8 @@
     "Small and native": "Petite et native",
     "Built with Go and Gio. No browser, Electron or runtime to install. Linux needs a tray host such as KDE Plasma to run in the background.": "Conçue avec Go et Gio. Aucun navigateur, Electron ni environnement d’exécution à installer. Sous Linux, une zone de notification comme celle de KDE Plasma est nécessaire pour tourner en arrière-plan.",
     "View source": "Voir le code source",
-    "Get the companion": "Obtenir l’application"
+    "Get the companion": "Obtenir l’application",
+    "Companion": "Compagnon"
   },
   "de": {
     "Language": "Sprache",
@@ -1683,7 +1685,8 @@
     "Small and native": "Klein und nativ",
     "Built with Go and Gio. No browser, Electron or runtime to install. Linux needs a tray host such as KDE Plasma to run in the background.": "Gebaut mit Go und Gio. Kein Browser, kein Electron und keine Laufzeitumgebung nötig. Unter Linux braucht sie für den Hintergrundbetrieb einen Infobereich wie bei KDE Plasma.",
     "View source": "Quellcode ansehen",
-    "Get the companion": "Begleit-App holen"
+    "Get the companion": "Begleit-App holen",
+    "Companion": "Begleit-App"
   },
   "ja": {
     "Language": "言語",
@@ -2245,7 +2248,8 @@
     "Small and native": "小さくネイティブ",
     "Built with Go and Gio. No browser, Electron or runtime to install. Linux needs a tray host such as KDE Plasma to run in the background.": "GoとGioで構築。ブラウザやElectron、ランタイムのインストールは不要です。Linuxでバックグラウンド実行するにはKDE Plasmaなどのトレイが必要です。",
     "View source": "ソースコードを見る",
-    "Get the companion": "コンパニオンを入手"
+    "Get the companion": "コンパニオンを入手",
+    "Companion": "コンパニオン"
   },
   "ru": {
     "Language": "Язык",
@@ -2807,7 +2811,8 @@
     "Small and native": "Небольшое и нативное",
     "Built with Go and Gio. No browser, Electron or runtime to install. Linux needs a tray host such as KDE Plasma to run in the background.": "Создано на Go и Gio. Не нужны браузер, Electron или среда выполнения. Для работы в фоне в Linux нужен системный трей, например в KDE Plasma.",
     "View source": "Исходный код",
-    "Get the companion": "Получить приложение"
+    "Get the companion": "Получить приложение",
+    "Companion": "Приложение"
   },
   "uk": {
     "Language": "Мова",
@@ -3369,7 +3374,8 @@
     "Small and native": "Невеликий і нативний",
     "Built with Go and Gio. No browser, Electron or runtime to install. Linux needs a tray host such as KDE Plasma to run in the background.": "Створено на Go і Gio. Не потрібні браузер, Electron чи середовище виконання. Для роботи у фоні в Linux потрібен системний трей, наприклад у KDE Plasma.",
     "View source": "Вихідний код",
-    "Get the companion": "Отримати застосунок"
+    "Get the companion": "Отримати застосунок",
+    "Companion": "Застосунок"
   },
   "zh-CN": {
     "Language": "语言",
@@ -3931,7 +3937,8 @@
     "Small and native": "小巧原生",
     "Built with Go and Gio. No browser, Electron or runtime to install. Linux needs a tray host such as KDE Plasma to run in the background.": "使用 Go 和 Gio 构建。无需浏览器、Electron 或运行时。在 Linux 上后台运行需要系统托盘，例如 KDE Plasma。",
     "View source": "查看源代码",
-    "Get the companion": "获取桌面伴侣"
+    "Get the companion": "获取桌面伴侣",
+    "Companion": "桌面伴侣"
   },
   "ko": {
     "Language": "언어",
@@ -4493,6 +4500,7 @@
     "Small and native": "작고 네이티브",
     "Built with Go and Gio. No browser, Electron or runtime to install. Linux needs a tray host such as KDE Plasma to run in the background.": "Go와 Gio로 만들었습니다. 브라우저, Electron, 런타임 설치가 필요 없습니다. Linux에서 백그라운드로 실행하려면 KDE Plasma 같은 트레이가 필요합니다.",
     "View source": "소스 코드 보기",
-    "Get the companion": "컴패니언 받기"
+    "Get the companion": "컴패니언 받기",
+    "Companion": "컴패니언"
   }
 }

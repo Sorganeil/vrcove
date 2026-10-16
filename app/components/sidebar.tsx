@@ -49,6 +49,9 @@ export default function Sidebar({ open }: { open: boolean }) {
           <a aria-current={section === 'Donations' ? 'page' : undefined} {...sectionLink('Donations')}>
             {tr('Donations')}
           </a>
+          <a aria-current={section === 'Companion' ? 'page' : undefined} {...sectionLink('Companion')}>
+            {tr('Companion')}
+          </a>
           <button onClick={openPrivacy}>{tr('Privacy & data')}</button>
         </div>
       </div>
