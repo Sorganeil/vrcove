@@ -1,0 +1,116 @@
+/* Recovery codes, VRChat availability and status, and VRCove profile status. */
+.recovery-codes {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.recovery-codes code {
+  font-size: clamp(10px, 2.6vw, 13px);
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+/* Keep availability distinct from the person's own status message. */
+.user-status {
+  --presence-color: #78c28b;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+  min-width: 0;
+  margin-top: 9px;
+  text-align: left;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.user-status.tone-join-me {
+  --presence-color: #5eb8ed;
+}
+.user-status.tone-ask-me {
+  --presence-color: #dfbf71;
+}
+.user-status.tone-busy {
+  --presence-color: #e27d7b;
+}
+.user-status.tone-offline,
+.user-status.tone-unknown {
+  --presence-color: #91a3b4;
+}
+.user-availability {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 100%;
+  padding: 3px 8px;
+  border: 1px solid color-mix(in srgb, var(--presence-color) 24%, transparent);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--presence-color) 8%, transparent);
+  color: var(--presence-color);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.user-status .presence-dot {
+  display: block;
+  flex: 0 0 6px;
+  width: 6px;
+  height: 6px;
+  margin: 0;
+  background: var(--presence-color);
+}
+.user-status-message {
+  display: block;
+  max-width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: #c4d3df;
+  font-size: 13px;
+  line-height: 1.6;
+  font-weight: 400;
+}
+.user-pronouns {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.status-dot.join-me {
+  background: #5eb8ed;
+}
+.status-dot.ask-me {
+  background: #dfbf71;
+}
+.status-dot.unknown,
+.status-dot.offline {
+  background: #91a3b4;
+}
+.online-grid .user-status {
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+}
+.online-grid .user-availability {
+  font-size: 10px;
+  padding: 2px 6px;
+}
+.online-grid .user-status-message {
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.cove-profile-status {
+  margin: 8px 0;
+  color: #b4d4e5;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-width: 650px;
+}
+.cove-profile-edit {
+  margin-bottom: 18px;
+}
+.cove-about .cove-bio {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin-bottom: 0;
+}

@@ -1,0 +1,78 @@
+/* Page titles and primary controls. */
+/* Hierarchy and controls */
+.page-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 29px 0 25px;
+}
+.page-title h1,
+.section-heading h2 {
+  color: #f0f5fa;
+  font-size: 27px;
+  line-height: 1.25;
+  letter-spacing: -0.65px;
+  font-weight: 650;
+}
+.page-title p,
+.section-heading p {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.page-title > svg {
+  color: #83adbf;
+}
+.primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 10px 15px;
+  border: 1px solid #00c8ff;
+  border-radius: 4px;
+  background: #00c8ff;
+  color: #020a0e;
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 700;
+}
+.primary:hover {
+  border-color: #65e1ff;
+  background: #43d8ff;
+}
+.muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #8fa5ba;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.eyebrow i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #50d6fa;
+  font-size: 13px;
+}
+.text-link:hover {
+  color: #9aecff;
+}
+.danger-text {
+  color: #e7aaa6;
+}

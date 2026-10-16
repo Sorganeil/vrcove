@@ -1,0 +1,51 @@
+/* Scrollbars across the page, navigation, dialogs and metadata. */
+/* Scrollbars across the page, navigation, dialogs and metadata panels. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #48677e #0c141e;
+}
+@supports selector(::-webkit-scrollbar) {
+  *,
+  .sidebar-navigation {
+    scrollbar-width: auto;
+    scrollbar-color: auto;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0c141e;
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    min-height: 32px;
+    border: 2px solid #0c141e;
+    border-radius: 10px;
+    background: #48677e;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #6690ad;
+  }
+  ::-webkit-scrollbar-thumb:active {
+    background: var(--accent);
+  }
+  ::-webkit-scrollbar-corner {
+    background: #0c141e;
+  }
+}
+@media (forced-colors: active) {
+  *,
+  .sidebar-navigation {
+    scrollbar-width: auto;
+    scrollbar-color: auto;
+  }
+  ::-webkit-scrollbar-track,
+  ::-webkit-scrollbar-corner {
+    background: Canvas;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: CanvasText;
+    border-color: Canvas;
+  }
+}

@@ -1,0 +1,470 @@
+/* VRCove accounts, reviews, profiles and collections. */
+/* VRCove accounts and reviews */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.cove-auth {
+  max-width: 520px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--panel);
+}
+.cove-auth .login-content {
+  padding: 28px;
+}
+.cove-auth .chips {
+  margin-bottom: 22px;
+}
+.cove-panels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.cove-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--panel);
+}
+.cove-panel.login-content {
+  padding: 22px;
+}
+.cove-panel form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+.cove-panel label {
+  width: 100%;
+}
+.cove-panel.login-content > p {
+  margin: 0;
+  color: #829db3;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.cove-panel h3 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #e4eff8;
+  font-size: 18px;
+  font-weight: 600;
+}
+.cove-panel .fineprint {
+  margin: 0;
+}
+.cove-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cove-links li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid #2c4255;
+  border-radius: 4px;
+  background: #0c1620;
+}
+.cove-links li > div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.cove-links small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cove-links > li {
+  flex-wrap: wrap;
+}
+.cove-links > li > div:first-child {
+  flex: 1 1 0;
+}
+.vrchat-sessions {
+  flex-basis: 100%;
+  padding-top: 10px;
+  border-top: 1px solid #22384a;
+}
+.vrchat-sessions > small {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+.vrchat-sessions ul {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.vrchat-sessions li {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 6px 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+.vrchat-sessions li > svg {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+.vrchat-sessions li > div {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.vrchat-sessions strong {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.vrchat-sessions li small {
+  white-space: normal;
+}
+.vrchat-sessions .standard-button {
+  flex-shrink: 0;
+  min-height: 30px;
+  padding: 5px 10px;
+  font-size: 12px;
+}
+.cove-warning {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.cove-warning button {
+  margin-left: auto;
+  text-decoration: underline;
+}
+.stars {
+  display: inline-flex;
+  gap: 1px;
+  color: #f5c451;
+}
+.stars svg {
+  stroke-width: 1.6;
+}
+.star-input {
+  display: flex;
+  gap: 2px;
+  color: #f5c451;
+}
+.star-input button {
+  padding: 3px;
+}
+.star-input button:hover svg {
+  transform: scale(1.12);
+}
+.reviews {
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+.review-summary {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin-bottom: 18px;
+}
+.review-summary > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.review-summary > div strong {
+  font-size: 34px;
+  line-height: 1;
+  font-weight: 650;
+}
+.review-summary small {
+  color: var(--muted);
+  font-size: 12px;
+}
+.review-summary ol {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+  max-width: 320px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.review-summary li {
+  display: grid;
+  grid-template-columns: 12px 1fr 28px;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.review-summary li i {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: #1d2d3c;
+}
+.review-summary li b {
+  display: block;
+  height: 100%;
+  background: #f5c451;
+}
+.review-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.review-form textarea {
+  min-height: 96px;
+}
+.review-form small {
+  color: var(--muted);
+  font-size: 11px;
+}
+.review-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.review {
+  padding: 14px 16px;
+  border: 1px solid #23384a;
+  border-radius: 4px;
+  background: #0d1822;
+}
+.review.mine {
+  margin-bottom: 14px;
+  border-color: #2f5f78;
+}
+.review header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.review header small {
+  color: var(--muted);
+  font-size: 11px;
+}
+.review p {
+  margin-top: 8px;
+  color: #c8d9e7;
+  font-size: 13px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.review .result-actions {
+  margin-top: 10px;
+}
+@media (max-width: 760px) {
+  .cove-panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .review-summary {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .review-summary ol {
+    max-width: none;
+  }
+}
+.cove-switch {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 10px !important;
+}
+.cove-switch input {
+  width: auto !important;
+  height: auto !important;
+}
+.review-author {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: #8fdcf5;
+  font-weight: 600;
+}
+.review-kind {
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: #233d52;
+  color: #a3c4dd;
+  font-size: 11px;
+}
+.cove-profile-hero {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin: 10px 0 20px;
+}
+.cove-profile-hero h1 {
+  font-size: 30px;
+}
+.cove-profile-mark {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #16384a;
+  color: #8fdcf5;
+  font-size: 28px;
+  font-weight: 700;
+}
+.cove-bio {
+  white-space: pre-wrap;
+}
+.collection-head {
+  margin: 10px 0 22px;
+}
+.collection-head h1 {
+  margin: 8px 0 6px;
+  font-size: 30px;
+}
+.collection-form {
+  margin-bottom: 18px;
+  max-width: 560px;
+}
+.collection-mosaic.n2,
+.collection-mosaic.n3,
+.collection-mosaic.n4 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+}
+.collection-card strong {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.collection-item {
+  position: relative;
+}
+.collection-remove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: #080c11cc;
+  border-radius: 50%;
+}
+.collection-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+.collection-choices button {
+  display: flex;
+  justify-content: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #2c4255;
+  border-radius: 4px;
+  background: #0c1620;
+  text-align: left;
+}
+.collection-choices span:last-child {
+  display: flex;
+  flex-direction: column;
+}
+.collection-choices small {
+  color: var(--muted);
+  font-size: 11px;
+}
+.collection-choices .check {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid #45647d;
+  border-radius: 4px;
+}
+.collection-choices .check.on {
+  background: #00c8ff;
+  border-color: #00c8ff;
+  color: #020a0e;
+}
+.collection-quick {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 8px !important;
+}
+.collection-quick input {
+  flex: 1;
+}
+
+.collection-quick input {
+  min-width: 0;
+}
+.collection-choices span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.collection-choices .check {
+  flex-shrink: 0;
+}
+.cove-profile-hero > div:last-child {
+  min-width: 0;
+}
+.cove-profile-mark {
+  flex-shrink: 0;
+}
+.cove-profile h1,
+.collection-head h1,
+.cove-bio,
+.review p {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 480px) {
+  .collection-quick {
+    flex-direction: column !important;
+  }
+  .collection-quick .primary {
+    width: 100%;
+  }
+  .cove-profile-hero h1,
+  .collection-head h1 {
+    font-size: 25px;
+  }
+}

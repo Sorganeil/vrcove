@@ -1,0 +1,267 @@
+/* Turnstile, privacy dialog width, install button, picture upload, phone header, filters and device sessions. */
+.turnstile-box {
+  min-height: 65px;
+  margin: 4px 0;
+}
+.modal:has(> .privacy-content) {
+  max-width: 760px;
+}
+.modal > .privacy-content {
+  padding: 44px 48px 34px;
+}
+.modal > .privacy-content > p {
+  font-size: 15px;
+  line-height: 1.75;
+}
+.modal > .privacy-content > h3 {
+  font-size: 17px;
+}
+.modal > .privacy-content h2 {
+  font-size: 32px;
+}
+@media (max-width: 650px) {
+  .modal > .privacy-content {
+    padding: 37px 24px 25px;
+  }
+  .modal > .privacy-content > p {
+    font-size: 14px;
+  }
+  .modal > .privacy-content h2 {
+    font-size: 27px;
+  }
+}
+.install-app {
+  color: var(--accent);
+}
+.install-app > svg {
+  color: var(--accent);
+}
+.install-help ol {
+  display: grid;
+  gap: 14px;
+  margin: 18px 0 6px;
+  padding: 0;
+  list-style: none;
+}
+.install-help li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #c6d7e5;
+  font-size: 15px;
+}
+.install-help li > svg {
+  flex: none;
+  color: var(--accent);
+}
+.login-content label.picture-upload {
+  position: relative;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  align-self: flex-start;
+  width: auto;
+  gap: 8px;
+  cursor: pointer;
+}
+.picture-upload input {
+  position: absolute;
+  inset: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.picture-upload:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.picture-upload.disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.topbar-home {
+  display: none;
+}
+@media (max-width: 650px) {
+  .topbar-home {
+    display: flex;
+    align-items: center;
+    margin-left: 2px;
+  }
+  .topbar-home img {
+    width: 88px;
+    height: auto;
+    filter: brightness(1.12);
+  }
+  .mobile-menu {
+    width: 40px;
+    height: 40px;
+    justify-content: center;
+  }
+  .topbar .language-picker {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid #263747;
+    border-radius: 6px;
+    background: #080f17;
+    color: #9bafc2;
+  }
+  .topbar .language-picker select {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    padding: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .topbar .language-picker.compact > svg {
+    display: block;
+    width: 19px;
+    height: 19px;
+  }
+  .topbar .language-picker:focus-within {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .header-search {
+    width: 40px;
+    height: 40px;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid #263747;
+    border-radius: 6px;
+    background: #080f17;
+  }
+  .header-search svg {
+    width: 19px;
+    height: 19px;
+  }
+  .account-chip {
+    min-width: 40px;
+    min-height: 40px;
+    justify-content: center;
+  }
+  .account-chip .account-name {
+    display: none;
+  }
+  .topbar .sign-out-button {
+    display: none;
+  }
+  .top-actions {
+    gap: 8px;
+  }
+}
+.label-short {
+  display: none;
+}
+@media (max-width: 650px) {
+  .connect-button .label-long,
+  .connect-button > svg:last-child {
+    display: none;
+  }
+  .connect-button .label-short {
+    display: inline;
+  }
+  .connect-button {
+    min-height: 40px;
+    padding: 8px 14px;
+  }
+}
+.filter-panel input:not([type='checkbox']) {
+  min-width: 190px;
+  padding: 8px 10px;
+  border: 1px solid #32485b;
+  border-radius: 4px;
+  background: #0b1722;
+  color: #d1e2f1;
+  font-size: 13px;
+}
+.filter-panel input:not([type='checkbox'])::placeholder {
+  color: #6d8597;
+}
+.filter-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.filter-checks legend {
+  margin-bottom: 8px;
+  color: #b6c9da;
+  font-size: 13px;
+}
+.filter-panel .filter-checks label {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.filter-checks input {
+  width: 16px;
+  height: 16px;
+  accent-color: #00b9ec;
+}
+.active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.active-filters button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 5px 11px;
+  border: 1px solid #2d6f86;
+  border-radius: 999px;
+  background: #0d2230;
+  color: #bfeeff;
+  font-size: 12px;
+}
+.active-filters button:hover {
+  border-color: #00b9ec;
+}
+.tags > button {
+  padding: 3px 7px;
+  border: 1px solid #35546d;
+  border-radius: 3px;
+  background: #233d52;
+  color: #a3c4dd;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+.tags > button:hover {
+  border-color: #00b9ec;
+  color: #d6f5ff;
+}
+.creator .more-by {
+  margin-left: 10px;
+  font-size: 12px;
+}
+@media (max-width: 650px) {
+  .filter-panel input:not([type='checkbox']) {
+    width: 100%;
+    min-width: 0;
+  }
+  .filter-panel > label {
+    width: 100%;
+  }
+  .filter-panel select {
+    width: 100%;
+  }
+}
