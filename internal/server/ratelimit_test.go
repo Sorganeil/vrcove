@@ -88,20 +88,20 @@ func TestPictureUploadsRateLimited(t *testing.T) {
 	}
 }
 
-func TestSignedInUserLookupsNotPreviewed(t *testing.T) {
+func TestSignedInLookupsFillPreviews(t *testing.T) {
 	h := newConnectedHarness(t)
 	id := "usr_00000000-0000-0000-0000-000000000003"
-	if w := h.signedIn(get("/account/user?id="+id), "/users/"+id, `{"id":"`+id+`","displayName":"Looked Up"}`); w.Code != 200 {
+	if w := h.signedIn(get("/account/user?id="+id), "/users/"+id, `{"id":"`+id+`","displayName":"Looked Up","statusDescription":"Secret"}`); w.Code != 200 {
 		t.Fatalf("lookup: %d %s", w.Code, w.Body)
 	}
-	if _, cached := h.srv.previews.Entries["user/"+id]; cached {
-		t.Fatal("signed-in lookup cached for public previews")
+	if entry := h.srv.previews.Entries["user/"+id]; entry.Preview.Title != "Looked Up" || strings.Contains(entry.Preview.Description, "Secret") {
+		t.Fatalf("user preview = %+v", entry.Preview)
 	}
 	if w := h.signedIn(get("/account/world?id="+testWorld), "/worlds/"+testWorld, `{"id":"`+testWorld+`","name":"Open","releaseStatus":"public"}`); w.Code != 200 {
 		t.Fatalf("world lookup: %d %s", w.Code, w.Body)
 	}
 	if _, cached := h.srv.previews.Entries["world/"+testWorld]; !cached {
-		t.Fatal("public world no longer previewed")
+		t.Fatal("public world not previewed")
 	}
 }
 

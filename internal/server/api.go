@@ -651,9 +651,9 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, sessi
 		session.apply(updates)
 		pick(asObject(result), asObject(profile), "bio", "bioLinks")
 	}
-	// Worlds and groups are public listings. A user preview is never cached
-	// from a signed-in lookup: it would show visitors who was just viewed.
-	if p == "/account/world" || p == "/account/group" {
+	// Shared links usually follow a visit, so the visit fills the preview.
+	// Only public display fields are kept, never who viewed it.
+	if p == "/account/world" || p == "/account/group" || p == "/account/user" {
 		s.cachePreview(strings.TrimPrefix(p, "/account/"), query.Get("id"), result)
 	}
 	s.writeWithSession(w, result, session)
