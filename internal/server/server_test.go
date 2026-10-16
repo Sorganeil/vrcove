@@ -279,6 +279,20 @@ func TestImageProxy(t *testing.T) {
 		}
 	}
 
+	png = []byte("\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR")
+	for kind, want := range map[string]int{"binary/octet-stream": http.StatusOK, "application/octet-stream": http.StatusOK} {
+		h.upstream = func(*http.Request) (*http.Response, error) { return respond(200, kind, png), nil }
+		if w := h.do(imageRequest("https://assets.vrchat.com/test")); w.Code != want || w.Header().Get("Content-Type") != "image/png" {
+			t.Errorf("sniffed %s = %d %q", kind, w.Code, w.Header().Get("Content-Type"))
+		}
+	}
+	h.upstream = func(*http.Request) (*http.Response, error) {
+		return respond(200, "application/octet-stream", []byte("<svg><script>alert(1)</script></svg>")), nil
+	}
+	if w := h.do(imageRequest("https://assets.vrchat.com/test")); w.Code != http.StatusNotFound {
+		t.Errorf("sniffed svg = %d", w.Code)
+	}
+
 	h.upstream = func(*http.Request) (*http.Response, error) {
 		return respond(200, "image/png", make([]byte, maxImageBytes+1)), nil
 	}
@@ -300,6 +314,8 @@ func TestImageAllowList(t *testing.T) {
 		"https://files.vrchat.cloud/secret.json",
 		"https://s3-us-west-2.amazonaws.com/other-bucket/a.png",
 		"https://evil.example/assets.vrchat.com/a.png",
+		"https://files.vrchat.cloud/file_0c853d9f-fb1d-4e38-8d35-57fe94949269/../secret.json",
+		"https://s3.us-east-1.amazonaws.com/other-bucket/file_0c853d9f-fb1d-4e38-8d35-57fe94949269.1",
 	} {
 		if w := h.do(imageRequest(target)); w.Code != http.StatusNotFound {
 			t.Errorf("%s = %d", target, w.Code)
@@ -315,6 +331,20 @@ func TestImageAllowList(t *testing.T) {
 	}
 	if w := h.do(imageRequest("https://assets.vrchat.com/a.png")); w.Code != http.StatusNotFound || h.fetches.Load() != 1 {
 		t.Errorf("redirect to metadata host = %d after %d fetches", w.Code, h.fetches.Load())
+	}
+}
+
+func TestImageAllowsVRChatFiles(t *testing.T) {
+	for _, target := range []string{
+		"https://files.vrchat.cloud/thumbnails/file_0c853d9f-fb1d-4e38-8d35-57fe94949269.abc.1.thumbnail-256.png",
+		"https://files.vrchat.cloud/Group-Banner.file_0c853d9f-fb1d-4e38-8d35-57fe94949269.1",
+		"https://files.vrchat.cloud/blob.file_0c853d9f-fb1d-4e38-8d35-57fe94949269.2.file",
+		"https://s3.us-east-1.amazonaws.com/files.vrchat.cloud/icon.file_0c853d9f-fb1d-4e38-8d35-57fe94949269.1",
+	} {
+		u, err := url.Parse(target)
+		if err != nil || !allowedImage(u) {
+			t.Errorf("%s rejected", target)
+		}
 	}
 }
 

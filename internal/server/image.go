@@ -14,8 +14,11 @@ const maxImageBytes = 10_000_000
 
 var (
 	vrchatImagePath = regexp.MustCompile(`^/api/1/(?:file|image)/file_[a-f0-9-]+/`)
-	vrchatFilePath  = regexp.MustCompile(`(?i)\.(?:png|jpe?g|webp|gif)$`)
-	imageTypes      = map[string]bool{"image/png": true, "image/jpeg": true, "image/webp": true, "image/gif": true, "image/avif": true}
+	// Signed file redirects, used for group icons and banners, often have no
+	// extension, so a VRChat file ID also qualifies. Content types are checked
+	// on every response.
+	vrchatFilePath = regexp.MustCompile(`(?i)(?:\.(?:png|jpe?g|webp|gif)|file_[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}[^/]*)$`)
+	imageTypes     = map[string]bool{"image/png": true, "image/jpeg": true, "image/webp": true, "image/gif": true, "image/avif": true}
 )
 
 // allowedImage accepts only HTTPS URLs on VRChat's image hosts. Paths must be
@@ -36,6 +39,8 @@ func allowedImage(u *url.URL) bool {
 		return vrchatFilePath.MatchString(p)
 	case "s3-us-west-2.amazonaws.com":
 		return strings.HasPrefix(p, "/vrc-uploads/")
+	case "s3.amazonaws.com", "s3.us-east-1.amazonaws.com":
+		return strings.HasPrefix(p, "/files.vrchat.cloud/") && vrchatFilePath.MatchString(p)
 	case "assets.vrchat.com":
 		return true
 	}
@@ -111,7 +116,10 @@ func (s *Server) image(w http.ResponseWriter, r *http.Request) error {
 func (s *Server) writeImage(w http.ResponseWriter, resp *http.Response) error {
 	contentType, _, _ := strings.Cut(resp.Header.Get("Content-Type"), ";")
 	contentType = strings.ToLower(strings.TrimSpace(contentType))
-	if resp.StatusCode < 200 || resp.StatusCode > 299 || !imageTypes[contentType] {
+	// Extensionless uploads are often served as generic binary data, so
+	// those are identified from their bytes instead.
+	generic := contentType == "application/octet-stream" || contentType == "binary/octet-stream" || contentType == ""
+	if resp.StatusCode < 200 || resp.StatusCode > 299 || (!imageTypes[contentType] && !generic) {
 		w.WriteHeader(http.StatusNotFound)
 		return nil
 	}
@@ -122,6 +130,13 @@ func (s *Server) writeImage(w http.ResponseWriter, resp *http.Response) error {
 	image, err := readBounded(resp.Body, maxImageBytes, "Image too large.")
 	if err != nil {
 		return err
+	}
+	if generic {
+		contentType = http.DetectContentType(image)
+		if !imageTypes[contentType] {
+			w.WriteHeader(http.StatusNotFound)
+			return nil
+		}
 	}
 	h := w.Header()
 	h.Set("Content-Type", contentType)
