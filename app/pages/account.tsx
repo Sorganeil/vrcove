@@ -535,7 +535,7 @@ export default function AccountPage({
           </label>
           <p className="fineprint">
             {tr(
-              'PNG, JPEG or GIF. You can crop it to a square before saving. Visible to others when your profile is public.',
+              'PNG, JPEG or GIF. Before saving, you can move and zoom it to fit the circle. Visible to others when your profile is public.',
             )}
           </p>
           {busy === 'picture' && (

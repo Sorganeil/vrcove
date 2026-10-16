@@ -517,7 +517,15 @@
     "Remove filter": "Quitar filtro",
     "Creator: {author}": "Creador: {author}",
     "Tag: {tag}": "Etiqueta: {tag}",
-    "More by {author}": "Más de {author}"
+    "More by {author}": "Más de {author}",
+    "PNG, JPEG or GIF. Before saving, you can move and zoom it to fit the circle. Visible to others when your profile is public.": "PNG, JPEG o GIF. Antes de guardar, puedes moverla y ampliarla para que encaje en el círculo. Visible para otros cuando tu perfil es público.",
+    "This image could not be read.": "No se pudo leer esta imagen.",
+    "Crop picture": "Recortar imagen",
+    "PROFILE PICTURE": "FOTO DE PERFIL",
+    "Drag to move. Zoom to choose how much is shown.": "Arrastra para mover. Usa el zoom para elegir cuánto se muestra.",
+    "Picture crop area. Use arrow keys to move and plus or minus to zoom.": "Área de recorte. Usa las flechas para mover y más o menos para ampliar.",
+    "Zoom": "Zoom",
+    "Use this picture": "Usar esta imagen"
   },
   "fr": {
     "Language": "Langue",
@@ -1037,7 +1045,15 @@
     "Remove filter": "Retirer le filtre",
     "Creator: {author}": "Créateur : {author}",
     "Tag: {tag}": "Tag : {tag}",
-    "More by {author}": "Plus de {author}"
+    "More by {author}": "Plus de {author}",
+    "PNG, JPEG or GIF. Before saving, you can move and zoom it to fit the circle. Visible to others when your profile is public.": "PNG, JPEG ou GIF. Avant d’enregistrer, vous pouvez la déplacer et zoomer pour l’ajuster au cercle. Visible par les autres quand votre profil est public.",
+    "This image could not be read.": "Impossible de lire cette image.",
+    "Crop picture": "Recadrer l’image",
+    "PROFILE PICTURE": "PHOTO DE PROFIL",
+    "Drag to move. Zoom to choose how much is shown.": "Faites glisser pour déplacer. Zoomez pour choisir la partie affichée.",
+    "Picture crop area. Use arrow keys to move and plus or minus to zoom.": "Zone de recadrage. Utilisez les flèches pour déplacer et plus ou moins pour zoomer.",
+    "Zoom": "Zoom",
+    "Use this picture": "Utiliser cette image"
   },
   "de": {
     "Language": "Sprache",
@@ -1557,7 +1573,15 @@
     "Remove filter": "Filter entfernen",
     "Creator: {author}": "Ersteller: {author}",
     "Tag: {tag}": "Tag: {tag}",
-    "More by {author}": "Mehr von {author}"
+    "More by {author}": "Mehr von {author}",
+    "PNG, JPEG or GIF. Before saving, you can move and zoom it to fit the circle. Visible to others when your profile is public.": "PNG, JPEG oder GIF. Vor dem Speichern kannst du es verschieben und zoomen, damit es in den Kreis passt. Für andere sichtbar, wenn dein Profil öffentlich ist.",
+    "This image could not be read.": "Dieses Bild konnte nicht gelesen werden.",
+    "Crop picture": "Bild zuschneiden",
+    "PROFILE PICTURE": "PROFILBILD",
+    "Drag to move. Zoom to choose how much is shown.": "Ziehen zum Verschieben. Zoomen, um den sichtbaren Ausschnitt zu wählen.",
+    "Picture crop area. Use arrow keys to move and plus or minus to zoom.": "Zuschneidebereich. Mit den Pfeiltasten verschieben, mit Plus oder Minus zoomen.",
+    "Zoom": "Zoom",
+    "Use this picture": "Dieses Bild verwenden"
   },
   "ja": {
     "Language": "言語",
@@ -2077,7 +2101,15 @@
     "Remove filter": "フィルターを解除",
     "Creator: {author}": "作者: {author}",
     "Tag: {tag}": "タグ: {tag}",
-    "More by {author}": "{author}の他のアバター"
+    "More by {author}": "{author}の他のアバター",
+    "PNG, JPEG or GIF. Before saving, you can move and zoom it to fit the circle. Visible to others when your profile is public.": "PNG、JPEG、GIFに対応。保存する前に、円に合わせて位置と拡大率を調整できます。プロフィールが公開されているとき他のユーザーに表示されます。",
+    "This image could not be read.": "この画像を読み込めませんでした。",
+    "Crop picture": "画像を切り抜く",
+    "PROFILE PICTURE": "プロフィール画像",
+    "Drag to move. Zoom to choose how much is shown.": "ドラッグで移動、ズームで表示範囲を調整します。",
+    "Picture crop area. Use arrow keys to move and plus or minus to zoom.": "切り抜き範囲。矢印キーで移動、プラスとマイナスでズームします。",
+    "Zoom": "ズーム",
+    "Use this picture": "この画像を使う"
   },
   "ru": {
     "Language": "Язык",
@@ -2597,7 +2629,15 @@
     "Remove filter": "Убрать фильтр",
     "Creator: {author}": "Автор: {author}",
     "Tag: {tag}": "Тег: {tag}",
-    "More by {author}": "Ещё от {author}"
+    "More by {author}": "Ещё от {author}",
+    "PNG, JPEG or GIF. Before saving, you can move and zoom it to fit the circle. Visible to others when your profile is public.": "PNG, JPEG или GIF. Перед сохранением можно сдвинуть и увеличить изображение, чтобы оно вписалось в круг. Видно другим, если профиль публичный.",
+    "This image could not be read.": "Не удалось прочитать изображение.",
+    "Crop picture": "Обрезать изображение",
+    "PROFILE PICTURE": "ФОТО ПРОФИЛЯ",
+    "Drag to move. Zoom to choose how much is shown.": "Перетащите, чтобы сдвинуть. Масштабируйте, чтобы выбрать видимую часть.",
+    "Picture crop area. Use arrow keys to move and plus or minus to zoom.": "Область обрезки. Стрелки сдвигают, плюс и минус меняют масштаб.",
+    "Zoom": "Масштаб",
+    "Use this picture": "Использовать это изображение"
   },
   "uk": {
     "Language": "Мова",
@@ -3117,7 +3157,15 @@
     "Remove filter": "Прибрати фільтр",
     "Creator: {author}": "Автор: {author}",
     "Tag: {tag}": "Тег: {tag}",
-    "More by {author}": "Ще від {author}"
+    "More by {author}": "Ще від {author}",
+    "PNG, JPEG or GIF. Before saving, you can move and zoom it to fit the circle. Visible to others when your profile is public.": "PNG, JPEG або GIF. Перед збереженням можна зсунути й збільшити зображення, щоб воно вписалося в коло. Видно іншим, якщо профіль публічний.",
+    "This image could not be read.": "Не вдалося прочитати зображення.",
+    "Crop picture": "Обрізати зображення",
+    "PROFILE PICTURE": "ФОТО ПРОФІЛЮ",
+    "Drag to move. Zoom to choose how much is shown.": "Перетягніть, щоб зсунути. Масштабуйте, щоб вибрати видиму частину.",
+    "Picture crop area. Use arrow keys to move and plus or minus to zoom.": "Область обрізання. Стрілки зсувають, плюс і мінус змінюють масштаб.",
+    "Zoom": "Масштаб",
+    "Use this picture": "Використати це зображення"
   },
   "zh-CN": {
     "Language": "语言",
@@ -3637,7 +3685,15 @@
     "Remove filter": "移除筛选",
     "Creator: {author}": "作者：{author}",
     "Tag: {tag}": "标签：{tag}",
-    "More by {author}": "{author} 的更多作品"
+    "More by {author}": "{author} 的更多作品",
+    "PNG, JPEG or GIF. Before saving, you can move and zoom it to fit the circle. Visible to others when your profile is public.": "支持 PNG、JPEG 或 GIF。保存前可以移动和缩放图片，使其适合圆形区域。个人资料公开时对他人可见。",
+    "This image could not be read.": "无法读取此图片。",
+    "Crop picture": "裁剪图片",
+    "PROFILE PICTURE": "头像",
+    "Drag to move. Zoom to choose how much is shown.": "拖动以移动，缩放以选择显示范围。",
+    "Picture crop area. Use arrow keys to move and plus or minus to zoom.": "裁剪区域。使用方向键移动，加号和减号缩放。",
+    "Zoom": "缩放",
+    "Use this picture": "使用此图片"
   },
   "ko": {
     "Language": "언어",
@@ -4157,6 +4213,14 @@
     "Remove filter": "필터 해제",
     "Creator: {author}": "제작자: {author}",
     "Tag: {tag}": "태그: {tag}",
-    "More by {author}": "{author}의 다른 아바타"
+    "More by {author}": "{author}의 다른 아바타",
+    "PNG, JPEG or GIF. Before saving, you can move and zoom it to fit the circle. Visible to others when your profile is public.": "PNG, JPEG, GIF를 지원해요. 저장하기 전에 원에 맞게 이동하고 확대할 수 있어요. 프로필이 공개되면 다른 사람에게 보여요.",
+    "This image could not be read.": "이 이미지를 읽을 수 없어요.",
+    "Crop picture": "사진 자르기",
+    "PROFILE PICTURE": "프로필 사진",
+    "Drag to move. Zoom to choose how much is shown.": "드래그해서 이동하고, 확대로 보이는 범위를 정하세요.",
+    "Picture crop area. Use arrow keys to move and plus or minus to zoom.": "자르기 영역. 화살표 키로 이동하고 더하기와 빼기로 확대해요.",
+    "Zoom": "확대",
+    "Use this picture": "이 사진 사용"
   }
 }
