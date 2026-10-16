@@ -1,3 +1,4 @@
+import {entityPath,type EntityKind} from './routes';
 import {t as tr,useLocale} from './i18n';
 import {useState,useEffect,useRef} from 'react';
 import {LoaderCircle,Library,Lock,Globe2,Plus,Check,Trash2,Copy,Pencil,ChevronLeft,UserRound,Star,Users,X,FolderPlus} from 'lucide-react';
@@ -6,7 +7,7 @@ type CollectionKind='avatar'|'world';
 type Summary={id:string;kind:CollectionKind;name:string;description:string;public:boolean;updated:string;count:number;contains:boolean;preview:string[]};
 const kindLabel:Record<string,string>={user:'User',world:'World',avatar:'Avatar',group:'Group'};
 /* Where a reviewed or collected VRChat item opens in this app. */
-const targetHref=(kind:string,id:string)=>'#'+kind+'/'+id;
+const targetHref=(kind:string,id:string)=>entityPath(kind as EntityKind,id);
 function Thumb({url,alt=''}:{url?:string;alt?:string}){useLocale();const [fail,setFail]=useState(false);return url&&!fail?<img src={'/api/image?url='+encodeURIComponent(url)} alt={alt} onError={()=>setFail(true)} referrerPolicy="no-referrer" loading="lazy"/>:<div className="image-fallback"><Library strokeWidth={.8}/></div>;}
 function Back(){useLocale();return <div className="detail-toolbar"><button className="text-link" onClick={()=>window.history.back()}><ChevronLeft size={14}/>{tr("Back")}</button></div>;}
 function useResource(path:string){

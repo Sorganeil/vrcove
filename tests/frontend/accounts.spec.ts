@@ -107,7 +107,7 @@ test('reviews keep the item name, survive edits, and link public authors',async(
  await p.goto(`${origin}/#world/${world}`);
  await p.getByRole('link',{name,exact:false}).click();
  await expect(p.locator('h1')).toHaveText(name);
- await expect(p.getByRole('link',{name:'Cozy Cabin',exact:true})).toHaveAttribute('href',`#world/${world}`);
+ await expect(p.getByRole('link',{name:'Cozy Cabin',exact:true})).toHaveAttribute('href',`/world/${world}`);
  await expect(p.getByText('Great lighting.',{exact:true})).toBeVisible();
  await page.route('**/api/veil/review/delete',r=>r.fulfill({status:503,json:{error:'Temporarily unavailable'}}));
  await page.getByRole('button',{name:'Delete',exact:true}).click();

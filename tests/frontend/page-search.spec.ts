@@ -70,7 +70,7 @@ test('groups search switches between memberships and discovery',async({page},tes
  await expect(search).toHaveAttribute('placeholder','Search all groups…');
  await page.locator('form').getByRole('button',{name:'Search',exact:true}).click();
  await expect(page.locator('.search-result')).toContainText('Found community');
- await expect(page.locator('.search-result-name')).toHaveAttribute('href','#group/'+group);
+ await expect(page.locator('.search-result-name')).toHaveAttribute('href','/group/'+group);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width);
  await page.screenshot({path:`/tmp/veil-group-search-${testInfo.project.name}.png`,fullPage:true});
  await search.fill('empty');

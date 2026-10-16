@@ -5,7 +5,7 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default defineConfig([
-  globalIgnores(["web/dist/**", "node_modules/**", "work/**", "scripts/**"]),
+  globalIgnores(["web/dist/**", "outputs/**", "node_modules/**", "work/**", "scripts/**"]),
   js.configs.recommended,
   ...tseslint.configs.recommended,
   reactHooks.configs.flat["recommended-latest"],

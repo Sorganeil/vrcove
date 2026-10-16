@@ -43,12 +43,13 @@ type Config struct {
 }
 
 type Server struct {
-	cfg     Config
-	secure  bool
-	host    string
-	db      *sql.DB
-	static  fs.FS
-	limiter *limiter
+	previews previewStore
+	cfg      Config
+	secure   bool
+	host     string
+	db       *sql.DB
+	static   fs.FS
+	limiter  *limiter
 	// accounts, keys and hashSlots back VRCove's own accounts.
 	accounts  *sql.DB
 	keys      accountKeys
@@ -268,6 +269,9 @@ func (s *Server) handleStatic(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Frontend not built. Run `npm run build` before `go build`.", http.StatusNotFound)
 			return
 		}
+	}
+	if name == "index.html" {
+		data = s.previewHTML(r, data)
 	}
 	if strings.HasPrefix(name, "assets/") {
 		h.Set("Cache-Control", "public, max-age=31536000, immutable")

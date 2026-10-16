@@ -647,6 +647,9 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, sessi
 		session.apply(updates)
 		pick(asObject(result), asObject(profile), "bio", "bioLinks")
 	}
+	if p == "/account/world" || p == "/account/group" || p == "/account/user" {
+		s.cachePreview(strings.TrimPrefix(p, "/account/"), query.Get("id"), result)
+	}
 	s.writeWithSession(w, result, session)
 	return nil
 }

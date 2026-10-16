@@ -432,7 +432,11 @@
     "Search all groups…": "Buscar en todos los grupos…",
     "Discover groups": "Descubrir grupos",
     "Switch to All groups to find a community to join.": "Cambia a Todos los grupos para encontrar una comunidad a la que unirte.",
-    "Enter a name to search all VRChat groups.": "Introduce un nombre para buscar en todos los grupos de VRChat."
+    "Enter a name to search all VRChat groups.": "Introduce un nombre para buscar en todos los grupos de VRChat.",
+    "Get the most out of VRCove": "Aprovecha VRCove al máximo",
+    "Link a VRChat account to use friends, favorites, avatar switching and more.": "Vincula una cuenta de VRChat para usar amigos, favoritos, cambiar de avatar y más.",
+    "Link VRChat now": "Vincular VRChat ahora",
+    "Maybe later": "Quizá más tarde"
   },
   "fr": {
     "Language": "Langue",
@@ -867,7 +871,11 @@
     "Search all groups…": "Rechercher dans tous les groupes…",
     "Discover groups": "Découvrir des groupes",
     "Switch to All groups to find a community to join.": "Passez à Tous les groupes pour trouver une communauté à rejoindre.",
-    "Enter a name to search all VRChat groups.": "Saisissez un nom pour rechercher parmi tous les groupes VRChat."
+    "Enter a name to search all VRChat groups.": "Saisissez un nom pour rechercher parmi tous les groupes VRChat.",
+    "Get the most out of VRCove": "Profitez pleinement de VRCove",
+    "Link a VRChat account to use friends, favorites, avatar switching and more.": "Associez un compte VRChat pour accéder aux amis, aux favoris, au changement d’avatar et plus encore.",
+    "Link VRChat now": "Associer VRChat maintenant",
+    "Maybe later": "Plus tard"
   },
   "de": {
     "Language": "Sprache",
@@ -1302,7 +1310,11 @@
     "Search all groups…": "Alle Gruppen durchsuchen…",
     "Discover groups": "Gruppen entdecken",
     "Switch to All groups to find a community to join.": "Wechsle zu Alle Gruppen, um eine Community zum Beitreten zu finden.",
-    "Enter a name to search all VRChat groups.": "Gib einen Namen ein, um alle VRChat-Gruppen zu durchsuchen."
+    "Enter a name to search all VRChat groups.": "Gib einen Namen ein, um alle VRChat-Gruppen zu durchsuchen.",
+    "Get the most out of VRCove": "Nutze VRCove in vollem Umfang",
+    "Link a VRChat account to use friends, favorites, avatar switching and more.": "Verknüpfe ein VRChat-Konto für Freunde, Favoriten, Avatarwechsel und mehr.",
+    "Link VRChat now": "VRChat jetzt verknüpfen",
+    "Maybe later": "Vielleicht später"
   },
   "ja": {
     "Language": "言語",
@@ -1737,7 +1749,11 @@
     "Search all groups…": "すべてのグループを検索…",
     "Discover groups": "グループを探す",
     "Switch to All groups to find a community to join.": "「すべてのグループ」に切り替えて、参加するコミュニティを探しましょう。",
-    "Enter a name to search all VRChat groups.": "名前を入力してVRChatのすべてのグループを検索してください。"
+    "Enter a name to search all VRChat groups.": "名前を入力してVRChatのすべてのグループを検索してください。",
+    "Get the most out of VRCove": "VRCoveをもっと活用しよう",
+    "Link a VRChat account to use friends, favorites, avatar switching and more.": "VRChatアカウントを連携すると、フレンド、お気に入り、アバターの変更などが使えます。",
+    "Link VRChat now": "今すぐVRChatを連携",
+    "Maybe later": "後で"
   },
   "ru": {
     "Language": "Язык",
@@ -2172,7 +2188,11 @@
     "Search all groups…": "Поиск во всех группах…",
     "Discover groups": "Найти группы",
     "Switch to All groups to find a community to join.": "Переключитесь на «Все группы», чтобы найти сообщество для вступления.",
-    "Enter a name to search all VRChat groups.": "Введите название для поиска среди всех групп VRChat."
+    "Enter a name to search all VRChat groups.": "Введите название для поиска среди всех групп VRChat.",
+    "Get the most out of VRCove": "Используйте все возможности VRCove",
+    "Link a VRChat account to use friends, favorites, avatar switching and more.": "Привяжите аккаунт VRChat, чтобы пользоваться друзьями, избранным, сменой аватара и другими функциями.",
+    "Link VRChat now": "Привязать VRChat",
+    "Maybe later": "Позже"
   },
   "uk": {
     "Language": "Мова",
@@ -2607,7 +2627,11 @@
     "Search all groups…": "Пошук в усіх групах…",
     "Discover groups": "Знайти групи",
     "Switch to All groups to find a community to join.": "Перейдіть до «Усі групи», щоб знайти спільноту для вступу.",
-    "Enter a name to search all VRChat groups.": "Введіть назву для пошуку серед усіх груп VRChat."
+    "Enter a name to search all VRChat groups.": "Введіть назву для пошуку серед усіх груп VRChat.",
+    "Get the most out of VRCove": "Скористайтеся всіма можливостями VRCove",
+    "Link a VRChat account to use friends, favorites, avatar switching and more.": "Прив’яжіть обліковий запис VRChat, щоб користуватися друзями, обраним, зміною аватара та іншими функціями.",
+    "Link VRChat now": "Прив’язати VRChat",
+    "Maybe later": "Можливо пізніше"
   },
   "zh-CN": {
     "Language": "语言",
@@ -3042,7 +3066,11 @@
     "Search all groups…": "搜索所有群组…",
     "Discover groups": "发现群组",
     "Switch to All groups to find a community to join.": "切换到“所有群组”，寻找可加入的社区。",
-    "Enter a name to search all VRChat groups.": "输入名称以搜索所有 VRChat 群组。"
+    "Enter a name to search all VRChat groups.": "输入名称以搜索所有 VRChat 群组。",
+    "Get the most out of VRCove": "充分体验 VRCove",
+    "Link a VRChat account to use friends, favorites, avatar switching and more.": "关联 VRChat 账号即可使用好友、收藏、更换虚拟形象等功能。",
+    "Link VRChat now": "立即关联 VRChat",
+    "Maybe later": "稍后再说"
   },
   "ko": {
     "Language": "언어",
@@ -3477,6 +3505,10 @@
     "Search all groups…": "모든 그룹 검색…",
     "Discover groups": "그룹 둘러보기",
     "Switch to All groups to find a community to join.": "모든 그룹으로 전환하여 가입할 커뮤니티를 찾아보세요.",
-    "Enter a name to search all VRChat groups.": "이름을 입력하여 모든 VRChat 그룹을 검색하세요."
+    "Enter a name to search all VRChat groups.": "이름을 입력하여 모든 VRChat 그룹을 검색하세요.",
+    "Get the most out of VRCove": "VRCove의 모든 기능을 사용해 보세요",
+    "Link a VRChat account to use friends, favorites, avatar switching and more.": "VRChat 계정을 연결하면 친구, 즐겨찾기, 아바타 변경 등의 기능을 사용할 수 있어요.",
+    "Link VRChat now": "지금 VRChat 연결",
+    "Maybe later": "나중에"
   }
 }

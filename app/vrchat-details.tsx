@@ -1,4 +1,5 @@
 import UserStatus from './user-status';
+import {entityPath,copyEntityLink} from './routes';
 import {api} from './api';
 import {formatDate,formatNumber,t as tr,useLocale} from './i18n';
 import {useState,useEffect,useRef} from 'react';
@@ -27,8 +28,8 @@ const joinStates:Record<string,string>={open:'Anyone can join',request:'Join by 
 function trustRank(tags:string[]=[]){if(tags.includes('system_trust_veteran'))return 'Trusted User';if(tags.includes('system_trust_trusted'))return 'Known User';if(tags.includes('system_trust_known'))return 'User';if(tags.includes('system_trust_basic'))return 'New User';return 'Visitor';}
 const userImage=(u:any)=>u.profilePicOverride||u.userIcon||u.currentAvatarImageUrl||u.currentAvatarThumbnailImageUrl;
 const userThumb=(u:any)=>u.userIcon||u.profilePicOverride||u.currentAvatarThumbnailImageUrl;
-export const detailHref=(kind:Kind,id:string)=>'#'+kind+'/'+id;
-/* Quick-view modal from anywhere; DetailHost (mounted once in Atlas) renders it. Full pages live at #world/<id>, #user/<id>, #group/<id>. */
+export const detailHref=(kind:Kind,id:string)=>entityPath(kind,id);
+/* Quick-view modal from anywhere; DetailHost (mounted once in Atlas) renders it. Full pages live at /world/<id>, /user/<id>, /group/<id>. */
 export function openDetail(kind:Kind,id:string){window.dispatchEvent(new CustomEvent<Target>('vrcove:detail',{detail:{kind,id}}));}
 /* A plain click opens the quick view; modified clicks (new tab, etc.) and page-mode links go to the full page. */
 export function detailLink(kind:Kind,id:string,page=false){return {href:detailHref(kind,id),onClick:(e:any)=>{if(page||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||e.button)return;e.preventDefault();openDetail(kind,id);}};}
@@ -74,9 +75,9 @@ export function DetailView({kind,id,user,onLogin,notify,mode,onBack,onClose}:{ki
  async function startInstance(){const r=await act('newInstance',id,'Instance created.',{region});if(r?.location)await act('selfInvite',r.location,'Invite sent. Check VRChat to join.');}
  const instanceRow=(location:string,label:string,users?:number,capacity?:number)=><div className="instance-row" key={location}><div><strong>{label}</strong><small>{regionNames[regionOf(location)]||regionOf(location)}{users!==undefined&&<> · <Users size={11}/>{users}{capacity?' / '+capacity:''}</>}</small></div><button className="standard-button" disabled={!!busy} onClick={()=>act('selfInvite',location,'Invite sent. Check VRChat to join.')}>{busy==='selfInvite:'+location?<LoaderCircle size={13} className="spin"/>:<Send size={13}/>}{tr("Invite me")}</button><a className="standard-button" href={'vrchat://launch?ref=vrcove&id='+encodeURIComponent(location)} aria-label={'Launch '+label+' in VRChat'}><Play size={13}/>{tr("Launch")}</a></div>;
  const confirmBox=confirm&&<div className="detail-confirm" role="alertdialog" aria-label={tr("Confirm action")}><p>{confirm.text}</p><button className="primary" disabled={!!busy} onClick={async()=>{const r=await act(confirm.action,confirm.id,confirm.done);if(r)setPatch((p:any)=>({...p,...confirm.patch}));}}>{tr("Confirm")}</button><button className="standard-button" onClick={()=>setConfirm(null)}>{tr("Cancel")}</button></div>;
- const toolbar=<div className="detail-toolbar">{onBack&&<button className="text-link" onClick={onBack}><ChevronLeft size={14}/>{tr("Back")}</button>}{!page&&<a className="text-link" href={detailHref(kind,id)} onClick={()=>onClose?.()}><Maximize2 size={13}/>{tr("Open full page")}</a>}</div>;
+ const toolbar=<div className="detail-toolbar"><button className="text-link" onClick={()=>copyEntityLink(kind,id).then(()=>notify(tr("Link copied"))).catch(()=>notify(tr("Clipboard access is unavailable.")))}><Copy size={13}/>{tr("Copy link")}</button>{onBack&&<button className="text-link" onClick={onBack}><ChevronLeft size={14}/>{tr("Back")}</button>}{!page&&<a className="text-link" href={detailHref(kind,id)} onClick={()=>onClose?.()}><Maximize2 size={13}/>{tr("Open full page")}</a>}</div>;
  const idRow=<div className="avatar-id"><code>{id}</code><button aria-label={tr("Copy ID")} onClick={()=>navigator.clipboard.writeText(id).then(()=>notify(tr("ID copied"))).catch(()=>notify(tr("Clipboard access is unavailable.")))}><Copy size={14}/></button></div>;
- if(!user)return <div className={page?'entity-page':'confirm-content'}><div className="empty-state"><ShieldCheck size={30}/><h3>{tr("Connect your VRChat account")}</h3><p>{tr("Worlds, profiles and groups load from your VRChat session.")}</p><button className="primary" onClick={onLogin}>{tr("Connect VRChat")}</button></div>{page&&<Reviews kind={kind} id={id}/>}</div>;
+ if(!user)return <div className={page?'entity-page':'confirm-content'}>{toolbar}<div className="empty-state"><ShieldCheck size={30}/><h3>{tr("Connect your VRChat account")}</h3><p>{tr("Worlds, profiles and groups load from your VRChat session.")}</p><button className="primary" onClick={onLogin}>{tr("Connect VRChat")}</button></div>{page&&<Reviews kind={kind} id={id}/>}</div>;
  if(!data)return <div className={page?'entity-page':'confirm-content'}>{toolbar}{main.error?<div className="empty-state"><h3>{tr("Unavailable")}</h3><p>{main.error}</p></div>:<div className="loading-state"><LoaderCircle className="spin"/>{tr("Loading from VRChat…")}</div>}</div>;
 
  let image,eyebrow,title,subtitle,body,meta,actions,extras;

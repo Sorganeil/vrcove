@@ -318,6 +318,11 @@ func (s *Server) veil(w http.ResponseWriter, r *http.Request, p string) error {
 			return err
 		}
 		return s.accountMe(w, r, acct)
+	case p == "link-reminder/dismiss" && post:
+		if _, err := s.accounts.ExecContext(r.Context(), "UPDATE accounts SET link_reminder_seen = 1 WHERE id = ?", acct.ID); err != nil {
+			return err
+		}
+		return s.accountMe(w, r, acct)
 	case p == "me" && !post:
 		return s.accountMe(w, r, acct)
 	case p == "logout" && post:
@@ -531,8 +536,8 @@ func (s *Server) accountMe(w http.ResponseWriter, r *http.Request, a *account) e
 		return err
 	}
 	var created, bio, status string
-	var public bool
-	if err := s.accounts.QueryRowContext(r.Context(), "SELECT created, bio, status, public FROM accounts WHERE id = ?", a.ID).Scan(&created, &bio, &status, &public); err != nil {
+	var public, reminderSeen bool
+	if err := s.accounts.QueryRowContext(r.Context(), "SELECT created, bio, status, public, link_reminder_seen FROM accounts WHERE id = ?", a.ID).Scan(&created, &bio, &status, &public, &reminderSeen); err != nil {
 		return err
 	}
 	rows, err := s.accounts.QueryContext(r.Context(), "SELECT id, sealed, created FROM vrchat_links WHERE account_id = ? ORDER BY id", a.ID)
@@ -566,7 +571,7 @@ func (s *Server) accountMe(w http.ResponseWriter, r *http.Request, a *account) e
 	if err := rows.Err(); err != nil {
 		return err
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"recoveryCodesRemaining": remaining, "picture": s.accountPictureURL(r, a.ID, a.Username), "username": a.Username, "created": created, "bio": bio, "status": status, "public": public, "links": links})
+	writeJSON(w, http.StatusOK, map[string]any{"showLinkReminder": !reminderSeen && len(links) == 0, "recoveryCodesRemaining": remaining, "picture": s.accountPictureURL(r, a.ID, a.Username), "username": a.Username, "created": created, "bio": bio, "status": status, "public": public, "links": links})
 	return nil
 }
 
@@ -728,6 +733,9 @@ func (s *Server) storeVRChatLink(w http.ResponseWriter, r *http.Request, a *acco
 			return err
 		}
 	default:
+		return err
+	}
+	if _, err := s.accounts.ExecContext(ctx, "UPDATE accounts SET link_reminder_seen = 1 WHERE id = ?", a.ID); err != nil {
 		return err
 	}
 	similar := similarNames(a.Username, field(me, "displayName")) || similarNames(a.Username, field(me, "username"))

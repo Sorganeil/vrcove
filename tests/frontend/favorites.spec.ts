@@ -20,7 +20,7 @@ test('favorites switches between avatars and paginated worlds, including unavail
  await expect(page.locator('.avatar-card')).toHaveCount(0);
  await expect(page.locator('.world-card')).toHaveCount(100);
  await expect(page.locator('.world-card').first()).toContainText('Unavailable world');
- await expect(page.locator('.world-card').nth(1)).toHaveAttribute('href','#world/'+world);
+ await expect(page.locator('.world-card').nth(1)).toHaveAttribute('href','/world/'+world);
  await page.getByRole('button',{name:'Next',exact:true}).click();
  await expect(page.getByRole('heading',{name:'No favorite worlds found'})).toBeVisible();
  await tabs.getByRole('button',{name:'Avatars',exact:true}).click();

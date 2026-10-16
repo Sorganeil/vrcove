@@ -24,8 +24,8 @@ test('my profile shows the full VRChat profile and refreshes after editing',asyn
  await expect(page.getByRole('link',{name:'example.com/profile'})).toHaveAttribute('href','https://example.com/profile');
  await expect(page.locator('a[href^="javascript:"]')).toHaveCount(0);
  await expect(page.locator('.badge-row [title="A showcased badge"]')).toBeVisible();
- await expect(page.getByRole('link',{name:'My published world'})).toHaveAttribute('href','#world/'+world);
- await expect(page.getByRole('link',{name:/My community/})).toHaveAttribute('href','#group/'+group);
+ await expect(page.getByRole('link',{name:'My published world'})).toHaveAttribute('href','/world/'+world);
+ await expect(page.getByRole('link',{name:/My community/})).toHaveAttribute('href','/group/'+group);
  await expect(page.getByRole('button',{name:'Add friend',exact:true})).toHaveCount(0);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(page.viewportSize()!.width);
  await page.screenshot({path:`/tmp/veil-full-profile-${testInfo.project.name}.png`,fullPage:true});

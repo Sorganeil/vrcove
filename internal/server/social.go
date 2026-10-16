@@ -38,6 +38,8 @@ var accountMigrations = []string{
 	CREATE INDEX collection_items_target ON collection_items(target);`,
 	`CREATE TABLE account_pictures (account_id INTEGER PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE, image BLOB NOT NULL, version TEXT NOT NULL);`,
 	`ALTER TABLE accounts ADD COLUMN status TEXT NOT NULL DEFAULT '';`,
+	`ALTER TABLE accounts ADD COLUMN link_reminder_seen INTEGER NOT NULL DEFAULT 0;
+ UPDATE accounts SET link_reminder_seen = 1 WHERE EXISTS (SELECT 1 FROM vrchat_links WHERE account_id = accounts.id);`,
 }
 
 func migrateAccounts(db *sql.DB) error {
