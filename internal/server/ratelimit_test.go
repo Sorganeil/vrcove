@@ -118,3 +118,22 @@ func TestStaticSecurityHeaders(t *testing.T) {
 		t.Error("no HSTS on an https origin")
 	}
 }
+
+func TestPagesGetFreshScriptNonce(t *testing.T) {
+	h := previewHarness(t)
+	nonce := func() string {
+		csp := h.do(httptest.NewRequest("GET", "http://localhost/", nil)).Header().Get("Content-Security-Policy")
+		_, rest, ok := strings.Cut(csp, "'nonce-")
+		value, _, closed := strings.Cut(rest, "'")
+		if !ok || !closed || len(value) < 22 {
+			t.Fatalf("no nonce in %s", csp)
+		}
+		return value
+	}
+	if nonce() == nonce() {
+		t.Fatal("nonce reused across responses")
+	}
+	if csp := h.do(httptest.NewRequest("GET", "http://localhost/robots.txt", nil)).Header().Get("Content-Security-Policy"); strings.Contains(csp, "nonce-") {
+		t.Fatalf("non-HTML response carries a nonce: %s", csp)
+	}
+}

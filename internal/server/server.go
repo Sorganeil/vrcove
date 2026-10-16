@@ -7,7 +7,9 @@ package server
 
 import (
 	"bytes"
+	"crypto/rand"
 	"database/sql"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"io"
@@ -255,6 +257,24 @@ func queryInt(v string, max int) int {
 	return int(f)
 }
 
+// contentSecurityPolicy allows this site, Turnstile on the signup form, and
+// inline scripts carrying nonce when one is given.
+func contentSecurityPolicy(nonce string) string {
+	script := "script-src 'self' https://challenges.cloudflare.com"
+	if nonce != "" {
+		script += " 'nonce-" + nonce + "'"
+	}
+	return "default-src 'self'; " + script + "; frame-src https://challenges.cloudflare.com; " +
+		"style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; " +
+		"form-action 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'"
+}
+
+func newNonce() string {
+	b := make([]byte, 16)
+	rand.Read(b)
+	return base64.StdEncoding.EncodeToString(b)
+}
+
 func (s *Server) handleStatic(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet && r.Method != http.MethodHead {
 		w.Header().Set("Allow", "GET, HEAD")
@@ -265,10 +285,7 @@ func (s *Server) handleStatic(w http.ResponseWriter, r *http.Request) {
 	h.Set("X-Content-Type-Options", "nosniff")
 	h.Set("Referrer-Policy", "no-referrer")
 	h.Set("X-Frame-Options", "DENY")
-	// Turnstile on the signup form is the only third-party script or frame.
-	h.Set("Content-Security-Policy", "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; "+
-		"style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; "+
-		"form-action 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'")
+	h.Set("Content-Security-Policy", contentSecurityPolicy(""))
 	if s.secure {
 		h.Set("Strict-Transport-Security", "max-age=31536000")
 	}
@@ -294,6 +311,9 @@ func (s *Server) handleStatic(w http.ResponseWriter, r *http.Request) {
 	}
 	if name == "index.html" {
 		data = s.previewHTML(r, data)
+		// Cloudflare copies this nonce onto the security scripts it injects
+		// into HTML, such as bot detection, so they run without 'unsafe-inline'.
+		h.Set("Content-Security-Policy", contentSecurityPolicy(newNonce()))
 	}
 	if strings.HasSuffix(name, ".webmanifest") {
 		h.Set("Content-Type", "application/manifest+json")
