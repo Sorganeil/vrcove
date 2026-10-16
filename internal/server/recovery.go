@@ -23,7 +23,7 @@ func recoveryHash(code string) []byte {
 }
 
 func (s *Server) generateRecoveryCodes(w http.ResponseWriter, r *http.Request, a *account) error {
-	if !s.limiter.allow("cove-user:"+strings.ToLower(a.Username), s.now()) {
+	if !s.limiter.allow(reauthKey(a), s.now()) {
 		return errStatus(http.StatusTooManyRequests, "Too many attempts. Wait 10 minutes.")
 	}
 	body, err := requestJSON(r)
@@ -94,12 +94,14 @@ func (s *Server) recoverAccount(w http.ResponseWriter, r *http.Request) error {
 	username, _ := str(body, "username")
 	username = strings.TrimSpace(username)
 	now := s.now()
-	if !s.limiter.allow("cove-recover:"+clientIP(r), now) || !s.limiter.allow("cove-user:"+strings.ToLower(username), now) {
+	guesses := s.guessKeys(r, username)
+	if !s.limiter.allow("cove-recover:"+clientKey(r), now) || s.tooManyGuesses(guesses, now) {
 		return errStatus(http.StatusTooManyRequests, "Too many recovery attempts. Wait 10 minutes.")
 	}
 	code, _ := str(body, "code")
 	next, _ := str(body, "next")
 	if jsLength(username) > 64 || len(code) > 128 || recoveryHash(code) == nil {
+		s.failedGuess(guesses, now)
 		return errStatus(http.StatusUnauthorized, "Wrong username or recovery code.")
 	}
 	if msg := validPassword(username, next); msg != "" {
@@ -108,6 +110,7 @@ func (s *Server) recoverAccount(w http.ResponseWriter, r *http.Request) error {
 	var a account
 	err = s.accounts.QueryRowContext(r.Context(), `SELECT a.id, a.username FROM accounts a JOIN account_recovery_codes c ON c.account_id = a.id WHERE a.username_key = ? AND c.code_hash = ?`, strings.ToLower(username), recoveryHash(code)).Scan(&a.ID, &a.Username)
 	if errors.Is(err, sql.ErrNoRows) {
+		s.failedGuess(guesses, now)
 		return errStatus(http.StatusUnauthorized, "Wrong username or recovery code.")
 	}
 	if err != nil {

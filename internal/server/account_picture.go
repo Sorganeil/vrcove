@@ -12,6 +12,7 @@ import (
 	"image/png"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
@@ -26,6 +27,9 @@ func (s *Server) accountPictureURL(r *http.Request, id int64, username string) s
 }
 
 func (s *Server) saveAccountPicture(w http.ResponseWriter, r *http.Request, a *account) error {
+	if !s.limiter.allow("cove-picture:"+strconv.FormatInt(a.ID, 10), s.now()) {
+		return errStatus(http.StatusTooManyRequests, "Too many picture changes. Wait 10 minutes.")
+	}
 	raw, err := readBounded(r.Body, maxAccountPictureBytes, "Choose an image smaller than 2 MB.")
 	if err != nil {
 		return err
@@ -34,11 +38,29 @@ func (s *Server) saveAccountPicture(w http.ResponseWriter, r *http.Request, a *a
 	if err != nil || cfg.Width < 1 || cfg.Height < 1 || cfg.Width > 4096 || cfg.Height > 4096 {
 		return errStatus(http.StatusBadRequest, "Choose a PNG, JPEG or GIF image up to 4096 × 4096 pixels.")
 	}
+	var encoded bytes.Buffer
+	var decodeErr error
+	if err := runIn(r.Context(), s.pictureSlots, func() { decodeErr = squarePicture(&encoded, raw, cfg) }); err != nil {
+		return err
+	}
+	if decodeErr != nil {
+		return decodeErr
+	}
+	digest := sha256.Sum256(encoded.Bytes())
+	if _, err := s.accounts.ExecContext(r.Context(), `INSERT INTO account_pictures (account_id,image,version) VALUES (?,?,?)
+ ON CONFLICT(account_id) DO UPDATE SET image=excluded.image, version=excluded.version`, a.ID, encoded.Bytes(), hex.EncodeToString(digest[:])); err != nil {
+		return err
+	}
+	return s.accountMe(w, r, a)
+}
+
+// squarePicture writes a small square PNG of raw, stripping metadata and GIF
+// animation.
+func squarePicture(out *bytes.Buffer, raw []byte, cfg image.Config) error {
 	src, _, err := image.Decode(bytes.NewReader(raw))
 	if err != nil {
 		return errStatus(http.StatusBadRequest, "This image could not be read.")
 	}
-	// Keep a small square raster, stripping metadata and GIF animation.
 	size := min(cfg.Width, cfg.Height)
 	left, top := src.Bounds().Min.X+(cfg.Width-size)/2, src.Bounds().Min.Y+(cfg.Height-size)/2
 	dst := image.NewNRGBA(image.Rect(0, 0, 256, 256))
@@ -47,16 +69,7 @@ func (s *Server) saveAccountPicture(w http.ResponseWriter, r *http.Request, a *a
 			dst.Set(x, y, src.At(left+x*size/256, top+y*size/256))
 		}
 	}
-	var encoded bytes.Buffer
-	if err := png.Encode(&encoded, dst); err != nil {
-		return err
-	}
-	digest := sha256.Sum256(encoded.Bytes())
-	if _, err := s.accounts.ExecContext(r.Context(), `INSERT INTO account_pictures (account_id,image,version) VALUES (?,?,?)
- ON CONFLICT(account_id) DO UPDATE SET image=excluded.image, version=excluded.version`, a.ID, encoded.Bytes(), hex.EncodeToString(digest[:])); err != nil {
-		return err
-	}
-	return s.accountMe(w, r, a)
+	return png.Encode(out, dst)
 }
 
 func (s *Server) accountPicture(w http.ResponseWriter, r *http.Request, viewer *account) error {

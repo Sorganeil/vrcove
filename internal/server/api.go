@@ -154,7 +154,7 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, p string) error {
 }
 
 func (s *Server) login(w http.ResponseWriter, r *http.Request, acct *account) error {
-	if !s.limiter.allow(clientIP(r), s.now()) {
+	if !s.limiter.allow(clientKey(r), s.now()) {
 		return errStatus(http.StatusTooManyRequests, "Too many sign-in attempts. Wait 10 minutes.")
 	}
 	body, err := requestJSON(r)
@@ -213,7 +213,7 @@ func (s *Server) login(w http.ResponseWriter, r *http.Request, acct *account) er
 }
 
 func (s *Server) verifyTwoFactor(w http.ResponseWriter, r *http.Request, session *Session, acct *account) error {
-	if !s.limiter.allow(clientIP(r), s.now()) {
+	if !s.limiter.allow(clientKey(r), s.now()) {
 		return errStatus(http.StatusTooManyRequests, "Too many sign-in attempts. Wait 10 minutes.")
 	}
 	if session == nil || session.Auth == "" || session.Pending == nil {
@@ -651,7 +651,9 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, sessi
 		session.apply(updates)
 		pick(asObject(result), asObject(profile), "bio", "bioLinks")
 	}
-	if p == "/account/world" || p == "/account/group" || p == "/account/user" {
+	// Worlds and groups are public listings. A user preview is never cached
+	// from a signed-in lookup: it would show visitors who was just viewed.
+	if p == "/account/world" || p == "/account/group" {
 		s.cachePreview(strings.TrimPrefix(p, "/account/"), query.Get("id"), result)
 	}
 	s.writeWithSession(w, result, session)

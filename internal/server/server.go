@@ -58,6 +58,8 @@ type Server struct {
 	accounts  *sql.DB
 	keys      accountKeys
 	hashSlots chan struct{}
+	// pictureSlots bounds concurrent avatar picture decodes.
+	pictureSlots chan struct{}
 	// Client sends every upstream request. Redirects are never followed
 	// automatically; the image proxy re-validates each hop itself.
 	Client *http.Client
@@ -88,7 +90,7 @@ func New(cfg Config, db *sql.DB, static fs.FS) (*Server, error) {
 	}
 	return &Server{
 		cfg: cfg, secure: u.Scheme == "https", host: strings.ToLower(u.Host), db: db, static: static, limiter: newLimiter(),
-		accounts: cfg.Accounts, keys: keys, hashSlots: make(chan struct{}, hashSlots),
+		accounts: cfg.Accounts, keys: keys, hashSlots: make(chan struct{}, hashSlots), pictureSlots: make(chan struct{}, pictureSlots),
 		Client: &http.Client{CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }},
 		now:    time.Now,
 	}, nil
@@ -238,6 +240,9 @@ func clientIP(r *http.Request) string {
 	return host
 }
 
+// clientKey identifies the client for rate limiting; see rateKey.
+func clientKey(r *http.Request) string { return rateKey(clientIP(r)) }
+
 // queryInt mirrors the old clamp(Number(value)||0) parsing of numeric query parameters.
 func queryInt(v string, max int) int {
 	f, err := strconv.ParseFloat(strings.TrimSpace(v), 64)
@@ -260,7 +265,13 @@ func (s *Server) handleStatic(w http.ResponseWriter, r *http.Request) {
 	h.Set("X-Content-Type-Options", "nosniff")
 	h.Set("Referrer-Policy", "no-referrer")
 	h.Set("X-Frame-Options", "DENY")
-	h.Set("Content-Security-Policy", "frame-ancestors 'none'; base-uri 'none'; object-src 'none'")
+	// Turnstile on the signup form is the only third-party script or frame.
+	h.Set("Content-Security-Policy", "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; "+
+		"style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; "+
+		"form-action 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'")
+	if s.secure {
+		h.Set("Strict-Transport-Security", "max-age=31536000")
+	}
 	name := strings.TrimPrefix(path.Clean("/"+r.URL.Path), "/")
 	if name == "robots.txt" {
 		s.robots(w)

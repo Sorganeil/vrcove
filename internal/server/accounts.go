@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -72,6 +73,8 @@ const (
 	// hashSlots bounds concurrent Argon2id runs, so a burst of sign-ins cannot
 	// exhaust memory (each run allocates argonMemory KiB).
 	hashSlots = 4
+	// pictureSlots bounds concurrent avatar decodes, each up to 64 MiB of pixels.
+	pictureSlots = 2
 )
 
 // Argon2id parameters, following RFC 9106 and OWASP guidance. They are stored
@@ -122,15 +125,18 @@ func verifyPassword(encoded, password string) (ok, stale bool) {
 }
 
 // argon runs fn in one of the bounded hashing slots.
-func (s *Server) argon(ctx context.Context, fn func()) error {
+func (s *Server) argon(ctx context.Context, fn func()) error { return runIn(ctx, s.hashSlots, fn) }
+
+// runIn runs fn once one of slots is free, giving up after 15 seconds.
+func runIn(ctx context.Context, slots chan struct{}, fn func()) error {
 	ctx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 	select {
-	case s.hashSlots <- struct{}{}:
+	case slots <- struct{}{}:
 	case <-ctx.Done():
 		return errStatus(http.StatusServiceUnavailable, "The server is busy. Try again in a moment.")
 	}
-	defer func() { <-s.hashSlots }()
+	defer func() { <-slots }()
 	fn()
 	return nil
 }
@@ -367,7 +373,7 @@ func credentials(r *http.Request) (username, password string, err error) {
 }
 
 func (s *Server) signup(w http.ResponseWriter, r *http.Request) error {
-	if !s.limiter.allow("cove-signup:"+clientIP(r), s.now()) {
+	if !s.limiter.allow("cove-signup:"+clientKey(r), s.now()) {
 		return errStatus(http.StatusTooManyRequests, "Too many attempts. Wait 10 minutes.")
 	}
 	body, err := requestJSON(r)
@@ -444,15 +450,37 @@ func (s *Server) checkPassword(ctx context.Context, username, password string) (
 	return &a, nil
 }
 
+// guessKeys are the limiter keys for failed password or recovery-code checks
+// against username: one per client and username, so a stranger's guesses
+// cannot lock the owner out, and one per username as a backstop against
+// guessing from many addresses.
+func (s *Server) guessKeys(r *http.Request, username string) [2]string {
+	name := strings.ToLower(strings.TrimSpace(username))
+	return [2]string{"cove-guess:" + clientKey(r) + ":" + name, "cove-user:" + name}
+}
+
+func (s *Server) tooManyGuesses(keys [2]string, now time.Time) bool {
+	return s.limiter.over(keys[0], signInAttempts, now) || s.limiter.over(keys[1], accountFailures, now)
+}
+
+func (s *Server) failedGuess(keys [2]string, now time.Time) {
+	for _, k := range keys {
+		s.limiter.hit(k, now)
+	}
+}
+
+// reauthKey limits password re-checks by a signed-in account. Only the
+// session holder can spend it, unlike the sign-in limits.
+func reauthKey(a *account) string { return "cove-reauth:" + strconv.FormatInt(a.ID, 10) }
+
 func (s *Server) accountLogin(w http.ResponseWriter, r *http.Request) error {
 	username, password, err := credentials(r)
 	if err != nil {
 		return err
 	}
-	// Per IP and per account, so one address cannot spray many accounts and
-	// many addresses cannot hammer one.
 	now := s.now()
-	if !s.limiter.allow("cove-login:"+clientIP(r), now) || !s.limiter.allow("cove-user:"+strings.ToLower(username), now) {
+	guesses := s.guessKeys(r, username)
+	if !s.limiter.allow("cove-login:"+clientKey(r), now) || s.tooManyGuesses(guesses, now) {
 		return errStatus(http.StatusTooManyRequests, "Too many sign-in attempts. Wait 10 minutes.")
 	}
 	if username == "" || password == "" || jsLength(username) > 64 || jsLength(password) > 1024 {
@@ -464,6 +492,7 @@ func (s *Server) accountLogin(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	if a == nil {
+		s.failedGuess(guesses, now)
 		writeError(w, http.StatusUnauthorized, "Wrong username or password.")
 		return nil
 	}
@@ -586,7 +615,7 @@ func (s *Server) accountMe(w http.ResponseWriter, r *http.Request, a *account) e
 }
 
 func (s *Server) changePassword(w http.ResponseWriter, r *http.Request, a *account) error {
-	if !s.limiter.allow("cove-user:"+strings.ToLower(a.Username), s.now()) {
+	if !s.limiter.allow(reauthKey(a), s.now()) {
 		return errStatus(http.StatusTooManyRequests, "Too many attempts. Wait 10 minutes.")
 	}
 	body, err := requestJSON(r)
@@ -625,7 +654,7 @@ func (s *Server) changePassword(w http.ResponseWriter, r *http.Request, a *accou
 
 // deleteAccount removes the account with its sessions, links and reviews.
 func (s *Server) deleteAccount(w http.ResponseWriter, r *http.Request, a *account) error {
-	if !s.limiter.allow("cove-user:"+strings.ToLower(a.Username), s.now()) {
+	if !s.limiter.allow(reauthKey(a), s.now()) {
 		return errStatus(http.StatusTooManyRequests, "Too many attempts. Wait 10 minutes.")
 	}
 	body, err := requestJSON(r)
