@@ -5,6 +5,7 @@ import { t as tr } from '../lib/i18n';
 import { useApp } from '../lib/app-context';
 import type { Avatar } from '../lib/avatar';
 import Modal from './modal';
+import type { FavoriteGroup } from '../lib/types';
 
 type AvatarActions = {
   /** Name of the action in progress, or ''. */
@@ -40,7 +41,7 @@ export function AvatarActionsProvider({ children }: { children: ReactNode }) {
   const [favoriteDialog, setFavoriteDialog] = useState<Avatar | null>(null);
   const [switchDialog, setSwitchDialog] = useState<Avatar | null>(null);
   const [fallbackDialog, setFallbackDialog] = useState<Avatar | null>(null);
-  const [groups, setGroups] = useState<any[]>([]);
+  const [groups, setGroups] = useState<FavoriteGroup[]>([]);
   const [group, setGroup] = useState('');
   const loading = useRef(false);
 

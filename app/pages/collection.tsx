@@ -5,8 +5,9 @@ import { LoaderCircle, Library, Lock, Globe2, Trash2, Copy, Pencil, X } from 'lu
 import { api } from '../lib/api';
 import { day } from '../lib/dates';
 import { CollectionForm } from '../components/collection-form';
-import { Back, Thumb, targetLink } from '../components/cove-shared';
+import { Back, type CollectionInput, Thumb, targetLink } from '../components/cove-shared';
 import { useResource } from '../lib/use-resource';
+import type { CollectionItem } from '../lib/types';
 
 /* /collection/<id>: one collection, for its owner or anyone if public. */
 export function CollectionPage({ id, notify }: { id: string; notify: (s: string) => void }) {
@@ -46,7 +47,7 @@ export function CollectionPage({ id, notify }: { id: string; notify: (s: string)
       setBusy('');
     }
   }
-  const save = (v: any) =>
+  const save = (v: CollectionInput) =>
     run('save', async () => {
       await api('/cove/collections/update', {
         id,
@@ -148,7 +149,7 @@ export function CollectionPage({ id, notify }: { id: string; notify: (s: string)
       )}
       {c.items.length ? (
         <div className={'entity-grid collection-items ' + c.kind}>
-          {c.items.map((it: any) => (
+          {c.items.map((it: CollectionItem) => (
             <div className="collection-item" key={it.id}>
               <a className="entity-card" {...targetLink(c.kind, it.id)}>
                 <div className={'entity-card-image' + (c.kind === 'world' ? ' wide' : ' tall')}>

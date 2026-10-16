@@ -6,6 +6,7 @@ import { entityPath } from './lib/routes';
 import { sectionPath, useRoute } from './lib/router';
 import { AppContext, type AppContextValue, type AvatarBrowse } from './lib/app-context';
 import { normalize, type Avatar } from './lib/avatar';
+import type { CoveAccount, RawAvatar, Stats, VRChatUser } from './lib/types';
 import { AvatarActionsProvider } from './components/avatar-actions';
 import AvatarView from './components/avatar-view';
 import Modal from './components/modal';
@@ -40,9 +41,9 @@ const BOOKMARKS_KEY = 'atlas-bookmarks';
 
 export default function App() {
   useLocale();
-  const [user, setUser] = useState<any>(null);
-  const [coveAccount, setCoveAccount] = useState<any>(null);
-  const [stats, setStats] = useState<any>(null);
+  const [user, setUser] = useState<VRChatUser | null>(null);
+  const [coveAccount, setCoveAccount] = useState<CoveAccount | null>(null);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [saved, setSaved] = useState<Avatar[]>([]);
   const [toast, setToast] = useState('');
   const [selected, setSelected] = useState<Avatar | null>(null);
@@ -83,9 +84,9 @@ export default function App() {
     clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(''), 6000);
   }
-  function accountChanged(me: any) {
+  function accountChanged(me: CoveAccount | null) {
     setCoveAccount(me);
-    if (!me || (user && !me.links.some((l: any) => l.vrchatId === user.id))) {
+    if (!me || (user && !me.links.some((l) => l.vrchatId === user.id))) {
       resetVRChatSession();
       setUser(null);
     }
@@ -100,7 +101,7 @@ export default function App() {
           (coveAccount.links.length === 1 ? coveAccount.links[0].vrchatId : undefined)
         : expectedUserId;
     setLoginTarget(target);
-    setLoginUsername(username || coveAccount.links.find((l: any) => l.vrchatId === target)?.username || '');
+    setLoginUsername(username || coveAccount.links.find((l) => l.vrchatId === target)?.username || '');
     setLogin(true);
   }
   function bookmark(a: Avatar) {
@@ -356,7 +357,7 @@ export default function App() {
                   coveAccount={coveAccount}
                   user={user}
                   onLogin={connect}
-                  onAvatar={(a: any) => setSelected(normalize(a))}
+                  onAvatar={(a: RawAvatar) => setSelected(normalize(a))}
                 />
               )}
               {section === 'Avatar' && <AvatarPage key={route.avatarId} id={route.avatarId} />}
@@ -387,7 +388,7 @@ export default function App() {
               expectedUserId={loginTarget}
               configured={stats?.loginConfigured}
               close={() => setLogin(false)}
-              connected={(u: any, similar: boolean) => {
+              connected={(u: VRChatUser, similar: boolean) => {
                 setUser(u);
                 setLogin(false);
                 api('/cove/me')

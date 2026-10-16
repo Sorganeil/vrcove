@@ -2,6 +2,7 @@ import { t as tr, useLocale } from '../lib/i18n';
 import { useState } from 'react';
 import { LoaderCircle, Check } from 'lucide-react';
 import { CollectionKind, Summary } from './cove-shared';
+import type { CollectionInput } from './cove-shared';
 
 export function CollectionForm({
   initial,
@@ -13,7 +14,7 @@ export function CollectionForm({
   initial?: Partial<Summary>;
   kindLocked?: boolean;
   busy: boolean;
-  submit: (v: { kind: CollectionKind; name: string; description: string; public: boolean }) => void;
+  submit: (v: CollectionInput) => void;
   cancel?: () => void;
 }) {
   useLocale();

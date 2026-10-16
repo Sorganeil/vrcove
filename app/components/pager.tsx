@@ -1,8 +1,19 @@
 import { ChevronRight } from 'lucide-react';
 import { t as tr, useLocale } from '../lib/i18n';
+import type { Dispatch, SetStateAction } from 'react';
 
 // Previous/next controls for VRChat lists, which page by 100.
-export default function Pager({ offset, setOffset, count, busy }: any) {
+export default function Pager({
+  offset,
+  setOffset,
+  count,
+  busy,
+}: {
+  offset: number;
+  setOffset: Dispatch<SetStateAction<number>>;
+  count: number;
+  busy: boolean;
+}) {
   useLocale();
   return (
     <div className="pagination">

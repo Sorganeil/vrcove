@@ -6,6 +6,7 @@ import { useLoader } from '../lib/use-loader';
 import Loading from '../components/loading';
 import WorldGrid from '../components/world-grid';
 import { ErrorBanner, RequireVRChat, SectionPage } from '../components/section-page';
+import type { WorldSummary } from '../lib/types';
 
 /** Popular public worlds, or VRChat world search results. */
 export default function Worlds() {
@@ -39,7 +40,7 @@ function WorldList() {
           : '/account/worlds',
       ),
     [query, offset],
-    [] as any[],
+    [] as WorldSummary[],
   );
   return (
     <>

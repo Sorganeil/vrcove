@@ -3,13 +3,22 @@ import { LoaderCircle, Check } from 'lucide-react';
 import { api } from '../lib/api';
 import { t as tr, useLocale } from '../lib/i18n';
 import Modal from './modal';
+import type { VRChatUser } from '../lib/types';
 
 // Edits the VRChat status and bio of the connected account.
-export default function ProfileEditor({ user, close, updated }: any) {
+export default function ProfileEditor({
+  user,
+  close,
+  updated,
+}: {
+  user: VRChatUser;
+  close: () => void;
+  updated: (user: VRChatUser) => void;
+}) {
   useLocale();
   const [bio, setBio] = useState(user.bio || ''),
     [status, setStatus] = useState(
-      ['active', 'join me', 'ask me', 'busy'].includes(user.status) ? user.status : 'active',
+      ['active', 'join me', 'ask me', 'busy'].includes(user.status ?? '') ? user.status! : 'active',
     ),
     [description, setDescription] = useState(user.statusDescription || ''),
     [saving, setSaving] = useState(false),

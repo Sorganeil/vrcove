@@ -52,7 +52,7 @@ export default function SessionNotices({
           </button>
         </div>
       )}
-      {coveAccount?.links?.length > 0 && (
+      {coveAccount && coveAccount.links.length > 0 && (
         <div className="vrchat-account-switcher">
           <label>
             {tr('Active VRChat account')}
@@ -61,7 +61,7 @@ export default function SessionNotices({
               value={user?.id || ''}
               disabled={switching || connecting}
               onChange={(e) => {
-                const link = coveAccount.links.find((l: any) => l.vrchatId === e.target.value);
+                const link = coveAccount.links.find((l) => l.vrchatId === e.target.value);
                 if (link)
                   void onSwitch(link.id).catch(async (e) => {
                     notify(e.message);
@@ -70,7 +70,7 @@ export default function SessionNotices({
               }}
             >
               {!user && <option value="">{tr('Choose a connected account')}</option>}
-              {coveAccount.links.map((l: any) => (
+              {coveAccount.links.map((l) => (
                 <option value={l.vrchatId} key={l.id}>
                   {l.displayName || l.vrchatId}
                   {vrchatAccountState(l, user?.id, connection, now) !== 'reconnect'

@@ -1,9 +1,10 @@
 import { t as tr, useLocale } from '../lib/i18n';
 import { ShieldCheck, ArrowUpRight } from 'lucide-react';
 import { useVRChatSession, type VRChatSessionIssue } from '../lib/api';
+import type { CoveAccount } from '../lib/types';
 // Signed-out prompt shared by every page that needs a linked VRChat session.
 // A session that expired or was revoked says reconnect; a browser that never connected says connect.
-export function gateTitle(coveAccount: any, issue: VRChatSessionIssue | null) {
+export function gateTitle(coveAccount: CoveAccount | null, issue: VRChatSessionIssue | null) {
   if (!coveAccount) return tr('Sign in to VRCove and link VRChat');
   if (!coveAccount.links?.length) return tr('Link your VRChat account');
   return tr(
@@ -18,7 +19,7 @@ export default function VRChatGate({
   onConnect,
   size = 30,
 }: {
-  coveAccount: any;
+  coveAccount: CoveAccount | null;
   section: string;
   onConnect: () => void;
   size?: number;

@@ -27,6 +27,7 @@ import {
 import { covePath, appLink } from '../lib/routes';
 import { CovePicture } from '../components/cove-picture';
 import { day } from '../lib/dates';
+import type { VRChatUser } from '../lib/types';
 type Me = {
   recoveryCodesRemaining: number;
   picture: string;
@@ -91,7 +92,7 @@ export default function AccountPage({
   onSwitch,
   onDisconnected,
 }: {
-  user: any;
+  user: VRChatUser | null;
   configured?: boolean;
   onLogin: (id?: string, username?: string) => void;
   notify: (s: string) => void;

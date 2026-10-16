@@ -1,4 +1,5 @@
 import { formatDate, formatNumber } from './i18n';
+import type { VRChatUser } from './types';
 
 export const date = (s?: string) =>
   s && Number.isFinite(new Date(s).getTime())
@@ -39,7 +40,8 @@ export function trustRank(tags: string[] = []) {
   return 'Visitor';
 }
 
-export const userImage = (u: any) =>
+export const userImage = (u: Partial<VRChatUser>) =>
   u.profilePicOverride || u.userIcon || u.currentAvatarImageUrl || u.currentAvatarThumbnailImageUrl;
 
-export const userThumb = (u: any) => u.userIcon || u.profilePicOverride || u.currentAvatarThumbnailImageUrl;
+export const userThumb = (u: Partial<VRChatUser>) =>
+  u.userIcon || u.profilePicOverride || u.currentAvatarThumbnailImageUrl;

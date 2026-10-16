@@ -1,19 +1,20 @@
 import { createContext, useContext, type MouseEvent } from 'react';
 import type { Avatar } from './avatar';
+import type { CoveAccount, Stats, VRChatUser } from './types';
 
 export type AvatarBrowse = { author?: { name: string; id?: string }; tag?: string };
 
 /** App-wide state and actions shared by pages, provided once by App. */
 export type AppContextValue = {
   /** The connected VRChat user, or null. */
-  user: any;
-  setUser: (user: any) => void;
+  user: VRChatUser | null;
+  setUser: (user: VRChatUser | null) => void;
   /** The signed-in VRCove account, or null. */
-  coveAccount: any;
-  setCoveAccount: (account: any) => void;
+  coveAccount: CoveAccount | null;
+  setCoveAccount: (account: CoveAccount | null) => void;
   /** Applies a VRCove sign-in, sign-out or account change everywhere. */
-  accountChanged: (account: any) => void;
-  stats: any;
+  accountChanged: (account: CoveAccount | null) => void;
+  stats: Stats | null;
   section: string;
   navigate: (section: string) => void;
   sectionLink: (section: string) => { href: string; onClick: (e: MouseEvent) => void };

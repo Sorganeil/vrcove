@@ -8,12 +8,13 @@ import { day } from '../lib/dates';
 import { Stars } from '../components/reviews';
 import { Back, CollectionCard, Summary, kindLabel, targetLink } from '../components/cove-shared';
 import { useResource } from '../lib/use-resource';
+import type { Review } from '../lib/types';
 
 /* /cove/<username>: a VRCove profile, visible to everyone when public. */
 export function ProfilePage({ username }: { username: string }) {
   useLocale();
   const profile = useResource('/cove/profile?username=' + encodeURIComponent(username));
-  const [more, setMore] = useState<any[]>([]),
+  const [more, setMore] = useState<Review[]>([]),
     [offset, setOffset] = useState(0),
     [loadingMore, setLoadingMore] = useState(false),
     [moreError, setMoreError] = useState('');
@@ -142,7 +143,7 @@ export function ProfilePage({ username }: { username: string }) {
         </h3>
         {reviews.length ? (
           <div className="review-list">
-            {reviews.map((r: any) => (
+            {reviews.map((r: Review & { target: string }) => (
               <article className="review" key={r.kind + r.target}>
                 <header>
                   <span className="review-kind">{tr(kindLabel[r.kind])}</span>

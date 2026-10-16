@@ -5,6 +5,8 @@ import { Library, Lock, ChevronLeft } from 'lucide-react';
 import { day } from '../lib/dates';
 
 export type CollectionKind = 'avatar' | 'world';
+/** What the collection form submits. */
+export type CollectionInput = { kind: CollectionKind; name: string; description: string; public: boolean };
 
 export type Summary = {
   id: string;

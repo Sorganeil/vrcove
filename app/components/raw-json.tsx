@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { LoaderCircle, Copy, Braces, Download } from 'lucide-react';
 import { RawKind } from './detail-links';
 import { useLoad } from '../lib/use-load';
+import type { VRChatUser } from '../lib/types';
 
 /* Full, unfiltered VRChat JSON for an object, fetched only when opened. `local` adds another record to inspect (e.g. the catalog snapshot). */
 export function RawJson({
@@ -15,7 +16,7 @@ export function RawJson({
 }: {
   kind: RawKind;
   id: string;
-  user: any;
+  user: VRChatUser | null;
   notify: (s: string) => void;
   local?: unknown;
   localLabel?: string;

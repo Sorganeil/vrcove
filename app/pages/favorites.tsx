@@ -12,6 +12,8 @@ import { useAvatarActions } from '../components/avatar-actions';
 import { ErrorBanner, RequireVRChat, SectionPage } from '../components/section-page';
 
 type FavoriteType = 'avatar' | 'world';
+/** A VRChat favorite: its own ID and the favorited avatar or world. */
+type FavoriteRecord = { id: string; favoriteId: string };
 
 /** Avatar and world favorites from the VRChat account. */
 export default function Favorites() {
@@ -25,7 +27,7 @@ export default function Favorites() {
 }
 
 /** Looks up one favorite: the catalog first for avatars, then VRChat, or a placeholder if unavailable. */
-async function resolveFavorite(type: FavoriteType, f: any) {
+async function resolveFavorite(type: FavoriteType, f: FavoriteRecord) {
   try {
     if (type === 'world')
       return { ...(await api('/account/world?id=' + encodeURIComponent(f.favoriteId))), favoriteId: f.id };
@@ -70,7 +72,9 @@ function FavoriteList() {
       const list: any[] = [];
       // Six lookups at a time keeps VRChat from rate limiting.
       for (let i = 0; i < rows.length && isAlive(); i += 6)
-        list.push(...(await Promise.all(rows.slice(i, i + 6).map((f: any) => resolveFavorite(type, f)))));
+        list.push(
+          ...(await Promise.all(rows.slice(i, i + 6).map((f: FavoriteRecord) => resolveFavorite(type, f)))),
+        );
       return list;
     },
     [type, offset],

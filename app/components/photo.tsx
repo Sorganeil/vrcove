@@ -2,9 +2,19 @@ import { t as tr, useLocale } from '../lib/i18n';
 import { useState } from 'react';
 import { UserRound } from 'lucide-react';
 
-export function Photo({ url, fallbackUrl, name, alt = '' }: any) {
+export function Photo({
+  url,
+  fallbackUrl,
+  name,
+  alt = '',
+}: {
+  url?: string;
+  fallbackUrl?: string;
+  name?: string;
+  alt?: string;
+}) {
   useLocale();
-  const sources = [...new Set<string>([url, fallbackUrl].filter(Boolean))];
+  const sources = [...new Set([url, fallbackUrl].filter((u): u is string => !!u))];
   const requestKey = JSON.stringify(sources);
   const [attempt, setAttempt] = useState({ requestKey, index: 0 });
   const index = attempt.requestKey === requestKey ? attempt.index : 0;

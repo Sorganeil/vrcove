@@ -2,9 +2,10 @@ import { ArrowUpRight, Users } from 'lucide-react';
 import { t as tr, useLocale } from '../lib/i18n';
 import { Picture } from './avatar-media';
 import { detailLink } from './detail-links';
+import type { WorldSummary } from '../lib/types';
 
 /** World cards that open the world quick view. */
-export default function WorldGrid({ worlds }: { worlds: any[] }) {
+export default function WorldGrid({ worlds }: { worlds: WorldSummary[] }) {
   useLocale();
   return (
     <div className="world-grid">

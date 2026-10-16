@@ -1,3 +1,5 @@
+import type { RawAvatar } from './types';
+
 // A catalog avatar, or one normalized from a VRChat API record.
 export type Avatar = {
   id: string;
@@ -17,21 +19,21 @@ export type Avatar = {
 };
 
 // Converts a VRChat API avatar to the catalog shape. Impostor builds don't count as platform support.
-export function normalize(a: any, favoriteId?: string): Avatar {
-  const native = (a.unityPackages || []).filter((p: any) => p.variant !== 'impostor');
+export function normalize(a: RawAvatar, favoriteId?: string): Avatar {
+  const native = (a.unityPackages || []).filter((p) => p.variant !== 'impostor');
   return {
     id: a.id,
     name: typeof a.name === 'string' ? a.name : 'Untitled avatar',
     author: a.authorName || 'Unknown creator',
     description: a.description || '',
-    image: a.imageUrl,
-    thumbnail: a.thumbnailImageUrl,
-    pc: native.some((p: any) => p.platform === 'standalonewindows'),
-    quest: native.some((p: any) => p.platform === 'android'),
-    rating: native.find((p: any) => p.platform === 'standalonewindows')?.performanceRating || 'Unknown',
+    image: a.imageUrl ?? '',
+    thumbnail: a.thumbnailImageUrl ?? '',
+    pc: native.some((p) => p.platform === 'standalonewindows'),
+    quest: native.some((p) => p.platform === 'android'),
+    rating: native.find((p) => p.platform === 'standalonewindows')?.performanceRating || 'Unknown',
     tags: a.tags || [],
-    updated: a.updated_at,
-    created: a.created_at,
+    updated: a.updated_at ?? '',
+    created: a.created_at ?? '',
     favoriteId,
   };
 }

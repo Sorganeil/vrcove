@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { LoaderCircle, Trash2, Star, Check, ArrowUpRight } from 'lucide-react';
 import { covePath, appLink } from '../lib/routes';
 import { day } from '../lib/dates';
+import type { Review } from '../lib/types';
 
 export function Stars({ value, size = 14 }: { value: number; size?: number }) {
   useLocale();
@@ -66,7 +67,7 @@ export function ReviewList({ kind, id, name }: ReviewTarget) {
   const [data, setData] = useState<any>(null),
     [error, setError] = useState(''),
     [offset, setOffset] = useState(0),
-    [more, setMore] = useState<any[]>([]);
+    [more, setMore] = useState<Review[]>([]);
   const [loadingMore, setLoadingMore] = useState(false);
   const [rating, setRating] = useState(0),
     [body, setBody] = useState(''),
@@ -158,7 +159,7 @@ export function ReviewList({ kind, id, name }: ReviewTarget) {
         )}
       </section>
     );
-  const reviews = [...data.reviews, ...more].filter((r: any) => !r.mine);
+  const reviews = [...data.reviews, ...more].filter((r) => !r.mine);
   const showForm = data.signedIn && data.linked && (!data.mine || editing);
   return (
     <section className="entity-section reviews">
@@ -269,7 +270,7 @@ export function ReviewList({ kind, id, name }: ReviewTarget) {
       )}
       {reviews.length > 0 ? (
         <div className="review-list">
-          {reviews.map((r: any) => (
+          {reviews.map((r) => (
             <article className="review" key={r.id}>
               <header>
                 {r.profile ? (

@@ -2,11 +2,17 @@ import { useState } from 'react';
 import { UserRound, Monitor, Smartphone } from 'lucide-react';
 import { t as tr, useLocale } from '../lib/i18n';
 import type { Avatar } from '../lib/avatar';
+import type { ImgHTMLAttributes } from 'react';
 
 // Avatar image through the image proxy, falling back to the thumbnail, then a placeholder.
-export function Picture({ src, fallbackSrc, alt, ...props }: any) {
+export function Picture({
+  src,
+  fallbackSrc,
+  alt,
+  ...props
+}: { src?: string; fallbackSrc?: string; alt: string } & ImgHTMLAttributes<HTMLImageElement>) {
   useLocale();
-  const sources = [...new Set<string>([src, fallbackSrc].filter(Boolean))];
+  const sources = [...new Set([src, fallbackSrc].filter((u): u is string => !!u))];
   const requestKey = JSON.stringify(sources);
   const [attempt, setAttempt] = useState({ requestKey, index: 0 });
   const index = attempt.requestKey === requestKey ? attempt.index : 0;

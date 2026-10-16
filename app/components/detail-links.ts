@@ -1,4 +1,5 @@
 import { entityPath } from '../lib/routes';
+import type { MouseEvent } from 'react';
 
 export type Kind = 'world' | 'user' | 'group';
 
@@ -17,7 +18,7 @@ export function openDetail(kind: Kind, id: string) {
 export function detailLink(kind: Kind, id: string, page = false) {
   return {
     href: detailHref(kind, id),
-    onClick: (e: any) => {
+    onClick: (e: MouseEvent) => {
       if (page || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button) return;
       e.preventDefault();
       openDetail(kind, id);

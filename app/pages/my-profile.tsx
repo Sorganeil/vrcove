@@ -24,6 +24,8 @@ function OwnProfile() {
   const [editing, setEditing] = useState(false);
   const [revision, setRevision] = useState(0);
   const [busy, setBusy] = useState(false);
+  // RequireVRChat only renders this with a connected user.
+  if (!user) return null;
 
   async function disconnect() {
     setBusy(true);
@@ -66,7 +68,7 @@ function OwnProfile() {
         <ProfileEditor
           user={user}
           close={() => setEditing(false)}
-          updated={(u: any) => {
+          updated={(u) => {
             setUser(u);
             setRevision((r) => r + 1);
             setEditing(false);

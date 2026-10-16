@@ -1,9 +1,20 @@
 import { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { t as tr, useLocale } from '../lib/i18n';
+import type { ReactNode } from 'react';
 
 // Accessible dialog: traps focus, closes on Escape or a backdrop click, and restores focus and scrolling.
-export default function Modal({ children, close, title, wide = false }: any) {
+export default function Modal({
+  children,
+  close,
+  title,
+  wide = false,
+}: {
+  children: ReactNode;
+  close: () => void;
+  title: string;
+  wide?: boolean;
+}) {
   useLocale();
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {

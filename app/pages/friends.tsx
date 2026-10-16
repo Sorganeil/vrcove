@@ -9,6 +9,7 @@ import Pager from '../components/pager';
 import UserStatus from '../components/user-status';
 import { detailLink } from '../components/detail-links';
 import { ErrorBanner, RequireVRChat, SectionPage } from '../components/section-page';
+import type { VRChatUser } from '../lib/types';
 
 /** Online and offline VRChat friends. */
 export default function Friends() {
@@ -30,7 +31,7 @@ function FriendList() {
   // Searching looks through every friend, so all pages are loaded.
   const { data, loading, error, retry } = useLoader(
     async (isAlive) => {
-      let rows: any[] = await api(
+      let rows: VRChatUser[] = await api(
         '/account/friends?offline=' + offline + '&offset=' + (searching ? 0 : offset),
       );
       if (searching) {
@@ -44,7 +45,7 @@ function FriendList() {
       return rows;
     },
     [offline, offset, searching],
-    [] as any[],
+    [] as VRChatUser[],
   );
   const needle = search.trim().toLocaleLowerCase();
   const friends = data.filter(

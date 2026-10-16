@@ -2,8 +2,19 @@ import { t as tr, useLocale } from '../lib/i18n';
 import { useState, useEffect, useRef } from 'react';
 import { Target } from './detail-links';
 import { DetailView } from './detail-view';
+import type { CoveAccount, VRChatUser } from '../lib/types';
 
-export default function DetailHost({ coveAccount, user, onLogin, notify }: any) {
+export default function DetailHost({
+  coveAccount,
+  user,
+  onLogin,
+  notify,
+}: {
+  coveAccount: CoveAccount | null;
+  user: VRChatUser | null;
+  onLogin: () => void;
+  notify: (message: string) => void;
+}) {
   useLocale();
   const [stack, setStack] = useState<Target[]>([]);
   const ref = useRef<HTMLDivElement>(null);

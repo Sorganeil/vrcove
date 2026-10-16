@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { LoaderCircle, Library, Plus } from 'lucide-react';
 import { api } from '../lib/api';
 import { CollectionForm } from '../components/collection-form';
-import { CollectionCard, Summary } from '../components/cove-shared';
+import { CollectionCard, type CollectionInput, Summary } from '../components/cove-shared';
 import { useResource } from '../lib/use-resource';
 
 /* #collections: the signed-in account's own collections. */
@@ -28,7 +28,7 @@ export function CollectionsPage({ notify }: { notify: (s: string) => void }) {
       )}
     </div>
   );
-  async function create(v: any) {
+  async function create(v: CollectionInput) {
     setBusy(true);
     setError('');
     try {

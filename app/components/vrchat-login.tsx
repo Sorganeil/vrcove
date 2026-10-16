@@ -3,9 +3,22 @@ import { Compass, ArrowUpRight, ArrowRight, LoaderCircle, ShieldCheck, ExternalL
 import { api } from '../lib/api';
 import { t as tr, useLocale } from '../lib/i18n';
 import Modal from './modal';
+import type { VRChatUser } from '../lib/types';
 
 // Connects a VRChat account, including two-factor verification.
-export default function Login({ close, connected, configured, expectedUserId, initialUsername }: any) {
+export default function Login({
+  close,
+  connected,
+  configured,
+  expectedUserId,
+  initialUsername,
+}: {
+  close: () => void;
+  connected: (user: VRChatUser, similarName: boolean) => void;
+  configured?: boolean;
+  expectedUserId?: string;
+  initialUsername?: string;
+}) {
   useLocale();
   const [username, setUsername] = useState(initialUsername || ''),
     [password, setPassword] = useState(''),

@@ -7,6 +7,7 @@ import { useLoader } from '../lib/use-loader';
 import Loading from '../components/loading';
 import Modal from '../components/modal';
 import { ErrorBanner, RequireVRChat, SectionPage } from '../components/section-page';
+import type { VRChatNotification } from '../lib/types';
 
 /** Recent VRChat notifications, with friend request and dismiss actions. */
 export default function Notifications() {
@@ -23,14 +24,14 @@ function NotificationList() {
   useLocale();
   const { notify } = useApp();
   const [busy, setBusy] = useState('');
-  const [acceptDialog, setAcceptDialog] = useState<any>(null);
-  const { data, setData, loading, error, retry } = useLoader<any[]>(
+  const [acceptDialog, setAcceptDialog] = useState<VRChatNotification | null>(null);
+  const { data, setData, loading, error, retry } = useLoader<VRChatNotification[]>(
     () => api('/account/notifications'),
     [],
-    [] as any[],
+    [],
   );
 
-  async function act(action: 'accept' | 'hide' | 'see', n: any) {
+  async function act(action: 'accept' | 'hide' | 'see', n: VRChatNotification) {
     setBusy(action + ':' + n.id);
     try {
       await api('/account/action', { action, id: n.id });
