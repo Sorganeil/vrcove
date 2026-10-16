@@ -56,6 +56,8 @@ type Server struct {
 	db       *sql.DB
 	static   fs.FS
 	limiter  *limiter
+	backoff  backoff
+	images   imageCache
 	// accounts, keys and hashSlots back VRCove's own accounts.
 	accounts  *sql.DB
 	keys      accountKeys

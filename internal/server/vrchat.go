@@ -82,6 +82,10 @@ func (s *Server) vrc(ctx context.Context, path string, session *Session, req vrc
 	if method == "" {
 		method = http.MethodGet
 	}
+	key := backoffKey(session)
+	if s.backoff.coolingDown(key, s.now()) {
+		return nil, updates, rateLimitedError()
+	}
 	var body io.Reader
 	if req.Body != nil {
 		encoded, err := json.Marshal(req.Body)
@@ -123,7 +127,9 @@ func (s *Server) vrc(ctx context.Context, path string, session *Session, req vrc
 		case 403:
 			msg = "VRChat denied this action. The avatar or account may be restricted."
 		case 429:
-			msg = "VRChat is rate limiting requests. Please wait before trying again."
+			now := s.now()
+			s.backoff.limited(key, retryAfter(resp.Header, now), now)
+			return nil, updates, rateLimitedError()
 		}
 		return nil, updates, errStatus(resp.StatusCode, msg)
 	}

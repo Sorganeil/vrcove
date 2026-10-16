@@ -274,7 +274,7 @@ func TestImageProxy(t *testing.T) {
 		h.upstream = func(*http.Request) (*http.Response, error) {
 			return respond(200, kind, []byte("<svg><script>alert(1)</script></svg>")), nil
 		}
-		if w := h.do(imageRequest("https://assets.vrchat.com/test.png")); w.Code != http.StatusNotFound {
+		if w := h.do(imageRequest("https://assets.vrchat.com/" + strings.ReplaceAll(kind, "/", "-") + ".png")); w.Code != http.StatusNotFound {
 			t.Errorf("%s = %d", kind, w.Code)
 		}
 	}
@@ -282,21 +282,21 @@ func TestImageProxy(t *testing.T) {
 	png = []byte("\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR")
 	for kind, want := range map[string]int{"binary/octet-stream": http.StatusOK, "application/octet-stream": http.StatusOK} {
 		h.upstream = func(*http.Request) (*http.Response, error) { return respond(200, kind, png), nil }
-		if w := h.do(imageRequest("https://assets.vrchat.com/test")); w.Code != want || w.Header().Get("Content-Type") != "image/png" {
+		if w := h.do(imageRequest("https://assets.vrchat.com/" + kind)); w.Code != want || w.Header().Get("Content-Type") != "image/png" {
 			t.Errorf("sniffed %s = %d %q", kind, w.Code, w.Header().Get("Content-Type"))
 		}
 	}
 	h.upstream = func(*http.Request) (*http.Response, error) {
 		return respond(200, "application/octet-stream", []byte("<svg><script>alert(1)</script></svg>")), nil
 	}
-	if w := h.do(imageRequest("https://assets.vrchat.com/test")); w.Code != http.StatusNotFound {
+	if w := h.do(imageRequest("https://assets.vrchat.com/sniffed-svg")); w.Code != http.StatusNotFound {
 		t.Errorf("sniffed svg = %d", w.Code)
 	}
 
 	h.upstream = func(*http.Request) (*http.Response, error) {
 		return respond(200, "image/png", make([]byte, maxImageBytes+1)), nil
 	}
-	if w := h.do(imageRequest("https://assets.vrchat.com/test.png")); w.Code != http.StatusRequestEntityTooLarge {
+	if w := h.do(imageRequest("https://assets.vrchat.com/oversized.png")); w.Code != http.StatusRequestEntityTooLarge {
 		t.Errorf("oversized image = %d", w.Code)
 	}
 }

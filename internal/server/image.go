@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/url"
 	"path"
@@ -49,6 +50,8 @@ func allowedImage(u *url.URL) bool {
 
 // image proxies avatar and profile images so browsers never contact VRChat
 // directly. Every redirect hop is re-validated against the allow-list.
+// Results are cached on the server only; browsers are still told not to
+// store them, so nothing lingers on a shared device.
 func (s *Server) image(w http.ResponseWriter, r *http.Request) error {
 	target, err := url.Parse(r.URL.Query().Get("url"))
 	if err != nil || !allowedImage(target) {
@@ -63,7 +66,7 @@ func (s *Server) image(w http.ResponseWriter, r *http.Request) error {
 			if err != nil {
 				return err
 			}
-			if acct == nil || session.AccountID != acct.ID || session.UserID == "" || session.Pending != nil {
+			if acct == nil || session.AccountID != acct.ID || session.UserID == "" || session.Pending != nil || session.Auth == "" {
 				session = nil
 			} else {
 				linked, err := s.hasVRChatLink(r, acct, session.UserID)
@@ -76,76 +79,136 @@ func (s *Server) image(w http.ResponseWriter, r *http.Request) error {
 			}
 		}
 	}
+	user := ""
+	if session != nil {
+		user = session.UserID
+	}
+	raw := target.String()
+	if img, ok := s.images.get(raw, user, s.now()); ok {
+		return writeImage(w, img)
+	}
+	img, err := s.images.do(r.Context(), user+"\x00"+raw, func() (imageResult, error) {
+		img, err := s.fetchImage(context.WithoutCancel(r.Context()), target, session)
+		if err == nil && img.status == http.StatusOK {
+			s.images.put(raw, user, img, s.now())
+		}
+		return img, err
+	})
+	if err != nil {
+		return err
+	}
+	return writeImage(w, img)
+}
+
+// imageResult is one proxied image, or the status to answer with instead.
+type imageResult struct {
+	status      int
+	contentType string
+	body        []byte
+	// private marks images fetched with the viewer's VRChat cookie, which
+	// are never shared with other viewers.
+	private bool
+}
+
+// fetchImage follows up to four validated redirects. Only hops to the VRChat
+// API carry the viewer's cookie, and only those are subject to backoff.
+func (s *Server) fetchImage(ctx context.Context, target *url.URL, session *Session) (imageResult, error) {
+	var res imageResult
 	for range 4 {
-		ctx, cancel := context.WithTimeout(r.Context(), 15*time.Second)
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, target.String(), nil)
+		api := strings.EqualFold(target.Hostname(), "api.vrchat.cloud")
+		withCookie := api && session != nil
+		key := serverKey
+		if withCookie {
+			key = backoffKey(session)
+		}
+		if api && (s.backoff.coolingDown(serverKey, s.now()) || s.backoff.coolingDown(key, s.now())) {
+			return imageResult{status: http.StatusTooManyRequests}, nil
+		}
+		res.private = res.private || withCookie
+		hop, cancel := context.WithTimeout(ctx, 15*time.Second)
+		req, err := http.NewRequestWithContext(hop, http.MethodGet, target.String(), nil)
 		if err != nil {
 			cancel()
-			return err
+			return res, err
 		}
 		req.Header.Set("Accept", "image/*")
 		req.Header.Set("User-Agent", s.userAgent())
-		if strings.EqualFold(target.Hostname(), "api.vrchat.cloud") && session != nil && session.Auth != "" {
+		if withCookie {
 			req.Header.Set("Cookie", vrcCookie(session))
 		}
 		resp, err := s.Client.Do(req)
 		if err != nil {
 			cancel()
-			return err
+			return res, err
 		}
 		if resp.StatusCode >= 300 && resp.StatusCode < 400 {
 			next, err := target.Parse(resp.Header.Get("Location"))
 			resp.Body.Close()
 			cancel()
 			if err != nil || !allowedImage(next) {
-				w.WriteHeader(http.StatusNotFound)
-				return nil
+				return imageResult{status: http.StatusNotFound}, nil
 			}
 			target = next
 			continue
 		}
-		err = s.writeImage(w, resp)
+		if resp.StatusCode == http.StatusTooManyRequests && api {
+			now := s.now()
+			s.backoff.limited(key, retryAfter(resp.Header, now), now)
+		}
+		img, err := readImage(resp)
 		resp.Body.Close()
 		cancel()
-		return err
+		img.private = res.private
+		return img, err
 	}
-	w.WriteHeader(http.StatusNotFound)
-	return nil
+	return imageResult{status: http.StatusNotFound}, nil
 }
 
-func (s *Server) writeImage(w http.ResponseWriter, resp *http.Response) error {
+func readImage(resp *http.Response) (imageResult, error) {
 	contentType, _, _ := strings.Cut(resp.Header.Get("Content-Type"), ";")
 	contentType = strings.ToLower(strings.TrimSpace(contentType))
 	// Extensionless uploads are often served as generic binary data, so
 	// those are identified from their bytes instead.
 	generic := contentType == "application/octet-stream" || contentType == "binary/octet-stream" || contentType == ""
+	if resp.StatusCode == http.StatusTooManyRequests {
+		return imageResult{status: http.StatusTooManyRequests}, nil
+	}
 	if resp.StatusCode < 200 || resp.StatusCode > 299 || (!imageTypes[contentType] && !generic) {
-		w.WriteHeader(http.StatusNotFound)
-		return nil
+		return imageResult{status: http.StatusNotFound}, nil
 	}
 	if resp.ContentLength > maxImageBytes {
-		w.WriteHeader(http.StatusRequestEntityTooLarge)
-		return nil
+		return imageResult{status: http.StatusRequestEntityTooLarge}, nil
 	}
 	image, err := readBounded(resp.Body, maxImageBytes, "Image too large.")
 	if err != nil {
-		return err
+		var tooLarge *httpError
+		if errors.As(err, &tooLarge) && tooLarge.status == http.StatusRequestEntityTooLarge {
+			return imageResult{status: http.StatusRequestEntityTooLarge}, nil
+		}
+		return imageResult{}, err
 	}
 	if generic {
 		contentType = http.DetectContentType(image)
 		if !imageTypes[contentType] {
-			w.WriteHeader(http.StatusNotFound)
-			return nil
+			return imageResult{status: http.StatusNotFound}, nil
 		}
 	}
+	return imageResult{status: http.StatusOK, contentType: contentType, body: image}, nil
+}
+
+func writeImage(w http.ResponseWriter, img imageResult) error {
+	if img.status != http.StatusOK {
+		w.WriteHeader(img.status)
+		return nil
+	}
 	h := w.Header()
-	h.Set("Content-Type", contentType)
+	h.Set("Content-Type", img.contentType)
 	h.Set("Cache-Control", "private, no-store")
 	h.Set("X-Content-Type-Options", "nosniff")
 	h.Set("Cross-Origin-Resource-Policy", "same-origin")
 	h.Set("Content-Security-Policy", "sandbox; default-src 'none'")
 	h.Set("Referrer-Policy", "no-referrer")
 	w.WriteHeader(http.StatusOK)
-	w.Write(image)
+	w.Write(img.body)
 	return nil
 }

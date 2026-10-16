@@ -163,10 +163,12 @@ export default function App() {
   useEffect(() => {
     if (!coveAccount?.links?.length || login) return;
     let alive = true,
-      checking = false;
+      checking = false,
+      lastCheck = 0;
     const check = async () => {
       if (checking || document.visibilityState === 'hidden') return;
       checking = true;
+      lastCheck = Date.now();
       try {
         const me = await api('/account/me');
         if (alive && me.id) setUser(me);
@@ -178,14 +180,18 @@ export default function App() {
     };
     void check();
     const interval = window.setInterval(() => void check(), 60_000);
-    const focus = () => void check();
-    window.addEventListener('vrcove:account-changed', focus);
+    // Tab switches can fire focus and visibility events in bursts; at most one check per 30 seconds.
+    const focus = () => {
+      if (Date.now() - lastCheck >= 30_000) void check();
+    };
+    const switched = () => void check();
+    window.addEventListener('vrcove:account-changed', switched);
     window.addEventListener('focus', focus);
     document.addEventListener('visibilitychange', focus);
     return () => {
       alive = false;
       window.clearInterval(interval);
-      window.removeEventListener('vrcove:account-changed', focus);
+      window.removeEventListener('vrcove:account-changed', switched);
       window.removeEventListener('focus', focus);
       document.removeEventListener('visibilitychange', focus);
     };
