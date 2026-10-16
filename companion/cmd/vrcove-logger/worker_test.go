@@ -74,8 +74,10 @@ func collectWhileBlocked(t *testing.T, stage string) {
 			t.Error(err)
 			return
 		}
+		// With burst pacing the next batch goes out at once; hold it so the
+		// later ID stays queued.
 		if !slices.Equal(body.IDs, []string{first}) {
-			t.Errorf("unexpected batch %v", body.IDs)
+			<-r.Context().Done()
 			return
 		}
 		switch r.URL.Path {
