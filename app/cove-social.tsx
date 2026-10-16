@@ -1,4 +1,4 @@
-import {entityPath,type EntityKind} from './routes';
+import {entityPath,covePath,appLink,goTo,type EntityKind} from './routes';
 import {t as tr,useLocale} from './i18n';
 import {useState,useEffect,useRef} from 'react';
 import {LoaderCircle,Library,Lock,Globe2,Plus,Check,Trash2,Copy,Pencil,ChevronLeft,UserRound,Star,Users,X,FolderPlus} from 'lucide-react';
@@ -17,7 +17,7 @@ function useResource(path:string){
  const current=state.path===path?state:{path,data:null,error:'',status:0};
  return {...current,reload:()=>setVersion(v=>v+1)};
 }
-function CollectionCard({c}:{c:Summary}){useLocale();return <a className="entity-card collection-card" href={'#collection/'+c.id}><div className={'entity-card-image wide collection-mosaic n'+Math.min(c.preview.length,4)}>{c.preview.length?c.preview.slice(0,4).map((u,i)=><Thumb key={i} url={u}/>):<div className="image-fallback"><Library strokeWidth={.8}/></div>}</div><strong>{c.name}{!c.public&&<Lock size={12} aria-label={tr("Private")}/>}</strong><small>{tr(c.count===1?"1 item":"{count} items",{count:c.count})} {tr("· updated")} {day(c.updated)}</small></a>;}
+function CollectionCard({c}:{c:Summary}){useLocale();return <a className="entity-card collection-card" {...appLink(covePath('collection',c.id))}><div className={'entity-card-image wide collection-mosaic n'+Math.min(c.preview.length,4)}>{c.preview.length?c.preview.slice(0,4).map((u,i)=><Thumb key={i} url={u}/>):<div className="image-fallback"><Library strokeWidth={.8}/></div>}</div><strong>{c.name}{!c.public&&<Lock size={12} aria-label={tr("Private")}/>}</strong><small>{tr(c.count===1?"1 item":"{count} items",{count:c.count})} {tr("· updated")} {day(c.updated)}</small></a>;}
 
 /* /cove/<username>: a VRCove profile, visible to everyone when public. */
 export function ProfilePage({username}:{username:string}){useLocale();
@@ -58,7 +58,7 @@ export function CollectionsPage({notify}:{notify:(s:string)=>void}){useLocale();
  const list=useResource('/cove/collections');
  const [creating,setCreating]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const heading=<div className="section-heading"><div><h2>{tr("My collections")}</h2><p>{tr("Group avatars or worlds into lists. Keep them private or share them by link.")}</p></div>{list.data&&!creating&&<button className="primary" onClick={()=>setCreating(true)}><Plus size={15}/>{tr("New collection")}</button>}</div>;
- async function create(v:any){setBusy(true);setError('');try{const r=await api('/cove/collections/create',v);notify(tr("Collection created"));window.location.hash='#collection/'+r.id;}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
+ async function create(v:any){setBusy(true);setError('');try{const r=await api('/cove/collections/create',v);notify(tr("Collection created"));goTo(covePath('collection',r.id));}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
  if(list.status===401||list.status===403||list.status===503)return <section className="catalog-section">{heading}<div className="empty-state"><Library size={30}/><h3>{list.status===401?'Sign in to make collections':list.status===403?'Link a VRChat account':'Accounts aren’t enabled here'}</h3><p>{list.status===401?'Collections belong to your VRCove account, not your VRChat account.':list.error}</p>{(list.status===401||list.status===403)&&<a className="primary" href="#account">{tr("Sign in to VRCove")}</a>}</div></section>;
  return <section className="catalog-section">{heading}
   {creating&&<CollectionForm busy={busy} submit={create} cancel={()=>setCreating(false)}/>}
@@ -83,7 +83,7 @@ export function CollectionPage({id,notify}:{id:string;notify:(s:string)=>void}){
   {editing?<CollectionForm initial={c} kindLocked busy={busy==='save'} submit={save} cancel={()=>setEditing(false)}/>:<div className="collection-head">
    <div className="eyebrow">{c.public?<Globe2 size={13}/>:<Lock size={13}/>}{c.kind==='avatar'?'AVATAR':tr("WORLD")} {tr("COLLECTION")}{c.public?'':' / PRIVATE'}</div>
    <h1>{c.name}</h1>
-   <p className="creator">{c.owner?<>{tr("by")} <a href={'#cove/'+c.owner}>{c.owner}</a> · </>:c.mine?'':'by a VRCove user · '}{c.items.length} {c.kind}{c.items.length===1?'':'s'} {tr("· updated")} {day(c.updated)}</p>
+   <p className="creator">{c.owner?<>{tr("by")} <a {...appLink(covePath('cove',c.owner))}>{c.owner}</a> · </>:c.mine?'':'by a VRCove user · '}{c.items.length} {c.kind}{c.items.length===1?'':'s'} {tr("· updated")} {day(c.updated)}</p>
    {c.description&&<p className="description cove-bio">{c.description}</p>}
    <div className="result-actions">{c.public&&<button className="standard-button" onClick={copy}><Copy size={13}/>{tr("Copy link")}</button>}{c.mine&&<><button className="standard-button" onClick={()=>setEditing(true)}><Pencil size={13}/>{tr("Edit")}</button>{confirmDelete?<><button className="standard-button danger-text" disabled={!!busy} onClick={destroy}>{busy==='delete'?<LoaderCircle size={13} className="spin"/>:<Trash2 size={13}/>}{tr("Delete for good")}</button><button className="standard-button" onClick={()=>setConfirmDelete(false)}>{tr("Keep it")}</button></>:<button className="standard-button danger-text" onClick={()=>setConfirmDelete(true)}><Trash2 size={13}/>{tr("Delete")}</button>}</>}</div>
   </div>}

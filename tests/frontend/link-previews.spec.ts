@@ -25,6 +25,12 @@ test('first account session offers linking and remembers dismissal',async({page}
  await page.locator('form').getByRole('button',{name:'Sign in',exact:true}).click();
  await expect(page.getByRole('heading',{name,exact:true})).toBeVisible();
  await expect(reminder).toHaveCount(0);
+ // Profile links are shareable paths, so copied links get an embed.
+ const profileLink=page.getByRole('link',{name:'View my profile'});
+ await expect(profileLink).toHaveAttribute('href','/cove/'+name);
+ await profileLink.click();
+ await expect(page).toHaveURL(new RegExp('/cove/'+name+'$'));
+ await expect(page.getByText('VRCOVE PROFILE / PRIVATE')).toBeVisible();
 });
 
 test('avatar deep links and legacy links open the correct page',async({page})=>{
