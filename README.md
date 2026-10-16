@@ -18,7 +18,7 @@ Browse avatars, worlds, users and groups. Link VRChat to manage friends, favorit
 
 ### Built for phones and Quest
 
-No PC? No problem. VRCove runs in any modern browser, so it works on Quest, Android, iPhone, iPad and other mobile-only setups, not just Windows.
+No PC? No problem. VRCove runs in any modern browser, so it works on Android, iPhone, iPad and other mobile-only setups, not just Windows.
 
 - Most VRChat tools are Windows desktop apps. VRCove brings avatar search, your friends list and account tools to Quest and phone players too.
 - Install it as an app (PWA) on Android or iOS and it opens full screen from your home screen, like a native app. On iPhone and iPad, use Share, then Add to Home Screen in Safari.
