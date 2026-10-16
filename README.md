@@ -1,7 +1,5 @@
 # VRCove
 
-The native Windows/Linux avatar logger lives in [`companion/`](companion/README.md).
-
 A privacy-focused VRChat web frontend, with avatar search built in. Works in any browser on PC or phone.
 
 [Website](https://vrcove.st) · [GitHub](https://github.com/Sorganeil/vrcove)
@@ -42,6 +40,7 @@ Install VRCove as an app on desktop or mobile, straight from your browser.
 
 - We maintain our own large avatar database, so you can search public avatars without linking a VRChat account.
 - Open any avatar to see its details, copy its ID, bookmark it, or switch to it if your VRChat account is linked.
+- Want to help us grow our database? Use our desktop logger companion. 
 
 ### Reviews and collections
 
