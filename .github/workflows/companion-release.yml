@@ -1,0 +1,43 @@
+name: Companion release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: companion-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    # An older glibc baseline keeps Linux downloads usable on more distributions.
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the tagged source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: companion/go.mod
+          cache-dependency-path: companion/go.sum
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc pkg-config python3 libwayland-dev libx11-dev libx11-xcb-dev libxkbcommon-x11-dev libegl1-mesa-dev libgles2-mesa-dev libffi-dev libxcursor-dev libxfixes-dev
+      - name: Test release packaging and failure handling
+        run: python3 -m unittest discover -s companion/tests -p test_release.py -v
+      - name: Build, test, package and publish companions
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: bash companion/release.sh --publish "$RELEASE_TAG"

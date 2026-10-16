@@ -64,7 +64,10 @@ test('a device without a VRChat session is told to connect once and keeps the VR
   await dialog.getByRole('button', { name: 'Connect to VRChat', exact: true }).click();
   await expect(dialog).toHaveCount(0);
   await expect(banner(page)).toHaveCount(0);
-  await expect(page.getByText('VRChat session expires', { exact: false })).toBeVisible();
+  const linkedAccounts = page
+    .locator('.cove-panel')
+    .filter({ has: page.getByRole('heading', { name: 'VRChat accounts', exact: true }) });
+  await expect(linkedAccounts.getByText('VRChat session expires', { exact: false })).toBeVisible();
   await expect(page.locator('.account-chip')).toHaveText(me.username);
 });
 

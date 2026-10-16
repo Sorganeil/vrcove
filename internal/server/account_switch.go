@@ -22,7 +22,7 @@ func (s *Server) readLinkedSession(r *http.Request, userID string, accountID int
 	if session == nil || session.AccountID != accountID || session.UserID != userID || session.Pending != nil || session.Auth == "" || !s.sessionLive(r.Context(), session) {
 		return nil
 	}
-	return session
+	return s.hydrateLoggerSession(r.Context(), session)
 }
 func (s *Server) clearNamedSession(w http.ResponseWriter, name string) {
 	cookie, _ := s.namedSessionCookie(name, nil)

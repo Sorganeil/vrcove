@@ -9,12 +9,14 @@ import (
 	"time"
 )
 
-// Each browser's VRChat connection lives only in that browser's sealed
-// cookie. The server keeps a small record of it so the owner can see their
+// Each browser's VRChat connection normally lives in that browser's sealed
+// cookie. The server keeps a small record so the owner can see their
 // connected devices and end one early: a hash of a random session token, the
 // link it belongs to, a coarse device type and browser family, the day it
 // started and when it expires. No VRChat token, IP address or user agent is
-// stored. Ending a session deletes the record, and the cookie stops working.
+// stored by default. Generating a companion API key opts that session into
+// encrypted credential storage on this same record. Ending a session deletes
+// the record and its API key, and the cookie stops working.
 
 func newSessionToken() string {
 	b := make([]byte, 16)

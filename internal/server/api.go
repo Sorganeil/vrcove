@@ -76,6 +76,8 @@ func (s *Server) handleAPI(w http.ResponseWriter, r *http.Request) {
 func (s *Server) route(w http.ResponseWriter, r *http.Request, p string) error {
 	post := r.Method == http.MethodPost
 	switch {
+	case p == "/logger/avatars":
+		return s.loggerAvatars(w, r)
 	case p == "/catalog" && !post:
 		return s.catalog(w, r)
 	case p == "/stats":

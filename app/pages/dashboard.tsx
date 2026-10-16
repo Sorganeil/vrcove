@@ -1,5 +1,6 @@
 import { gateTitle } from '../components/vrchat-gate';
 import UserStatus, { userPresence } from '../components/user-status';
+import CompanionDownload from '../components/companion-download';
 import { api, useVRChatSession } from '../lib/api';
 import { t as tr, useLocale } from '../lib/i18n';
 import { useState, useEffect } from 'react';
@@ -227,6 +228,7 @@ export default function Dashboard({
             </section>
           </aside>
         </div>
+        <CompanionDownload />
       </div>
     );
   return (
@@ -261,6 +263,7 @@ export default function Dashboard({
         </section>
       )}
       {error && <div className="error-banner">{error}</div>}
+      <CompanionDownload />
       <div className="dashboard-grid">
         <div className="dashboard-main">
           <section className="dashboard-panel">

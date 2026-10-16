@@ -1,5 +1,51 @@
 /* Catalog and list pages: headings, browse bars, avatar grid and pagination. */
 /* Search */
+.companion-download {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  margin: 16px 0 22px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+.companion-download-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #123347;
+  color: #76c7e6;
+}
+.companion-download h2 {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.4;
+}
+.companion-download p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+.companion-download .standard-button {
+  justify-content: center;
+  text-align: center;
+}
+@media (max-width: 720px) {
+  .companion-download {
+    grid-template-columns: 36px minmax(0, 1fr);
+    align-items: start;
+    padding: 15px;
+    gap: 12px;
+  }
+  .companion-download > a {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
 .catalog-section {
   min-height: 60vh;
   padding-top: 29px;

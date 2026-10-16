@@ -26,7 +26,7 @@ import (
 
 // VRCove accounts are separate from VRChat: a username and an Argon2id
 // password hash, nothing else. No email, IP address or user agent is stored.
-// They live in their own writable SQLite file; the catalog stays read-only.
+// They live in their own writable SQLite file; browsing uses a read-only catalog.
 //
 // Linked VRChat accounts are private to their owner. The VRChat user ID is
 // stored only as an HMAC (for uniqueness and the self-review check) and as an
@@ -317,6 +317,10 @@ func (s *Server) cove(w http.ResponseWriter, r *http.Request, p string) error {
 		return nil
 	}
 	switch {
+	case p == "logger-keys":
+		return s.loggerKeys(w, r, acct)
+	case p == "logger-keys/revoke" && post:
+		return s.revokeLoggerKey(w, r, acct)
 	case p == "picture" && post:
 		return s.saveAccountPicture(w, r, acct)
 	case p == "picture/remove" && post:

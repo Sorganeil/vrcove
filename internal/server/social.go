@@ -43,6 +43,10 @@ var accountMigrations = []string{
 	`CREATE TABLE vrchat_sessions (id INTEGER PRIMARY KEY, token_hash BLOB NOT NULL UNIQUE, account_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
 		vrc_key BLOB NOT NULL, device TEXT NOT NULL, browser TEXT NOT NULL, created TEXT NOT NULL, expires INTEGER NOT NULL);
 	CREATE INDEX vrchat_sessions_link ON vrchat_sessions(account_id, vrc_key);`,
+	`ALTER TABLE vrchat_sessions ADD COLUMN sealed TEXT NOT NULL DEFAULT '';
+	CREATE TABLE logger_keys (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+		session_hash BLOB NOT NULL UNIQUE REFERENCES vrchat_sessions(token_hash) ON DELETE CASCADE, key_hash BLOB NOT NULL UNIQUE, created INTEGER NOT NULL);
+	CREATE INDEX logger_keys_account ON logger_keys(account_id);`,
 }
 
 func migrateAccounts(db *sql.DB) error {

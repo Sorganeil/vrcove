@@ -46,6 +46,9 @@ type Config struct {
 	// registration. Both must be set; without them signup has no challenge.
 	TurnstileSiteKey string
 	TurnstileSecret  string
+	// Logger is an optional, separately authenticated ingestion service. The
+	// desktop receives only its API key, never VRChat credentials.
+	Logger *LoggerConfig
 }
 
 type Server struct {
@@ -64,6 +67,7 @@ type Server struct {
 	hashSlots chan struct{}
 	// pictureSlots bounds concurrent avatar picture decodes.
 	pictureSlots chan struct{}
+	loggerSlot   chan struct{}
 	// Client sends every upstream request. Redirects are never followed
 	// automatically; the image proxy re-validates each hop itself.
 	Client *http.Client
@@ -83,6 +87,9 @@ func New(cfg Config, db *sql.DB, static fs.FS) (*Server, error) {
 	if cfg.SessionKey != nil && len(cfg.SessionKey) != 32 {
 		return nil, errors.New("SESSION_KEY must be a base64-encoded 32-byte key")
 	}
+	if cfg.Logger != nil && (cfg.Logger.Catalog == nil || cfg.Accounts == nil || len(cfg.SessionKey) != 32 || cfg.Contact == "") {
+		return nil, errors.New("logger ingestion needs accounts, session encryption, a writable catalog and operator contact")
+	}
 	var keys accountKeys
 	if cfg.Accounts != nil {
 		if len(cfg.AccountKey) != 32 {
@@ -94,7 +101,7 @@ func New(cfg Config, db *sql.DB, static fs.FS) (*Server, error) {
 	}
 	return &Server{
 		cfg: cfg, secure: u.Scheme == "https", host: strings.ToLower(u.Host), db: db, static: static, limiter: newLimiter(),
-		accounts: cfg.Accounts, keys: keys, hashSlots: make(chan struct{}, hashSlots), pictureSlots: make(chan struct{}, pictureSlots),
+		accounts: cfg.Accounts, keys: keys, hashSlots: make(chan struct{}, hashSlots), pictureSlots: make(chan struct{}, pictureSlots), loggerSlot: make(chan struct{}, 1),
 		Client: &http.Client{CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }},
 		now:    time.Now,
 	}, nil

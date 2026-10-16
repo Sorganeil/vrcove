@@ -144,6 +144,7 @@ a.nav-item {
   min-height: 100vh;
 }
 .topbar {
+  container: topbar / inline-size;
   position: sticky;
   top: 0;
   z-index: 20;
@@ -161,6 +162,7 @@ a.nav-item {
   gap: 13px;
   color: #9badbf;
   font-size: 13px;
+  flex: 1;
 }
 .breadcrumb strong {
   color: #d7e2ef;
@@ -173,6 +175,20 @@ a.nav-item {
   display: flex;
   align-items: center;
   gap: 20px;
+}
+.topbar .top-actions {
+  flex: 0 0 auto;
+  max-width: none;
+}
+.top-actions > button,
+.top-actions svg,
+.breadcrumb > button,
+.breadcrumb > a {
+  flex-shrink: 0;
+}
+.top-actions > button,
+.header-search kbd {
+  white-space: nowrap;
 }
 .private-badge {
   display: flex;

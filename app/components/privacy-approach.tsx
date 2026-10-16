@@ -33,6 +33,11 @@ export default function PrivacyApproach() {
           </p>
         </div>
       </div>
+      <p>
+        {tr(
+          'Generating a desktop companion API key enables encrypted credential storage on your existing VRChat session record on the server. This lets the server fetch avatar metadata while your browser is closed. The companion receives only the API key, which expires when the linked session expires or ends.',
+        )}
+      </p>
       <p className="privacy-source">
         {tr('VRChat’s')}{' '}
         <a href="https://hello.vrchat.com/cookie-policy" target="_blank" rel="noreferrer">

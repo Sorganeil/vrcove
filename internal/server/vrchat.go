@@ -142,6 +142,9 @@ func (s *Server) vrc(ctx context.Context, path string, session *Session, req vrc
 			}
 		}
 	}
+	if err := s.syncLoggerSession(ctx, session, updates); err != nil {
+		return nil, updates, err
+	}
 	raw, err := readBounded(resp.Body, 20_000_000, "VRChat response too large.")
 	if err != nil {
 		return nil, updates, err

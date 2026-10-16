@@ -41,6 +41,11 @@ export default function PrivacyDialog({ close }: { close: () => void }) {
             'Session tokens are encrypted using AES-256-GCM inside an HttpOnly, Secure, SameSite=Strict browser cookie. The server decrypts them only to make your requests. Sessions expire after 2 weeks. Disconnect attempts to revoke the VRChat session and clears your cookie.',
           )}
         </p>
+        <p>
+          {tr(
+            'If you generate a desktop companion API key, encrypted VRChat credentials are also stored in the existing server-side session record so the server can verify avatar submissions while your browser is closed. The desktop receives only the API key. The key expires with its linked session; signing out, ending that session or unlinking the account invalidates it.',
+          )}
+        </p>
         <h3>{tr('What stays here')}</h3>
         <p>
           {tr(

@@ -5,6 +5,7 @@ import { t as tr, useLocale } from '../lib/i18n';
 import type { Avatar } from '../lib/avatar';
 import AvatarGrid from '../components/avatar-grid';
 import { ErrorBanner, SectionPage } from '../components/section-page';
+import CompanionDownload from '../components/companion-download';
 
 const PAGE_SIZE = 36;
 
@@ -151,6 +152,7 @@ export default function AvatarSearch() {
       title={query ? 'Avatar search results' : 'Avatar search'}
       subtitle="Public avatar catalog · search by name, creator, or avatar ID."
     >
+      <CompanionDownload />
       <div className="search-row">
         <div className="search-input">
           <Search size={19} />

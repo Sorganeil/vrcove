@@ -106,6 +106,14 @@ func main() {
 		log.Fatalf("open catalog: %v", err)
 	}
 	defer db.Close()
+	if os.Getenv("LOGGER_ENABLED") == "true" {
+		writer, err := server.OpenCatalogWriter(env("DATABASE_PATH", ".data/catalog.sqlite"))
+		if err != nil {
+			log.Fatal("could not open the logger catalog writer")
+		}
+		defer writer.Close()
+		cfg.Logger = &server.LoggerConfig{Catalog: writer}
+	}
 
 	srv, err := server.New(cfg, db, web.Dist())
 	if err != nil {

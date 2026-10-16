@@ -525,7 +525,11 @@
     "Drag to move. Zoom to choose how much is shown.": "Arrastra para mover. Usa el zoom para elegir cuánto se muestra.",
     "Picture crop area. Use arrow keys to move and plus or minus to zoom.": "Área de recorte. Usa las flechas para mover y más o menos para ampliar.",
     "Zoom": "Zoom",
-    "Use this picture": "Usar esta imagen"
+    "Use this picture": "Usar esta imagen",
+    "Desktop companion": "Aplicación de escritorio complementaria",
+    "Want to help grow the avatar database?": "¿Quieres ayudar a ampliar la base de datos de avatares?",
+    "Install our desktop companion for Windows or Linux to contribute public avatar IDs discovered while you play VRChat.": "Instala nuestro complemento de escritorio para Windows o Linux y contribuye con los ID de avatares públicos descubiertos mientras juegas a VRChat.",
+    "Download companion": "Descargar aplicación"
   },
   "fr": {
     "Language": "Langue",
@@ -1053,7 +1057,11 @@
     "Drag to move. Zoom to choose how much is shown.": "Faites glisser pour déplacer. Zoomez pour choisir la partie affichée.",
     "Picture crop area. Use arrow keys to move and plus or minus to zoom.": "Zone de recadrage. Utilisez les flèches pour déplacer et plus ou moins pour zoomer.",
     "Zoom": "Zoom",
-    "Use this picture": "Utiliser cette image"
+    "Use this picture": "Utiliser cette image",
+    "Desktop companion": "Application de bureau complémentaire",
+    "Want to help grow the avatar database?": "Envie de contribuer à la base de données d’avatars ?",
+    "Install our desktop companion for Windows or Linux to contribute public avatar IDs discovered while you play VRChat.": "Installez notre compagnon pour Windows ou Linux et contribuez avec les identifiants des avatars publics découverts pendant vos sessions VRChat.",
+    "Download companion": "Télécharger l’application"
   },
   "de": {
     "Language": "Sprache",
@@ -1581,7 +1589,11 @@
     "Drag to move. Zoom to choose how much is shown.": "Ziehen zum Verschieben. Zoomen, um den sichtbaren Ausschnitt zu wählen.",
     "Picture crop area. Use arrow keys to move and plus or minus to zoom.": "Zuschneidebereich. Mit den Pfeiltasten verschieben, mit Plus oder Minus zoomen.",
     "Zoom": "Zoom",
-    "Use this picture": "Dieses Bild verwenden"
+    "Use this picture": "Dieses Bild verwenden",
+    "Desktop companion": "Desktop-Begleit-App",
+    "Want to help grow the avatar database?": "Möchtest du helfen, die Avatar-Datenbank zu erweitern?",
+    "Install our desktop companion for Windows or Linux to contribute public avatar IDs discovered while you play VRChat.": "Installiere unsere Desktop-App für Windows oder Linux, um beim Spielen von VRChat entdeckte öffentliche Avatar-IDs beizutragen.",
+    "Download companion": "Begleit-App herunterladen"
   },
   "ja": {
     "Language": "言語",
@@ -2109,7 +2121,11 @@
     "Drag to move. Zoom to choose how much is shown.": "ドラッグで移動、ズームで表示範囲を調整します。",
     "Picture crop area. Use arrow keys to move and plus or minus to zoom.": "切り抜き範囲。矢印キーで移動、プラスとマイナスでズームします。",
     "Zoom": "ズーム",
-    "Use this picture": "この画像を使う"
+    "Use this picture": "この画像を使う",
+    "Desktop companion": "デスクトップコンパニオン",
+    "Want to help grow the avatar database?": "アバターデータベースの拡充に協力しませんか？",
+    "Install our desktop companion for Windows or Linux to contribute public avatar IDs discovered while you play VRChat.": "Windows または Linux 用のデスクトップコンパニオンをインストールして、VRChat のプレイ中に見つかった公開アバターの ID を提供できます。",
+    "Download companion": "コンパニオンをダウンロード"
   },
   "ru": {
     "Language": "Язык",
@@ -2637,7 +2653,11 @@
     "Drag to move. Zoom to choose how much is shown.": "Перетащите, чтобы сдвинуть. Масштабируйте, чтобы выбрать видимую часть.",
     "Picture crop area. Use arrow keys to move and plus or minus to zoom.": "Область обрезки. Стрелки сдвигают, плюс и минус меняют масштаб.",
     "Zoom": "Масштаб",
-    "Use this picture": "Использовать это изображение"
+    "Use this picture": "Использовать это изображение",
+    "Desktop companion": "Приложение-компаньон",
+    "Want to help grow the avatar database?": "Хотите помочь пополнить базу аватаров?",
+    "Install our desktop companion for Windows or Linux to contribute public avatar IDs discovered while you play VRChat.": "Установите наше приложение для Windows или Linux, чтобы отправлять ID публичных аватаров, обнаруженных во время игры в VRChat.",
+    "Download companion": "Скачать приложение"
   },
   "uk": {
     "Language": "Мова",
@@ -3165,7 +3185,11 @@
     "Drag to move. Zoom to choose how much is shown.": "Перетягніть, щоб зсунути. Масштабуйте, щоб вибрати видиму частину.",
     "Picture crop area. Use arrow keys to move and plus or minus to zoom.": "Область обрізання. Стрілки зсувають, плюс і мінус змінюють масштаб.",
     "Zoom": "Масштаб",
-    "Use this picture": "Використати це зображення"
+    "Use this picture": "Використати це зображення",
+    "Desktop companion": "Застосунок-компаньйон",
+    "Want to help grow the avatar database?": "Хочете допомогти поповнити базу аватарів?",
+    "Install our desktop companion for Windows or Linux to contribute public avatar IDs discovered while you play VRChat.": "Установіть наш застосунок для Windows або Linux, щоб надсилати ID публічних аватарів, знайдених під час гри у VRChat.",
+    "Download companion": "Завантажити застосунок"
   },
   "zh-CN": {
     "Language": "语言",
@@ -3693,7 +3717,11 @@
     "Drag to move. Zoom to choose how much is shown.": "拖动以移动，缩放以选择显示范围。",
     "Picture crop area. Use arrow keys to move and plus or minus to zoom.": "裁剪区域。使用方向键移动，加号和减号缩放。",
     "Zoom": "缩放",
-    "Use this picture": "使用此图片"
+    "Use this picture": "使用此图片",
+    "Desktop companion": "桌面伴侣",
+    "Want to help grow the avatar database?": "想帮助扩充虚拟形象数据库吗？",
+    "Install our desktop companion for Windows or Linux to contribute public avatar IDs discovered while you play VRChat.": "安装适用于 Windows 或 Linux 的桌面伴侣，即可贡献在游玩 VRChat 时发现的公开虚拟形象 ID。",
+    "Download companion": "下载桌面伴侣"
   },
   "ko": {
     "Language": "언어",
@@ -4221,6 +4249,10 @@
     "Drag to move. Zoom to choose how much is shown.": "드래그해서 이동하고, 확대로 보이는 범위를 정하세요.",
     "Picture crop area. Use arrow keys to move and plus or minus to zoom.": "자르기 영역. 화살표 키로 이동하고 더하기와 빼기로 확대해요.",
     "Zoom": "확대",
-    "Use this picture": "이 사진 사용"
+    "Use this picture": "이 사진 사용",
+    "Desktop companion": "데스크톱 도우미",
+    "Want to help grow the avatar database?": "아바타 데이터베이스 확장에 도움을 주고 싶으신가요?",
+    "Install our desktop companion for Windows or Linux to contribute public avatar IDs discovered while you play VRChat.": "Windows 또는 Linux용 데스크톱 도우미를 설치하여 VRChat을 플레이하는 동안 발견한 공개 아바타 ID를 기여해 주세요.",
+    "Download companion": "도우미 다운로드"
   }
 }

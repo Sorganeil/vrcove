@@ -1,5 +1,7 @@
 # VRCove
 
+The native Windows/Linux avatar logger lives in [`companion/`](companion/README.md).
+
 A privacy-focused VRChat web frontend, with avatar search built in. Works in any browser on PC or phone.
 
 [Website](https://vrcove.st) · [GitHub](https://github.com/Sorganeil/vrcove)

@@ -12,13 +12,29 @@ import (
 )
 
 // The schema matches scripts/import-dump.py, which builds the catalog file.
-// FTS rows are written by the importer; the server only reads.
+// Logger ingestion writes through a separate optional pool. Browse requests
+// keep using a read-only pool.
 const schema = `
 CREATE TABLE IF NOT EXISTS catalog (id TEXT PRIMARY KEY, name TEXT, author TEXT, updated TEXT, pc INTEGER, quest INTEGER, rating TEXT, data TEXT);
 CREATE VIRTUAL TABLE IF NOT EXISTS catalog_fts USING fts5(name,author,description,tags,content="");
 CREATE INDEX IF NOT EXISTS catalog_updated ON catalog(updated DESC);
 CREATE INDEX IF NOT EXISTS catalog_platform ON catalog(quest,pc,updated DESC);
 CREATE INDEX IF NOT EXISTS catalog_rating ON catalog(rating,updated DESC);`
+
+// OpenCatalogWriter is only used by explicitly enabled logger ingestion.
+func OpenCatalogWriter(path string) (*sql.DB, error) {
+	file := "file:" + (&url.URL{Path: path}).EscapedPath()
+	db, err := sql.Open("sqlite", file+"?_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)")
+	if err != nil {
+		return nil, err
+	}
+	db.SetMaxOpenConns(1)
+	if _, err := db.Exec(schema); err != nil {
+		db.Close()
+		return nil, err
+	}
+	return db, nil
+}
 
 // OpenCatalog ensures the schema exists, then returns a read-only pool.
 func OpenCatalog(path string) (*sql.DB, error) {
