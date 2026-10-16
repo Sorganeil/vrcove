@@ -66,12 +66,26 @@ test('an avatar links to more by its creator and to its tags', async ({ page }) 
   const seen = await catalog(page);
   await page.goto('/avatar/' + avatar.id);
   await page.getByRole('button', { name: 'More by Kit Maker' }).click();
-  await expect(page).toHaveURL(/\/avatars$/);
+  // Filters live in the URL, so a filtered search can be shared.
+  await expect(page).toHaveURL(/\/avatars\?author=Kit\+Maker&authorId=usr_/);
   await lastWith(seen, (p) => p.get('author') === 'Kit Maker' && p.get('authorId') === avatar.authorId);
   await expect(page.locator('.active-filters')).toContainText('Creator: Kit Maker');
   await page.goto('/avatar/' + avatar.id);
   await page.locator('.tags').getByRole('button', { name: 'furry' }).click();
   await lastWith(seen, (p) => p.get('tag') === 'furry');
+  await expect(page).toHaveURL(/\/avatars\?tag=furry$/);
+});
+
+test('a shared filtered search link opens with its filters', async ({ page }) => {
+  const seen = await catalog(page);
+  await page.goto('/avatars?tag=face+tracking&author=Kit+Maker');
+  await lastWith(seen, (p) => p.get('tag') === 'face tracking' && p.get('author') === 'Kit Maker');
+  await expect(page.locator('.active-filters')).toContainText('Tag: face tracking');
+  await page
+    .locator('.active-filters')
+    .getByRole('button', { name: /face tracking/ })
+    .click();
+  await expect(page).toHaveURL(/\/avatars\?author=Kit\+Maker$/);
 });
 
 test('collection items open in the quick view instead of leaving the page', async ({ page }) => {

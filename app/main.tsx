@@ -1,11 +1,11 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import Atlas from './atlas';
+import App from './app';
 import './globals.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Atlas />
+    <App />
   </StrictMode>,
 );
 
