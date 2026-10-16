@@ -13,7 +13,7 @@ import (
 
 const (
 	homeTitle       = "VRCove | Private VRChat Web Client with Avatar Search"
-	homeDescription = "VRChat avatar search, friends and reviews from your phone or PC. Great for Quest players without a PC. No ads, analytics or tracking."
+	homeDescription = "VRChat avatar search, friends and reviews from your phone or PC. No ads, analytics or tracking."
 	sitemapSize     = 50000
 )
 
@@ -25,7 +25,7 @@ var indexedSections = map[string]linkPreview{
 	"users":     {"Find VRChat Users | VRCove", "Find VRChat players by name from your phone or PC. No ads or analytics.", ""},
 	"search":    {"Search VRChat | VRCove", "Search VRChat avatars, people, worlds and groups in one place, on phone or PC. No ads, analytics or tracking.", ""},
 	"donations": {"Support VRCove", "Help keep VRCove independent, private and free of ads.", ""},
-	"about":     {"About VRCove | Features", "What VRCove does: private VRChat web client, avatar search, reviews and collections, on phone or PC. Great for Quest players without a PC.", ""},
+	"about":     {"About VRCove | Features", "What VRCove does: private VRChat web client, avatar search, reviews and collections, on phone or PC.", ""},
 }
 
 // Personal pages need a session or describe a person, so crawlers skip them.
