@@ -16,7 +16,7 @@ Browse avatars, worlds, users and groups. Link VRChat to manage friends, favorit
 - Bookmarks and notes stay in your browser. You can export and import them as a backup.
 - Linked VRChat sessions are stored encrypted. The full breakdown of what is and isn't shared is on the site's privacy page.
 
-### Built for phones and Quest
+### Mobile Compatible
 
 No PC? No problem. VRCove runs in any modern browser, so it works on Android, iPhone, iPad and other mobile-only setups, not just Windows.
 
