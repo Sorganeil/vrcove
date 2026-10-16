@@ -347,6 +347,7 @@ test('VRCove profile pictures upload, persist, respect privacy and can be remove
     'base64',
   );
   await input.setInputFiles({ name: 'picture.png', mimeType: 'image/png', buffer: png });
+  await page.getByRole('button', { name: 'Use this picture', exact: true }).click();
   const header = page.locator('.topbar .account-chip img');
   await expect(header).toBeVisible();
   await expect(header).toHaveJSProperty('naturalWidth', 256);
@@ -372,7 +373,8 @@ test('VRCove profile pictures upload, persist, respect privacy and can be remove
   await page
     .getByLabel('Upload profile picture', { exact: true })
     .setInputFiles({ name: 'invalid.png', mimeType: 'image/png', buffer: Buffer.from('invalid image') });
-  await expect(page.getByRole('alert')).toContainText('Choose a PNG, JPEG or GIF');
+  await expect(page.getByRole('alert')).toContainText('This image could not be read.');
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
   await expect(header).toHaveAttribute('src', picture!);
   await page.getByRole('button', { name: 'Remove picture', exact: true }).click();
   await expect(header).toHaveCount(0);
@@ -480,4 +482,42 @@ test('VRCove bio and status save independently of VRChat and respect profile vis
   await expect(page.locator('.cove-profile-status')).toHaveCount(0);
   await expect(page.locator('.cove-bio')).toHaveCount(0);
   await visitor.close();
+});
+
+test('profile pictures can be cropped before saving', async ({ page }, testInfo) => {
+  await signup(page);
+  // 200×100: red on the left half, blue on the right.
+  const file = await page.evaluate(async () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 200;
+    canvas.height = 100;
+    const ctx = canvas.getContext('2d')!;
+    ctx.fillStyle = '#f00';
+    ctx.fillRect(0, 0, 100, 100);
+    ctx.fillStyle = '#00f';
+    ctx.fillRect(100, 0, 100, 100);
+    return canvas.toDataURL('image/png').split(',')[1];
+  });
+  await page
+    .getByLabel('Upload profile picture', { exact: true })
+    .setInputFiles({ name: 'wide.png', mimeType: 'image/png', buffer: Buffer.from(file, 'base64') });
+  const view = page.getByRole('application', { name: /Picture crop area/ });
+  await expect(view.locator('img')).toBeVisible();
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  await view.focus();
+  for (let i = 0; i < 30; i++) await page.keyboard.press('ArrowRight');
+  await page.getByLabel('Zoom', { exact: true }).fill('2');
+  await page.screenshot({ path: testInfo.outputPath('picture-cropper.png') });
+  await page.getByRole('button', { name: 'Use this picture', exact: true }).click();
+  await expect(view).toHaveCount(0);
+  const header = page.locator('.topbar .account-chip img');
+  await expect(header).toHaveJSProperty('naturalWidth', 256);
+  const pixel = await header.evaluate((img: HTMLImageElement) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 256;
+    const ctx = canvas.getContext('2d')!;
+    ctx.drawImage(img, 0, 0);
+    return Array.from(ctx.getImageData(128, 128, 1, 1).data);
+  });
+  expect(pixel.slice(0, 3)).toEqual([0, 0, 255]);
 });

@@ -265,3 +265,61 @@
     width: 100%;
   }
 }
+.picture-cropper .crop-view {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(280px, 100%);
+  aspect-ratio: 1;
+  margin: 4px auto;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #0b1a24;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.picture-cropper .crop-view:active {
+  cursor: grabbing;
+}
+.picture-cropper .crop-view:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.picture-cropper .crop-view img {
+  position: absolute;
+  max-width: none;
+  pointer-events: none;
+}
+/* Dims the corners outside the round picture shown on the site. */
+.picture-cropper .crop-view::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow: 0 0 0 200px rgb(0 0 0 / 55%);
+  outline: 2px solid rgb(255 255 255 / 70%);
+  pointer-events: none;
+}
+.login-content label.crop-zoom {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+.crop-zoom input {
+  flex: 1;
+  accent-color: var(--accent);
+}
+.login-content .crop-zoom input {
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+.login-content .crop-zoom input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}

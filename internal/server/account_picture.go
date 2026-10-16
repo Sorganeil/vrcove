@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"image"
+	"image/draw"
 	_ "image/gif"
 	_ "image/jpeg"
 	"image/png"
@@ -55,7 +56,8 @@ func (s *Server) saveAccountPicture(w http.ResponseWriter, r *http.Request, a *a
 }
 
 // squarePicture writes a small square PNG of raw, stripping metadata and GIF
-// animation.
+// animation. Each output pixel averages every source pixel it covers, so an
+// upload cannot hide a different picture in the pixels a sampling resize keeps.
 func squarePicture(out *bytes.Buffer, raw []byte, cfg image.Config) error {
 	src, _, err := image.Decode(bytes.NewReader(raw))
 	if err != nil {
@@ -63,13 +65,38 @@ func squarePicture(out *bytes.Buffer, raw []byte, cfg image.Config) error {
 	}
 	size := min(cfg.Width, cfg.Height)
 	left, top := src.Bounds().Min.X+(cfg.Width-size)/2, src.Bounds().Min.Y+(cfg.Height-size)/2
-	dst := image.NewNRGBA(image.Rect(0, 0, 256, 256))
-	for y := range 256 {
-		for x := range 256 {
-			dst.Set(x, y, src.At(left+x*size/256, top+y*size/256))
+	crop := image.NewRGBA(image.Rect(0, 0, size, size))
+	draw.Draw(crop, crop.Bounds(), src, image.Pt(left, top), draw.Src)
+	const side = 256
+	dst := image.NewRGBA(image.Rect(0, 0, side, side))
+	for y := range side {
+		y0, y1 := span(y, size, side)
+		for x := range side {
+			x0, x1 := span(x, size, side)
+			var sum [4]int
+			for sy := y0; sy < y1; sy++ {
+				row := crop.Pix[sy*crop.Stride:]
+				for sx := x0; sx < x1; sx++ {
+					for c := range 4 {
+						sum[c] += int(row[sx*4+c])
+					}
+				}
+			}
+			n := (y1 - y0) * (x1 - x0)
+			o := dst.PixOffset(x, y)
+			for c := range 4 {
+				dst.Pix[o+c] = uint8((sum[c] + n/2) / n)
+			}
 		}
 	}
 	return png.Encode(out, dst)
+}
+
+// span is the range of source pixels that output pixel i of side covers in a
+// source of size pixels, always at least one pixel wide.
+func span(i, size, side int) (int, int) {
+	a := i * size / side
+	return a, max((i+1)*size/side, a+1)
 }
 
 func (s *Server) accountPicture(w http.ResponseWriter, r *http.Request, viewer *account) error {

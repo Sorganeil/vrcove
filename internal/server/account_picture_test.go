@@ -109,3 +109,35 @@ func TestAccountPictureValidation(t *testing.T) {
 		t.Errorf("oversized dimensions = %d", w.Code)
 	}
 }
+
+// A picture that is black except for the pixels a nearest-neighbor resize
+// samples must not come out white.
+func TestSquarePictureAveragesPixels(t *testing.T) {
+	const size = 1024
+	img := image.NewNRGBA(image.Rect(0, 0, size, size))
+	for y := range size {
+		for x := range size {
+			c := color.NRGBA{A: 255}
+			if x%4 == 0 && y%4 == 0 {
+				c = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
+			}
+			img.Set(x, y, c)
+		}
+	}
+	var raw, out bytes.Buffer
+	if err := png.Encode(&raw, img); err != nil {
+		t.Fatal(err)
+	}
+	if err := squarePicture(&out, raw.Bytes(), image.Config{Width: size, Height: size}); err != nil {
+		t.Fatal(err)
+	}
+	got, err := png.Decode(&out)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Each 4×4 block holds one white pixel, so every output pixel is about 1/16 white.
+	r, _, _, _ := got.At(100, 100).RGBA()
+	if v := r >> 8; v < 10 || v > 22 {
+		t.Fatalf("output pixel = %d, want the block average near 16", v)
+	}
+}

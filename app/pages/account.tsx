@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { covePath, appLink } from '../lib/routes';
 import { CovePicture } from '../components/cove-picture';
+import PictureCropper from '../components/picture-cropper';
 import { day } from '../lib/dates';
 import type { VRChatUser } from '../lib/types';
 type Me = {
@@ -104,6 +105,7 @@ export default function AccountPage({
   const connection = useVRChatSession();
   const now = useSessionTime();
   const [me, setMe] = useState<Me | null>(null),
+    [cropping, setCropping] = useState<File | null>(null),
     [loading, setLoading] = useState(true),
     [mode, setMode] = useState<'login' | 'signup' | 'recover'>('login');
   const [username, setUsername] = useState(''),
@@ -271,18 +273,14 @@ export default function AccountPage({
             : 'Your profile is now private',
       );
     });
-  async function uploadPicture(file: File) {
-    if (file.size > 2 * 1024 * 1024) {
-      setError(tr('Choose an image smaller than 2 MB.'));
-      return;
-    }
-    await run('picture', async () => {
-      const response = await fetch('/api/cove/picture', { method: 'POST', body: file });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Upload failed');
-      updateMe(result);
-      notify(tr('Profile picture updated'));
-    });
+  async function uploadPicture(picture: Blob) {
+    if (picture.size > 2 * 1024 * 1024) throw new Error(tr('Choose an image smaller than 2 MB.'));
+    const response = await fetch('/api/cove/picture', { method: 'POST', body: picture });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Upload failed');
+    updateMe(result);
+    setCropping(null);
+    notify(tr('Profile picture updated'));
   }
   const removePicture = () =>
     run('picture', async () => {
@@ -531,13 +529,13 @@ export default function AccountPage({
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 e.target.value = '';
-                if (file) void uploadPicture(file);
+                if (file) setCropping(file);
               }}
             />
           </label>
           <p className="fineprint">
             {tr(
-              'PNG, JPEG or GIF, up to 2 MB. Pictures are cropped to a square. Visible to others when your profile is public.',
+              'PNG, JPEG or GIF. You can crop it to a square before saving. Visible to others when your profile is public.',
             )}
           </p>
           {busy === 'picture' && (
@@ -545,6 +543,9 @@ export default function AccountPage({
               <LoaderCircle size={14} className="spin" />
               {tr('Saving picture…')}
             </span>
+          )}
+          {cropping && (
+            <PictureCropper file={cropping} close={() => setCropping(null)} save={uploadPicture} />
           )}
           {me.picture && (
             <button className="standard-button" disabled={!!busy} onClick={removePicture}>
