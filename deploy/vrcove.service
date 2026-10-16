@@ -1,0 +1,48 @@
+# /etc/systemd/system/vrcove.service
+# Serves VRCove on a Unix socket only; cloudflared is the sole way in.
+[Unit]
+Description=VRCove
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=vrcove
+Group=vrcove
+# PUBLIC_ORIGIN, SESSION_KEY, VRC_CONTACT, ACCOUNT_KEY; chmod 600, owned by root.
+EnvironmentFile=/etc/vrcove/env
+Environment=LISTEN_ADDR=unix:/run/vrcove/vrcove.sock
+Environment=DATABASE_PATH=/var/lib/vrcove/catalog.sqlite
+Environment=ACCOUNTS_PATH=/var/lib/vrcove/accounts.sqlite
+ExecStart=/usr/local/bin/vrcove
+Restart=on-failure
+
+# /run/vrcove is group-accessible so cloudflared (in group vrcove) can connect.
+RuntimeDirectory=vrcove
+RuntimeDirectoryMode=0750
+UMask=0007
+
+# Sandboxing. SQLite needs write access beside the database for its WAL files.
+ReadWritePaths=/var/lib/vrcove
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+CapabilityBoundingSet=
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+# Unix for the socket; INET/INET6 for outbound calls to VRChat.
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target

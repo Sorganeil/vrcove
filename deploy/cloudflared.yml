@@ -1,0 +1,10 @@
+# /etc/cloudflared/config.yml
+# The tunnel dials out to Cloudflare, so the VPS needs no open inbound ports.
+tunnel: <TUNNEL-ID>
+credentials-file: /etc/cloudflared/<TUNNEL-ID>.json
+
+ingress:
+  - hostname: vrcove.example
+    service: unix:/run/vrcove/vrcove.sock
+  # Anything else that reaches the tunnel gets a bare 404.
+  - service: http_status:404
