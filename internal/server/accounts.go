@@ -775,13 +775,18 @@ func (s *Server) storeVRChatLink(w http.ResponseWriter, r *http.Request, a *acco
 			writeError(w, http.StatusBadRequest, fmt.Sprintf("You can link up to %d VRChat accounts.", maxLinksPerAccount))
 			return nil
 		}
-		if _, err := s.accounts.ExecContext(ctx, "INSERT INTO vrchat_links (account_id, vrc_key, sealed, created) VALUES (?, ?, ?, ?)",
+		// An overlapping request (a double tap, another tab) may link it first, so insert only if
+		// still unlinked and then check who owns it rather than assuming someone else does.
+		if _, err := s.accounts.ExecContext(ctx, "INSERT INTO vrchat_links (account_id, vrc_key, sealed, created) VALUES (?, ?, ?, ?) ON CONFLICT (vrc_key) DO NOTHING",
 			a.ID, key, sealed, s.day(s.now())); err != nil {
-			if strings.Contains(err.Error(), "UNIQUE constraint failed") {
-				writeError(w, http.StatusConflict, "This VRChat account is already linked to a different VRCove account.")
-				return nil
-			}
 			return err
+		}
+		if err := s.accounts.QueryRowContext(ctx, "SELECT account_id FROM vrchat_links WHERE vrc_key = ?", key).Scan(&owner); err != nil {
+			return err
+		}
+		if owner != a.ID {
+			writeError(w, http.StatusConflict, "This VRChat account is already linked to a different VRCove account.")
+			return nil
 		}
 	default:
 		return err
