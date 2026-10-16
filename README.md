@@ -16,13 +16,24 @@ Browse avatars, worlds, users and groups. Link VRChat to manage friends, favorit
 - Bookmarks and notes stay in your browser. You can export and import them as a backup.
 - Linked VRChat sessions are stored encrypted. The full breakdown of what is and isn't shared is on the site's privacy page.
 
-### Mobile Compatible
+### Mobile compatible
 
-No PC? No problem. VRCove runs in any modern browser, so it works on Android, iPhone, iPad and other mobile-only setups, not just Windows.
+No PC? No problem. Most VRChat tools are Windows desktop apps, but VRCove runs in the browser you already have, so it works on Android, iPhone and iPad as well as desktop.
 
-- Most VRChat tools are Windows desktop apps. VRCove brings avatar search, your friends list and account tools to Quest and phone players too.
-- Install it as an app (PWA) on Android or iOS and it opens full screen from your home screen, like a native app. On iPhone and iPad, use Share, then Add to Home Screen in Safari.
-- No Electron, bundled Chromium or separate webview to download. It runs on the browser you already have.
+- No installer or setup. Open [vrcove.st](https://vrcove.st) and start using it.
+- Avatar search, your friends list and account tools all work on a phone or tablet.
+- Layouts are built for touch and small screens, not shrunk down from desktop.
+- Prefer an app? You can install VRCove on your phone like a regular app (see below).
+
+### Install as an app (PWA)
+
+Install VRCove as an app on desktop or mobile, straight from your browser.
+
+- **No bloat.** No Electron, .NET runtime, JVM, bundled Chromium or webview. Just your browser.
+- It takes almost no storage and updates itself whenever the site updates.
+- On Windows, macOS, Linux and Android, click **Install app** in VRCove's menu, or use your browser's install option.
+- On iPhone and iPad, tap Share, then Add to Home Screen. In Safari on a Mac, choose File, then Add to Dock.
+- On iPhone and iPad, the app keeps its own sign-in and bookmarks, separate from Safari.
 
 ### Avatar search
 
