@@ -79,6 +79,10 @@ AI-assisted contributions are allowed. Follow AI best practices: review what you
 
 Keep pull requests small and focused. Monolithic pull requests that take forever to review will be ignored or closed.
 
+## Contact
+
+VRChat staff, or anyone else who wants to get in touch, can email [vrcove-contact.overbid399@passmail.net](mailto:vrcove-contact.overbid399@passmail.net) or [open an issue](https://github.com/Sorganeil/vrcove/issues).
+
 ## License
 
 VRCove is released under the [MIT License](LICENSE).
