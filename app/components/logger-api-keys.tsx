@@ -86,7 +86,7 @@ export default function LoggerApiKeys({
       </h3>
       <p>
         {tr(
-          'Generate an API key for your active VRChat session, then paste it into the desktop companion’s API key field.',
+          'Generate an API key for your active VRChat session, then paste it into the desktop companion’s API key field. The companion also needs its own VRChat login, made directly with VRChat, to check avatars before upload. The server then verifies every avatar again with this session.',
         )}
       </p>
       <p className="fineprint">

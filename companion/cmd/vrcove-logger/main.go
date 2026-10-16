@@ -7,8 +7,10 @@ import (
 	"image"
 	"image/color"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 
 	"gioui.org/app"
@@ -28,6 +30,7 @@ import (
 	"golang.org/x/image/font/gofont/goregular"
 	"vrcove/companion/internal/buildinfo"
 	"vrcove/companion/internal/logger"
+	"vrcove/companion/internal/vrchat"
 )
 
 var (
@@ -37,13 +40,14 @@ var (
 	muted  = color.NRGBA{R: 151, G: 163, B: 181, A: 255}
 	accent = color.NRGBA{R: 128, G: 220, B: 190, A: 255}
 	line   = color.NRGBA{R: 49, G: 60, B: 75, A: 255}
+	warn   = color.NRGBA{R: 230, G: 180, B: 124, A: 255}
 )
 
 type gui struct {
 	th                                    *material.Theme
 	config                                logger.Config
 	snap                                  snapshot
-	preview, settings                     bool
+	preview, settings, login              bool
 	message                               string
 	commands                              chan command
 	toggle, change, connect, save, cancel widget.Clickable
@@ -53,19 +57,30 @@ type gui struct {
 	onQuit                                func()
 	folder, server, token                 widget.Editor
 	list                                  widget.List
+
+	// The desktop's own VRChat login, used for client-side avatar checks.
+	vrc                                   *vrchat.Client
+	username, password, code              widget.Editor
+	method                                widget.Enum
+	methods                               [3]widget.Clickable
+	manage, signIn, verify, signOut, back widget.Clickable
+	loginMsg                              string
+	loginReply                            chan string
+	invalidate                            func()
 }
 
 func main() {
 	preview := flag.Bool("preview", false, "Show sample activity without reading analytics, saving state or submitting")
 	path := flag.String("state", "", "Override the state path")
 	version := flag.Bool("version", false, "Print version and build information, then exit")
+	screen := flag.String("screen", "", "With --preview, open on settings, login, code or signed-in")
 	flag.Parse()
 	if *version {
 		fmt.Println(buildinfo.Summary())
 		return
 	}
 	go func() {
-		if err := run(*preview, *path); err != nil {
+		if err := run(*preview, *path, *screen); err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
@@ -74,7 +89,7 @@ func main() {
 	app.Main()
 }
 
-func run(preview bool, path string) error {
+func run(preview bool, path, screen string) error {
 	if path == "" {
 		dir, err := os.UserConfigDir()
 		if err != nil {
@@ -95,7 +110,33 @@ func run(preview bool, path string) error {
 	} else if s.Config.Folder == "" {
 		s.Config.Folder = detectFolder()
 	}
-	g := &gui{th: newTheme(), config: s.Config, commands: make(chan command, 4), clearReply: make(chan string, 1), preview: preview}
+	var slot windowSlot
+	g := &gui{th: newTheme(), config: s.Config, commands: make(chan command, 4), clearReply: make(chan string, 1), preview: preview, loginReply: make(chan string, 1), invalidate: slot.invalidate}
+	if preview {
+		g.vrc = previewVRChat(slot.invalidate)
+		g.settings, g.login = screen == "settings" || screen == "login", screen == "login"
+	} else {
+		g.vrc = vrchat.New(path, slot.invalidate)
+	}
+	// Secure storage can block on an unlock prompt, so read it off the GUI thread.
+	go func() {
+		g.vrc.Load()
+		// Preview screens for the later login steps, using the local fake.
+		if preview && (screen == "code" || screen == "signed-in") {
+			g.settings, g.login = true, true
+			_ = g.vrc.Login("preview", "preview")
+			if screen == "signed-in" {
+				_ = g.vrc.Verify(vrchat.Authenticator, "123456")
+			}
+		}
+	}()
+	s.Verifier = verifier{g.vrc}
+	g.username.SingleLine, g.password.SingleLine, g.code.SingleLine = true, true, true
+	g.username.Submit, g.password.Submit, g.code.Submit = true, true, true
+	g.password.Mask = '•'
+	g.folder.SetText(g.config.Folder)
+	g.server.SetText(g.config.Server)
+	g.token.SetText(g.config.Token)
 	g.list.Axis = layout.Vertical
 	g.folder.SingleLine = true
 	g.server.SingleLine = true
@@ -106,9 +147,11 @@ func run(preview bool, path string) error {
 		g.snap = previewSnapshot()
 	}
 	updates := make(chan snapshot, 1)
-	ctx, cancel := context.WithCancel(context.Background())
+	// Stop cleanly on Ctrl+C or a service manager's TERM, saving the queue.
+	signals, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	ctx, cancel := context.WithCancel(signals)
 	g.onQuit = cancel
-	var slot windowSlot
 	show := make(chan struct{}, 1)
 	requestShow := func() {
 		select {
@@ -207,7 +250,7 @@ func (g *gui) windowLoop(ctx context.Context, w *app.Window, updates <-chan snap
 			if ctx.Err() == nil && !g.preview && !tray.canBackground() {
 				e.Abort()
 				closing = false
-				g.settings = true
+				g.settings, g.login = true, false
 				g.folder.SetText(g.config.Folder)
 				g.server.SetText(g.config.Server)
 				g.token.SetText(g.config.Token)
@@ -234,10 +277,18 @@ func (g *gui) windowLoop(ctx context.Context, w *app.Window, updates <-chan snap
 				g.message = message
 			default:
 			}
+			select {
+			case message := <-g.loginReply:
+				g.loginMsg = message
+			default:
+			}
 			gtx := app.NewContext(&ops, e)
 			g.actions(gtx)
 			paint.Fill(gtx.Ops, bg)
 			layout.UniformInset(unit.Dp(18)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				if g.login {
+					return g.loginView(gtx)
+				}
 				if g.settings {
 					return g.settingsView(gtx)
 				}
@@ -277,6 +328,7 @@ func (g *gui) actions(gtx layout.Context) {
 		g.onQuit()
 		return
 	}
+	g.loginActions(gtx)
 	if g.clearCache.Clicked(gtx) {
 		if g.preview {
 			g.message = "Preview only · no cache file was changed."
@@ -398,15 +450,16 @@ func (g *gui) dashboard(gtx layout.Context) layout.Dimensions {
 				if g.snap.paused {
 					title = "Start"
 				}
-				hint := "New avatar IDs are uploaded to your configured VRCove server."
-				if g.config.Token == "" {
-					hint = "To upload queued IDs, add an API key in Settings."
-				}
-				if g.snap.paused {
-					hint = "Your queue is saved. Resume whenever you’re ready."
-				}
-				if g.preview {
+				hint := "New avatars are checked with your VRChat login, then uploaded to VRCove."
+				switch {
+				case g.preview:
 					hint = "Sample activity · no data read or uploads sent."
+				case g.snap.paused:
+					hint = "Your queue is saved. Resume whenever you’re ready."
+				case g.config.Token == "":
+					hint = "To upload queued IDs, add an API key in Settings."
+				case !g.vrc.Ready():
+					hint = "To upload queued IDs, sign in to VRChat in Settings."
 				}
 				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
@@ -470,7 +523,7 @@ func (g *gui) dashboard(gtx layout.Context) layout.Dimensions {
 		})
 	}
 	items = append(items, layout.Spacer{Height: 14}.Layout, func(gtx layout.Context) layout.Dimensions {
-		return layout.Flex{Alignment: layout.Middle}.Layout(gtx, layout.Flexed(1, g.label("Only avatar IDs leave your device.", 10, muted, false)), layout.Rigid(g.button(&g.connect, "Settings", false)))
+		return layout.Flex{Alignment: layout.Middle}.Layout(gtx, layout.Flexed(1, g.label("VRCove only receives avatar IDs.", 10, muted, false)), layout.Rigid(g.button(&g.connect, "Settings", false)))
 	}, layout.Spacer{Height: 8}.Layout, g.label("Close to tray · Quit from Settings or the tray menu.", 10, muted, false))
 	return g.list.Layout(gtx, len(items), func(gtx layout.Context, i int) layout.Dimensions { return items[i](gtx) })
 }
@@ -492,10 +545,13 @@ func (g *gui) settingsView(gtx layout.Context) layout.Dimensions {
 		g.field("VRChat analytics folder", "Paste the folder containing amplitude.cache", &g.folder), layout.Spacer{Height: 14}.Layout,
 		g.button(&g.clearCache, "Clear Amplitude analytics cache", false), layout.Spacer{Height: 6}.Layout,
 		g.label("Saves avatar IDs first, then empties amplitude.cache. Your queue stays saved.", 11, muted, false), layout.Spacer{Height: 14}.Layout,
-		g.field("Server", "https://vrcove.st", &g.server), layout.Spacer{Height: 14}.Layout,
-		g.field("API key", "Generate one on your VRCove account page", &g.token), layout.Spacer{Height: 10}.Layout,
-		g.label("Your API key is tied to your VRChat session’s lifetime and expires when that session expires or ends. Leave blank to collect locally.", 11, muted, false), layout.Spacer{Height: 12}.Layout,
-		g.label(g.message, 11, color.NRGBA{R: 230, G: 180, B: 124, A: 255}, false), layout.Spacer{Height: 12}.Layout,
+		g.label("UPLOADS NEED TWO SEPARATE LOGINS", 10, muted, true), layout.Spacer{Height: 8}.Layout,
+		g.loginRow, layout.Spacer{Height: 6}.Layout,
+		g.label("Checks each new avatar on this PC and skips private or invalid ones before upload.", 11, muted, false), layout.Spacer{Height: 14}.Layout,
+		g.field("2 · VRCove API key", "Generate one on your VRCove account page", &g.token), layout.Spacer{Height: 6}.Layout,
+		g.label("Identifies your encrypted VRChat session on VRCove, which the server uses to verify avatars again. The key expires when that session ends or expires. Leave blank to collect locally.", 11, muted, false), layout.Spacer{Height: 14}.Layout,
+		g.field("Server", "https://vrcove.st", &g.server), layout.Spacer{Height: 12}.Layout,
+		g.label(g.message, 11, warn, false), layout.Spacer{Height: 12}.Layout,
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Spacing: layout.SpaceStart}.Layout(gtx, layout.Rigid(g.button(&g.quit, "Quit", false)), hgap(10), layout.Rigid(g.button(&g.cancel, "Cancel", false)), hgap(10), layout.Rigid(g.button(&g.save, "Save settings", true)))
 		},

@@ -97,3 +97,11 @@ func retryAfter(h http.Header, now time.Time) time.Duration {
 func rateLimitedError() error {
 	return errStatus(http.StatusTooManyRequests, "VRChat is rate limiting requests. Please wait before trying again.")
 }
+
+// remaining is how long calls under key must still wait, including any
+// address-wide cooldown, and at least a second.
+func (b *backoff) remaining(key string, now time.Time) time.Duration {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return max(time.Second, b.until[key].Sub(now), b.until[serverKey].Sub(now))
+}

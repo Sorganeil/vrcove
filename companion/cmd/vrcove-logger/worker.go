@@ -90,26 +90,30 @@ func worker(ctx context.Context, path string, s *logger.State, commands <-chan c
 		if paused || len(s.Pending) == 0 {
 			return
 		}
-		if s.Config.Token == "" {
-			s.Status = "Collecting locally · uploads off"
+		switch {
+		case submitting:
+			s.Status = "Checking and uploading avatars · collecting locally"
 			return
-		}
-		if time.Now().Before(s.RetryAt) {
-			s.Status = "Uploads waiting to retry · collecting locally"
+		case s.Config.Token == "":
+			s.Status = "Collecting locally · add an API key in Settings to upload"
 			return
-		}
-		if submitting {
+		case s.Verifier == nil || !s.Verifier.Ready():
+			s.Status = "Collecting locally · sign in to VRChat in Settings to upload"
+			return
+		case time.Now().Before(s.RetryAt):
+			s.Status = s.WaitingStatus()
 			return
 		}
 		// Submit an isolated batch. The collector remains the sole owner of the
 		// live state and can read cache writes while the network is waiting.
 		batch := logger.New()
-		batch.Config, batch.Failures = s.Config, s.Failures
+		batch.Config, batch.Failures, batch.Verifier = s.Config, s.Failures, s.Verifier
 		batch.Pending = append([]string(nil), s.Pending[:min(5, len(s.Pending))]...)
 		for _, id := range batch.Pending {
 			batch.Seen[id] = "queued"
 		}
 		submitting = true
+		s.Status = "Checking and uploading avatars · collecting locally"
 		go func() { results <- uploadResult{batch, batch.Submit(ctx, client)} }()
 	}
 	ticker := time.NewTicker(3 * time.Second)
@@ -141,7 +145,7 @@ func worker(ctx context.Context, path string, s *logger.State, commands <-chan c
 			s.Rejected += batch.Rejected
 			s.Events = append(batch.Events, s.Events...)
 			s.Events = s.Events[:min(8, len(s.Events))]
-			s.RetryAt, s.Failures = batch.RetryAt, batch.Failures
+			s.RetryAt, s.Failures, s.RetryReason = batch.RetryAt, batch.Failures, batch.RetryReason
 			if result.err != nil && !paused {
 				s.Status = result.err.Error()
 			}
@@ -193,8 +197,7 @@ func worker(ctx context.Context, path string, s *logger.State, commands <-chan c
 				s.Status = "Collection paused"
 			case "config":
 				s.Config = c.config
-				s.RetryAt = time.Time{}
-				s.Failures = 0
+				s.RetryAt, s.Failures, s.RetryReason = time.Time{}, 0, ""
 			}
 			persist()
 		case <-ticker.C:

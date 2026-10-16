@@ -15,7 +15,33 @@ import (
 	"vrcove/companion/internal/logger"
 )
 
-func TestCacheWritesAreCollectedWhileUploadWaits(t *testing.T) {
+// blockingVerifier stands in for the desktop VRChat login and can hold a check.
+type blockingVerifier struct {
+	block   string
+	started chan struct{}
+	release chan struct{}
+}
+
+func (v *blockingVerifier) Ready() bool { return true }
+func (v *blockingVerifier) Check(ctx context.Context, id string) (bool, error) {
+	if id == v.block {
+		v.started <- struct{}{}
+		select {
+		case <-v.release:
+		case <-ctx.Done():
+			return false, ctx.Err()
+		}
+	}
+	return true, nil
+}
+
+func TestCacheWritesAreCollectedWhileNetworkWaits(t *testing.T) {
+	for _, stage := range []string{"catalog check", "VRChat check", "ingestion"} {
+		t.Run(stage, func(t *testing.T) { collectWhileBlocked(t, stage) })
+	}
+}
+
+func collectWhileBlocked(t *testing.T, stage string) {
 	first := "avtr_12345678-1234-1234-1234-123456789abc"
 	second := "avtr_87654321-1234-1234-1234-123456789abc"
 	folder := t.TempDir()
@@ -28,6 +54,18 @@ func TestCacheWritesAreCollectedWhileUploadWaits(t *testing.T) {
 	}
 	write(first)
 	started, release := make(chan struct{}, 1), make(chan struct{})
+	hold := func(r *http.Request, want string) bool {
+		if stage != want {
+			return true
+		}
+		started <- struct{}{}
+		select {
+		case <-release:
+			return true
+		case <-r.Context().Done():
+			return false
+		}
+	}
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var body struct {
 			IDs []string `json:"ids"`
@@ -36,20 +74,31 @@ func TestCacheWritesAreCollectedWhileUploadWaits(t *testing.T) {
 			t.Error(err)
 			return
 		}
-		if slices.Contains(body.IDs, first) {
-			started <- struct{}{}
-			select {
-			case <-release:
-				_ = json.NewEncoder(w).Encode(map[string]any{"results": []logger.Result{{ID: first, Status: "added"}}})
-			case <-r.Context().Done():
+		if !slices.Equal(body.IDs, []string{first}) {
+			t.Errorf("unexpected batch %v", body.IDs)
+			return
+		}
+		switch r.URL.Path {
+		case "/api/logger/known":
+			if hold(r, "catalog check") {
+				_ = json.NewEncoder(w).Encode(map[string]any{"existing": []string{}})
 			}
-		} else {
-			<-r.Context().Done()
+		case "/api/logger/avatars":
+			if hold(r, "ingestion") {
+				_ = json.NewEncoder(w).Encode(map[string]any{"results": []logger.Result{{ID: first, Status: "added"}}})
+			}
+		default:
+			t.Errorf("unexpected path %s", r.URL.Path)
 		}
 	}))
 	defer server.Close()
+	verifier := &blockingVerifier{started: started, release: release}
+	if stage == "VRChat check" {
+		verifier.block = first
+	}
 	state := logger.New()
 	state.Config = logger.Config{Folder: folder, Server: server.URL, Token: "test-only"}
+	state.Verifier = verifier
 	path := filepath.Join(t.TempDir(), "state.json")
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan struct{})
@@ -82,7 +131,7 @@ func TestCacheWritesAreCollectedWhileUploadWaits(t *testing.T) {
 		}
 		t.Fatal("cache write was not persisted before the next polling tick")
 	}
-	// Capture this update before VRChat clears it, even with HTTP blocked.
+	// Capture this update before VRChat clears it, even with the request blocked.
 	write(second)
 	waitState(func(s *logger.State) bool { return slices.Contains(s.Pending, second) })
 	if err := os.WriteFile(cache, []byte("[]"), 0600); err != nil {

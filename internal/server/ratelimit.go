@@ -86,13 +86,7 @@ func (l *limiter) over(key string, limit int, now time.Time) bool {
 
 // allow records an event for key unless it already has signInAttempts.
 func (l *limiter) allow(key string, now time.Time) bool {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	if b := l.live(key, now); b != nil && b.n >= signInAttempts {
-		return false
-	}
-	l.add(key, now)
-	return true
+	return l.allowN(key, signInAttempts, now) == 0
 }
 
 // rateKey is the client's address for rate limiting. IPv6 is grouped by /64,
@@ -104,4 +98,16 @@ func rateKey(ip string) string {
 		return ip
 	}
 	return parsed.Mask(net.CIDRMask(64, 128)).String() + "/64"
+}
+
+// allowN records an event for key unless it already has limit events in the
+// current window. When refused, it returns how long until the window resets.
+func (l *limiter) allowN(key string, limit int, now time.Time) time.Duration {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if b := l.live(key, now); b != nil && b.n >= limit {
+		return b.until.Sub(now)
+	}
+	l.add(key, now)
+	return 0
 }

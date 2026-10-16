@@ -12,7 +12,9 @@ running in the system tray, preserving the current collection state. Click the
 tray icon or right-click it and choose **Show** to restore the window. **Quit** in the tray
 menu or Settings stops collection, saves the queue and exits. Collection starts
 paused. `--preview` shows sample
-activity without reading logs, saving state or making network requests.
+activity without reading logs, saving state or making network requests; its
+VRChat login is a local fake that accepts anything. `--preview --screen settings`
+(or `login`, `code`, `signed-in`) opens a specific screen for screenshots.
 The default window is 500×530 logical pixels. Both screens scroll when resized
 smaller. The version is shown in the header and title; Settings shows the commit,
 build timestamp and platform. `--version` prints the same details without opening
@@ -149,6 +151,27 @@ To enable submissions, the deployment sets `LOGGER_ENABLED=true` with
 `ACCOUNT_KEY`, `SESSION_KEY`, and `VRC_CONTACT` configured. There is no shared
 logger credential or operator VRChat login.
 
+### Two separate logins
+
+Uploading needs both, and they do different jobs:
+
+1. **VRChat login on this PC** (Settings → VRChat login). The companion signs in
+   to VRChat directly with your username and password, then an authenticator,
+   recovery or email code when VRChat asks for one. The password goes only to
+   VRChat; it is never saved and never sent to VRCove. The resulting session
+   cookies are stored in Windows Credential Manager or the Linux Secret Service
+   (your desktop keyring). If secure storage is locked or unavailable, the app
+   says so and keeps nothing; there is no plaintext fallback. **Sign out**
+   removes the saved session and ends it at VRChat. Cookies VRChat rotates are
+   saved again; an expired session signs the desktop out and keeps the queue.
+   This login performs the client checks below.
+2. **VRCove API key.** It identifies an existing encrypted VRChat session on
+   the VRCove server, which the server uses to verify every avatar again on its
+   own. The key expires when that linked session ends or expires.
+
+Without either login, the companion keeps collecting locally and uploads
+nothing.
+
 On VRCove, sign in, connect your linked VRChat account, and open **Account →
 Companion API keys → Generate API key**. Copy the key into the companion's
 **API key** field. The key is shown only once and stored as a hash on the server.
@@ -162,25 +185,45 @@ VRChat session or credentials. API keys are tied to the session's lifetime:
 expiry, logout, ending the session, or unlinking the account invalidates them.
 Reconnect VRChat and generate a new API key after a session ends.
 
-The app posts up to five IDs to `/api/logger/avatars`. The backend validates the
-ID, retrieves current VRChat metadata, rejects anything not public, then checks
-for an existing avatar. New entries and their search-index records are inserted
-in one transaction; a unique avatar ID handles concurrent duplicates. Invalid
-or inaccessible avatars are rejected. Authentication failures, rate limits and
-temporary errors remain queued with capped exponential backoff. The endpoint
-limits concurrent verification and accepts twelve batches per ten-minute window per VRChat account.
+### Upload flow
+
+For each batch of up to five queued IDs:
+
+1. **Catalog check.** `/api/logger/known` reports which IDs VRCove already has.
+   Those are marked **Existing** and skipped without asking VRChat.
+2. **Client check.** Each remaining ID is looked up with this PC's VRChat
+   session. Private, invalid, mismatched or inaccessible avatars are marked
+   **Rejected** locally and never uploaded.
+3. **Ingestion.** Only IDs that passed are posted to `/api/logger/avatars`. The
+   server does not trust the client: it authenticates the API key and its linked
+   server-side session, validates each ID, fetches the public metadata from
+   VRChat itself, checks for duplicates, and inserts new metadata and search
+   records in one transaction. The desktop's VRChat session is never sent to
+   VRCove.
+
+Ingestion allows 40 requests of up to five IDs per ten minutes per VRChat
+account. Catalog checks and local rejections don't use this quota; an ingestion
+request counts even if the server rejects its IDs. The app waits 16 seconds
+between ingestion requests so it doesn't exhaust the quota at once.
+
+Rate limits from this PC's VRChat calls, VRCove ingestion and the server's
+VRChat verification are shown with their source and retry time. `Retry-After`
+seconds and HTTP dates are honored, with a one-minute fallback. Expired logins,
+rate limits, network errors and other temporary failures keep IDs queued with
+capped exponential backoff, and collection continues while the app waits.
 Rotated credentials are updated in the encrypted session record.
 
 The state file is in the user's configuration directory under
 `vrcove-logger/state.json`. It includes the API key, queue and file
-fingerprints; the app writes it with owner-only permissions on Unix. On Windows,
+fingerprints, but not the VRChat session, which lives in secure storage; the app
+writes it with owner-only permissions on Unix. On Windows,
 access follows the user's configuration-folder ACLs. Run one instance at a time.
 The queue is limited to 10,000 pending IDs; collection waits when full.
 
 ## Verification and screenshots
 
 ```sh
-go test -race ./internal/logger
+go test -race -tags novulkan ./...
 python3 -m unittest discover -s tests -p test_release.py -v
 ```
 
