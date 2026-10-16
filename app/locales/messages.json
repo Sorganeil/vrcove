@@ -446,7 +446,9 @@
     "Install VRCove": "Instalar VRCove",
     "Tap the Share button in Safari.": "Toca el botón Compartir en Safari.",
     "Choose Add to Home Screen.": "Elige «Añadir a pantalla de inicio».",
-    "Tap Add. VRCove opens like an app.": "Toca Añadir. VRCove se abrirá como una app."
+    "Tap Add. VRCove opens like an app.": "Toca Añadir. VRCove se abrirá como una app.",
+    "Favorited in VRChat": "En tus favoritos de VRChat",
+    "This avatar is already in your VRChat favorites.": "Este avatar ya está en tus favoritos de VRChat."
   },
   "fr": {
     "Language": "Langue",
@@ -895,7 +897,9 @@
     "Install VRCove": "Installer VRCove",
     "Tap the Share button in Safari.": "Touchez le bouton Partager dans Safari.",
     "Choose Add to Home Screen.": "Choisissez « Sur l'écran d'accueil ».",
-    "Tap Add. VRCove opens like an app.": "Touchez Ajouter. VRCove s'ouvre comme une app."
+    "Tap Add. VRCove opens like an app.": "Touchez Ajouter. VRCove s'ouvre comme une app.",
+    "Favorited in VRChat": "Dans vos favoris VRChat",
+    "This avatar is already in your VRChat favorites.": "Cet avatar est déjà dans vos favoris VRChat."
   },
   "de": {
     "Language": "Sprache",
@@ -1344,7 +1348,9 @@
     "Install VRCove": "VRCove installieren",
     "Tap the Share button in Safari.": "Tippe in Safari auf „Teilen“.",
     "Choose Add to Home Screen.": "Wähle „Zum Home-Bildschirm“.",
-    "Tap Add. VRCove opens like an app.": "Tippe auf „Hinzufügen“. VRCove öffnet sich wie eine App."
+    "Tap Add. VRCove opens like an app.": "Tippe auf „Hinzufügen“. VRCove öffnet sich wie eine App.",
+    "Favorited in VRChat": "In VRChat-Favoriten",
+    "This avatar is already in your VRChat favorites.": "Dieser Avatar ist bereits in deinen VRChat-Favoriten."
   },
   "ja": {
     "Language": "言語",
@@ -1793,7 +1799,9 @@
     "Install VRCove": "VRCoveをインストール",
     "Tap the Share button in Safari.": "Safariの共有ボタンをタップします。",
     "Choose Add to Home Screen.": "「ホーム画面に追加」を選びます。",
-    "Tap Add. VRCove opens like an app.": "「追加」をタップすると、VRCoveがアプリのように開きます。"
+    "Tap Add. VRCove opens like an app.": "「追加」をタップすると、VRCoveがアプリのように開きます。",
+    "Favorited in VRChat": "VRChatのお気に入り登録済み",
+    "This avatar is already in your VRChat favorites.": "このアバターはすでにVRChatのお気に入りに入っています。"
   },
   "ru": {
     "Language": "Язык",
@@ -2242,7 +2250,9 @@
     "Install VRCove": "Установить VRCove",
     "Tap the Share button in Safari.": "Нажмите кнопку «Поделиться» в Safari.",
     "Choose Add to Home Screen.": "Выберите «На экран „Домой“».",
-    "Tap Add. VRCove opens like an app.": "Нажмите «Добавить». VRCove откроется как приложение."
+    "Tap Add. VRCove opens like an app.": "Нажмите «Добавить». VRCove откроется как приложение.",
+    "Favorited in VRChat": "В избранном VRChat",
+    "This avatar is already in your VRChat favorites.": "Этот аватар уже в вашем избранном VRChat."
   },
   "uk": {
     "Language": "Мова",
@@ -2691,7 +2701,9 @@
     "Install VRCove": "Встановити VRCove",
     "Tap the Share button in Safari.": "Натисніть кнопку «Поширити» в Safari.",
     "Choose Add to Home Screen.": "Виберіть «На початковий екран».",
-    "Tap Add. VRCove opens like an app.": "Натисніть «Додати». VRCove відкриватиметься як застосунок."
+    "Tap Add. VRCove opens like an app.": "Натисніть «Додати». VRCove відкриватиметься як застосунок.",
+    "Favorited in VRChat": "В обраному VRChat",
+    "This avatar is already in your VRChat favorites.": "Цей аватар уже у вашому обраному VRChat."
   },
   "zh-CN": {
     "Language": "语言",
@@ -3140,7 +3152,9 @@
     "Install VRCove": "安装 VRCove",
     "Tap the Share button in Safari.": "在 Safari 中轻点“分享”按钮。",
     "Choose Add to Home Screen.": "选择“添加到主屏幕”。",
-    "Tap Add. VRCove opens like an app.": "轻点“添加”，VRCove 就会像应用一样打开。"
+    "Tap Add. VRCove opens like an app.": "轻点“添加”，VRCove 就会像应用一样打开。",
+    "Favorited in VRChat": "已在 VRChat 收藏",
+    "This avatar is already in your VRChat favorites.": "此虚拟形象已在你的 VRChat 收藏中。"
   },
   "ko": {
     "Language": "언어",
@@ -3589,6 +3603,8 @@
     "Install VRCove": "VRCove 설치",
     "Tap the Share button in Safari.": "Safari에서 공유 버튼을 탭하세요.",
     "Choose Add to Home Screen.": "‘홈 화면에 추가’를 선택하세요.",
-    "Tap Add. VRCove opens like an app.": "추가를 탭하면 VRCove가 앱처럼 열립니다."
+    "Tap Add. VRCove opens like an app.": "추가를 탭하면 VRCove가 앱처럼 열립니다.",
+    "Favorited in VRChat": "VRChat 즐겨찾기에 있음",
+    "This avatar is already in your VRChat favorites.": "이 아바타는 이미 VRChat 즐겨찾기에 있습니다."
   }
 }

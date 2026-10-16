@@ -28,3 +28,29 @@ test('favorites switches between avatars and paginated worlds, including unavail
  await tabs.getByRole('button',{name:'Worlds',exact:true}).click();
  await expect(page.locator('.world-card')).toHaveCount(100);
 });
+
+test('avatars already in VRChat favorites cannot be favorited again',async({page})=>{
+ const other='avtr_00000000-0000-0000-0000-000000000006';
+ await page.route('**/api/cove/me',r=>r.fulfill({json:{username:'tester',links:[{vrchatId:'usr_test'}]}}));
+ await page.route('**/api/account/me',r=>r.fulfill({json:{id:'usr_test',displayName:'Tester'}}));
+ await page.route('**/api/catalog?*',r=>r.fulfill({json:{avatars:[{id:avatar,name:'Saved avatar',author:'Creator',rating:'Good',tags:[],pc:true},{id:other,name:'New avatar',author:'Creator',rating:'Good',tags:[],pc:true}],total:2}}));
+ await page.route('**/api/account/favorites?*',r=>r.fulfill({json:[{id:'fvrt_avatar',favoriteId:avatar}]}));
+ await page.route('**/api/account/favorite-groups',r=>r.fulfill({json:[{name:'avatars1',displayName:'Avatars'}]}));
+ let added=false,removed='';
+ await page.route('**/api/account/favorites',r=>{added=true;return r.fulfill({json:{id:'fvrt_new',favoriteId:other}});});
+ await page.route('**/api/account/unfavorite',r=>{removed=r.request().postDataJSON().favoriteId;return r.fulfill({json:{}});});
+ await page.goto('/#avatars');
+ await page.locator('.avatar-card').filter({hasText:'Saved avatar'}).click();
+ const dialog=page.getByRole('dialog').first();
+ await expect(dialog.getByRole('button',{name:'Favorited in VRChat'})).toBeDisabled();
+ await expect(dialog.getByRole('button',{name:'Favorite in VRChat',exact:true})).toHaveCount(0);
+ await dialog.getByRole('button',{name:'Remove VRChat favorite'}).click();
+ await expect.poll(()=>removed).toBe('fvrt_avatar');
+ await page.locator('.avatar-card').filter({hasText:'New avatar'}).click();
+ await expect(dialog.getByRole('button',{name:'Remove VRChat favorite'})).toHaveCount(0);
+ await dialog.getByRole('button',{name:'Favorite in VRChat',exact:true}).click();
+ await page.getByRole('dialog',{name:'Favorite avatar'}).getByRole('button',{name:'Add favorite'}).click();
+ await expect.poll(()=>added).toBe(true);
+ await expect(dialog.getByRole('button',{name:'Favorited in VRChat'})).toBeDisabled();
+ expect(added).toBe(true);
+});
