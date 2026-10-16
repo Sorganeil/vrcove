@@ -54,3 +54,29 @@ test('avatars already in VRChat favorites cannot be favorited again',async({page
  await expect(dialog.getByRole('button',{name:'Favorited in VRChat'})).toBeDisabled();
  expect(added).toBe(true);
 });
+
+test('switching into favorites never draws leftover rows as avatars',async({page})=>{
+ const errors:string[]=[];
+ page.on('pageerror',e=>errors.push(e.message));
+ await page.route('**/api/cove/me',r=>r.fulfill({json:{username:'tester',links:[{vrchatId:'usr_test'}]}}));
+ await page.route('**/api/account/me',r=>r.fulfill({json:{id:'usr_test',displayName:'Tester'}}));
+ await page.route('**/api/account/friends?*',r=>r.fulfill({json:[{id:'usr_friend',displayName:'A friend',status:'active'}]}));
+ await page.route('**/api/catalog?*',r=>r.fulfill({json:{avatars:[{id:avatar,name:'Saved avatar',author:'Creator',tags:[]}],total:1}}));
+ await page.route('**/api/account/world?*',r=>r.fulfill({json:{id:world,name:'Saved world',authorName:'World creator'}}));
+ await page.route('**/api/account/favorites?*',async r=>{
+  await new Promise(done=>setTimeout(done,400));
+  const type=new URL(r.request().url()).searchParams.get('type');
+  return r.fulfill({json:type==='world'?[{id:'fvrt_world',favoriteId:world}]:[{id:'fvrt_avatar',favoriteId:avatar}]});
+ });
+ await page.goto('/#friends');
+ await expect(page.getByText('A friend').first()).toBeVisible();
+ await page.evaluate(()=>{window.location.hash='#favorites';});
+ await expect(page.locator('.avatar-card')).toContainText('Saved avatar');
+ const tabs=page.getByLabel('Favorite type');
+ await tabs.getByRole('button',{name:'Worlds',exact:true}).click();
+ await expect(page.locator('.world-card')).toContainText('Saved world');
+ await tabs.getByRole('button',{name:'Avatars',exact:true}).click();
+ await expect(page.locator('.avatar-card')).toContainText('Saved avatar');
+ await expect(page.locator('.avatar-card .rating-dot')).toHaveClass(/unknown/);
+ expect(errors).toEqual([]);
+});
