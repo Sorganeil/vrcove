@@ -89,3 +89,12 @@ func TestLegacyAccountPrefix(t *testing.T) {
 		t.Fatalf("legacy prefix = %d, current = %d", legacy.Code, current.Code)
 	}
 }
+
+func TestManifestContentType(t *testing.T) {
+	h := newHarness(t)
+	h.srv.static = fstest.MapFS{"index.html": {Data: []byte("<title>x</title>")}, "manifest.webmanifest": {Data: []byte(`{"name":"VRCove"}`)}}
+	w := h.do(httptest.NewRequest("GET", "/manifest.webmanifest", nil))
+	if w.Code != 200 || w.Header().Get("Content-Type") != "application/manifest+json" || w.Header().Get("Cache-Control") != "no-cache" {
+		t.Fatalf("%d %q %q", w.Code, w.Header().Get("Content-Type"), w.Header().Get("Cache-Control"))
+	}
+}

@@ -1,0 +1,22 @@
+{
+  "id": "/",
+  "name": "VRCove",
+  "short_name": "VRCove",
+  "description": "A privacy-focused VRChat web client with avatar search.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#080c11",
+  "theme_color": "#080c11",
+  "categories": ["entertainment", "social"],
+  "icons": [
+    {"src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ],
+  "shortcuts": [
+    {"name": "Avatars", "url": "/#avatars"},
+    {"name": "Friends", "url": "/#friends"},
+    {"name": "My groups", "url": "/#my-groups"}
+  ]
+}

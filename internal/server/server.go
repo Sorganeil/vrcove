@@ -284,6 +284,9 @@ func (s *Server) handleStatic(w http.ResponseWriter, r *http.Request) {
 	if name == "index.html" {
 		data = s.previewHTML(r, data)
 	}
+	if strings.HasSuffix(name, ".webmanifest") {
+		h.Set("Content-Type", "application/manifest+json")
+	}
 	if strings.HasPrefix(name, "assets/") {
 		h.Set("Cache-Control", "public, max-age=31536000, immutable")
 	} else {

@@ -251,3 +251,4 @@ span.cove-account-picture::before{content:attr(data-initial)}
 }
 .turnstile-box{min-height:65px;margin:4px 0}
 .modal:has(>.privacy-content){max-width:760px}.modal>.privacy-content{padding:44px 48px 34px}.modal>.privacy-content>p{font-size:15px;line-height:1.75}.modal>.privacy-content>h3{font-size:17px}.modal>.privacy-content h2{font-size:32px}@media(max-width:650px){.modal>.privacy-content{padding:37px 24px 25px}.modal>.privacy-content>p{font-size:14px}.modal>.privacy-content h2{font-size:27px}}
+.install-app{color:var(--accent)}.install-app>svg{color:var(--accent)}.install-help ol{display:grid;gap:14px;margin:18px 0 6px;padding:0;list-style:none}.install-help li{display:flex;align-items:center;gap:12px;color:#c6d7e5;font-size:15px}.install-help li>svg{flex:none;color:var(--accent)}

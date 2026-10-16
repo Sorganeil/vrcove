@@ -441,7 +441,12 @@
     "Maybe later": "Quizá más tarde",
     "Complete the verification check and try again.": "Completa la verificación e inténtalo de nuevo.",
     "Verification check": "Verificación",
-    "Cloudflare Turnstile checks for bots. It loads only on this form.": "Cloudflare Turnstile comprueba que no eres un bot. Solo se carga en este formulario."
+    "Cloudflare Turnstile checks for bots. It loads only on this form.": "Cloudflare Turnstile comprueba que no eres un bot. Solo se carga en este formulario.",
+    "Install app": "Instalar app",
+    "Install VRCove": "Instalar VRCove",
+    "Tap the Share button in Safari.": "Toca el botón Compartir en Safari.",
+    "Choose Add to Home Screen.": "Elige «Añadir a pantalla de inicio».",
+    "Tap Add. VRCove opens like an app.": "Toca Añadir. VRCove se abrirá como una app."
   },
   "fr": {
     "Language": "Langue",
@@ -885,7 +890,12 @@
     "Maybe later": "Plus tard",
     "Complete the verification check and try again.": "Effectuez la vérification, puis réessayez.",
     "Verification check": "Vérification",
-    "Cloudflare Turnstile checks for bots. It loads only on this form.": "Cloudflare Turnstile vérifie que vous n'êtes pas un robot. Il ne se charge que sur ce formulaire."
+    "Cloudflare Turnstile checks for bots. It loads only on this form.": "Cloudflare Turnstile vérifie que vous n'êtes pas un robot. Il ne se charge que sur ce formulaire.",
+    "Install app": "Installer l'app",
+    "Install VRCove": "Installer VRCove",
+    "Tap the Share button in Safari.": "Touchez le bouton Partager dans Safari.",
+    "Choose Add to Home Screen.": "Choisissez « Sur l'écran d'accueil ».",
+    "Tap Add. VRCove opens like an app.": "Touchez Ajouter. VRCove s'ouvre comme une app."
   },
   "de": {
     "Language": "Sprache",
@@ -1329,7 +1339,12 @@
     "Maybe later": "Vielleicht später",
     "Complete the verification check and try again.": "Schließe die Überprüfung ab und versuche es erneut.",
     "Verification check": "Überprüfung",
-    "Cloudflare Turnstile checks for bots. It loads only on this form.": "Cloudflare Turnstile prüft auf Bots. Es wird nur in diesem Formular geladen."
+    "Cloudflare Turnstile checks for bots. It loads only on this form.": "Cloudflare Turnstile prüft auf Bots. Es wird nur in diesem Formular geladen.",
+    "Install app": "App installieren",
+    "Install VRCove": "VRCove installieren",
+    "Tap the Share button in Safari.": "Tippe in Safari auf „Teilen“.",
+    "Choose Add to Home Screen.": "Wähle „Zum Home-Bildschirm“.",
+    "Tap Add. VRCove opens like an app.": "Tippe auf „Hinzufügen“. VRCove öffnet sich wie eine App."
   },
   "ja": {
     "Language": "言語",
@@ -1773,7 +1788,12 @@
     "Maybe later": "後で",
     "Complete the verification check and try again.": "確認を完了してから、もう一度お試しください。",
     "Verification check": "確認",
-    "Cloudflare Turnstile checks for bots. It loads only on this form.": "Cloudflare Turnstileでボットを確認します。このフォームでのみ読み込まれます。"
+    "Cloudflare Turnstile checks for bots. It loads only on this form.": "Cloudflare Turnstileでボットを確認します。このフォームでのみ読み込まれます。",
+    "Install app": "アプリをインストール",
+    "Install VRCove": "VRCoveをインストール",
+    "Tap the Share button in Safari.": "Safariの共有ボタンをタップします。",
+    "Choose Add to Home Screen.": "「ホーム画面に追加」を選びます。",
+    "Tap Add. VRCove opens like an app.": "「追加」をタップすると、VRCoveがアプリのように開きます。"
   },
   "ru": {
     "Language": "Язык",
@@ -2217,7 +2237,12 @@
     "Maybe later": "Позже",
     "Complete the verification check and try again.": "Пройдите проверку и попробуйте снова.",
     "Verification check": "Проверка",
-    "Cloudflare Turnstile checks for bots. It loads only on this form.": "Cloudflare Turnstile проверяет, что вы не бот. Загружается только в этой форме."
+    "Cloudflare Turnstile checks for bots. It loads only on this form.": "Cloudflare Turnstile проверяет, что вы не бот. Загружается только в этой форме.",
+    "Install app": "Установить приложение",
+    "Install VRCove": "Установить VRCove",
+    "Tap the Share button in Safari.": "Нажмите кнопку «Поделиться» в Safari.",
+    "Choose Add to Home Screen.": "Выберите «На экран „Домой“».",
+    "Tap Add. VRCove opens like an app.": "Нажмите «Добавить». VRCove откроется как приложение."
   },
   "uk": {
     "Language": "Мова",
@@ -2661,7 +2686,12 @@
     "Maybe later": "Можливо пізніше",
     "Complete the verification check and try again.": "Пройдіть перевірку й спробуйте ще раз.",
     "Verification check": "Перевірка",
-    "Cloudflare Turnstile checks for bots. It loads only on this form.": "Cloudflare Turnstile перевіряє, що ви не бот. Завантажується лише в цій формі."
+    "Cloudflare Turnstile checks for bots. It loads only on this form.": "Cloudflare Turnstile перевіряє, що ви не бот. Завантажується лише в цій формі.",
+    "Install app": "Встановити застосунок",
+    "Install VRCove": "Встановити VRCove",
+    "Tap the Share button in Safari.": "Натисніть кнопку «Поширити» в Safari.",
+    "Choose Add to Home Screen.": "Виберіть «На початковий екран».",
+    "Tap Add. VRCove opens like an app.": "Натисніть «Додати». VRCove відкриватиметься як застосунок."
   },
   "zh-CN": {
     "Language": "语言",
@@ -3105,7 +3135,12 @@
     "Maybe later": "稍后再说",
     "Complete the verification check and try again.": "请完成验证后重试。",
     "Verification check": "验证",
-    "Cloudflare Turnstile checks for bots. It loads only on this form.": "Cloudflare Turnstile 用于检测机器人，仅在此表单中加载。"
+    "Cloudflare Turnstile checks for bots. It loads only on this form.": "Cloudflare Turnstile 用于检测机器人，仅在此表单中加载。",
+    "Install app": "安装应用",
+    "Install VRCove": "安装 VRCove",
+    "Tap the Share button in Safari.": "在 Safari 中轻点“分享”按钮。",
+    "Choose Add to Home Screen.": "选择“添加到主屏幕”。",
+    "Tap Add. VRCove opens like an app.": "轻点“添加”，VRCove 就会像应用一样打开。"
   },
   "ko": {
     "Language": "언어",
@@ -3549,6 +3584,11 @@
     "Maybe later": "나중에",
     "Complete the verification check and try again.": "확인을 완료한 후 다시 시도하세요.",
     "Verification check": "확인",
-    "Cloudflare Turnstile checks for bots. It loads only on this form.": "Cloudflare Turnstile로 봇 여부를 확인합니다. 이 양식에서만 로드됩니다."
+    "Cloudflare Turnstile checks for bots. It loads only on this form.": "Cloudflare Turnstile로 봇 여부를 확인합니다. 이 양식에서만 로드됩니다.",
+    "Install app": "앱 설치",
+    "Install VRCove": "VRCove 설치",
+    "Tap the Share button in Safari.": "Safari에서 공유 버튼을 탭하세요.",
+    "Choose Add to Home Screen.": "‘홈 화면에 추가’를 선택하세요.",
+    "Tap Add. VRCove opens like an app.": "추가를 탭하면 VRCove가 앱처럼 열립니다."
   }
 }
