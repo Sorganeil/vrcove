@@ -25,6 +25,7 @@ var indexedSections = map[string]linkPreview{
 	"users":     {"Find VRChat Users | VRCove", "Find VRChat players by name from your phone or PC. No ads or analytics.", ""},
 	"search":    {"Search VRChat | VRCove", "Search VRChat avatars, people, worlds and groups in one place, on phone or PC. No ads, analytics or tracking.", ""},
 	"donations": {"Support VRCove", "Help keep VRCove independent, private and free of ads.", ""},
+	"companion": {"VRCove Desktop Companion | Avatar Logger", "A small Windows and Linux app that collects public VRChat avatar IDs while you play and adds new ones to VRCove's avatar search.", ""},
 	"about":     {"About VRCove | Features", "What VRCove does: private VRChat web client, avatar search, reviews and collections, on phone or PC.", ""},
 }
 
@@ -116,7 +117,7 @@ func (s *Server) sitemap(w http.ResponseWriter, r *http.Request, name string) bo
 	case name == "sitemaps/pages.xml":
 		buf.WriteString(`<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`)
 		buf.WriteString(`<url><loc>` + origin + `/</loc><priority>1.0</priority></url>`)
-		for _, slug := range []string{"avatars", "search", "worlds", "groups", "users", "about", "donations"} {
+		for _, slug := range []string{"avatars", "search", "worlds", "groups", "users", "about", "companion", "donations"} {
 			buf.WriteString(`<url><loc>` + origin + `/` + slug + `</loc></url>`)
 		}
 		buf.WriteString(`</urlset>`)

@@ -20,6 +20,7 @@ import Login from './components/vrchat-login';
 import DetailHost from './components/detail-host';
 import { DetailView } from './components/detail-view';
 import About from './pages/about';
+import Companion from './pages/companion';
 import AccountPage from './pages/account';
 import AvatarPage from './pages/avatar-page';
 import AvatarSearch from './pages/avatar-search';
@@ -336,6 +337,7 @@ export default function App() {
               {section === 'About' && (
                 <About onPrivacy={() => setPrivacy(true)} onDonate={() => navigate('Donations')} />
               )}
+              {section === 'Companion' && <Companion />}
               {section === 'Collections' && <CollectionsPage notify={notify} />}
               {section === 'CoveProfile' && (
                 <ProfilePage key={route.coveTarget} username={route.coveTarget} />

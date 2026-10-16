@@ -242,3 +242,43 @@
     min-height: 42px;
   }
 }
+.companion-download-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  margin-top: 18px;
+}
+.companion-download-actions .standard-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.companion-download-actions span {
+  color: var(--muted);
+  font-size: 13px;
+}
+.companion-setup,
+.companion-page .about-open {
+  margin: 16px 0;
+}
+.companion-setup ol {
+  display: grid;
+  list-style: decimal;
+  gap: 8px;
+  padding-left: 20px;
+  margin-bottom: 14px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+.companion-setup li::marker {
+  color: var(--accent);
+  font-weight: 600;
+}
+.companion-setup a {
+  color: var(--accent);
+}
+.companion-setup > p {
+  margin-bottom: 0;
+}

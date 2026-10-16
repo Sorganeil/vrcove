@@ -1,10 +1,12 @@
 import { Download, MonitorDown } from 'lucide-react';
 import { t as tr, useLocale } from '../lib/i18n';
+import { useApp } from '../lib/app-context';
 
 export const companionReleaseUrl = 'https://github.com/Sorganeil/vrcove/releases/latest';
 
 export default function CompanionDownload() {
   useLocale();
+  const { sectionLink } = useApp();
   return (
     <aside className="companion-download" aria-label={tr('Desktop companion')}>
       <span className="companion-download-icon" aria-hidden="true">
@@ -23,9 +25,9 @@ export default function CompanionDownload() {
           )}
         </p>
       </div>
-      <a className="standard-button" href={companionReleaseUrl} target="_blank" rel="noopener noreferrer">
+      <a className="standard-button" {...sectionLink('Companion')}>
         <Download size={16} aria-hidden="true" />
-        {tr('Download companion')}
+        {tr('Get the companion')}
       </a>
     </aside>
   );

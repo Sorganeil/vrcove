@@ -1,7 +1,6 @@
 import { Compass } from 'lucide-react';
 import { t as tr, useLocale } from '../lib/i18n';
 import { useApp } from '../lib/app-context';
-import { companionReleaseUrl } from './companion-download';
 
 export default function SiteFooter() {
   useLocale();
@@ -16,9 +15,7 @@ export default function SiteFooter() {
         <a href="https://github.com/Sorganeil/vrcove" target="_blank" rel="noopener noreferrer">
           GitHub
         </a>
-        <a href={companionReleaseUrl} target="_blank" rel="noopener noreferrer">
-          {tr('Desktop companion')}
-        </a>
+        <a {...sectionLink('Companion')}>{tr('Desktop companion')}</a>
         <a {...sectionLink('About')}>{tr('About')}</a>
         <a {...sectionLink('Donations')}>{tr('Donations')}</a>
         <button onClick={openPrivacy}>{tr('Privacy & data')}</button>

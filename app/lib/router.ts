@@ -28,6 +28,7 @@ const sectionNames: Record<string, string> = {
   settings: 'Settings',
   donations: 'Donations',
   about: 'About',
+  companion: 'Companion',
   uploads: 'Uploads',
   account: 'Account',
   collections: 'Collections',
