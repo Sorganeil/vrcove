@@ -123,7 +123,7 @@ The catalog is a snapshot. A record's current availability is checked by VRChat 
 
 ## Verification limits
 
-Encryption, token tamper/expiry rejection, production cookie flags, and upstream error sanitization are covered by synthetic tests. Live catalog search, filtering, preview loading, unauthenticated action denial, and cross-origin denial are checked separately. Actual login, 2FA, changing an avatar, and account writes require a user-controlled VRChat account and have not been exercised with real credentials by the agent.
+Encryption, token tamper/expiry rejection, production cookie flags, and upstream error sanitization are covered by synthetic tests. Live catalog search, filtering, preview loading, unauthenticated action denial, and cross-origin denial are checked separately. Actual login, 2FA, changing an avatar, and account writes require a user-controlled VRChat account and have not been exercised with real credentials during automated validation.
 
 ## Localization
 
