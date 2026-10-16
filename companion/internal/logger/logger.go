@@ -27,9 +27,13 @@ var avatar = regexp.MustCompile(`\bavtr_[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F
 const (
 	maxPending = 10000
 	batchSize  = 5
-	// pace spaces ingestion requests: the server accepts forty per ten minutes
-	// (one per fifteen seconds), and a small margin avoids hitting the limit.
-	pace = 16 * time.Second
+	// The server accepts forty ingestion requests per ten minutes. A backlog
+	// starts with a burst of ten, then one request every pace, never more than
+	// windowMax in any ten minutes so a small margin remains.
+	burst     = 10
+	pace      = 16 * time.Second
+	window    = 10 * time.Minute
+	windowMax = 38
 	// checkGap spaces this PC's VRChat lookups within a batch.
 	checkGap = time.Second
 )
@@ -71,6 +75,8 @@ type State struct {
 	// RetryReason says why uploads wait until RetryAt, such as which service
 	// rate limited them.
 	RetryReason string `json:"retryReason,omitempty"`
+	// Uploads holds recent ingestion request times for pacing.
+	Uploads []time.Time `json:"uploads,omitempty"`
 }
 
 func New() *State {
@@ -277,6 +283,8 @@ func (s *State) Submit(ctx context.Context, client *http.Client) error {
 
 // ingest sends IDs that passed local checks and records the server's results.
 func (s *State) ingest(ctx context.Context, client *http.Client, origin string, ids []string) error {
+	// Every request counts toward the server's quota, even a failed one.
+	defer s.paceUploads(time.Now())
 	resp, err := s.post(ctx, client, origin+"/api/logger/avatars", ids)
 	if err != nil {
 		return errors.New("VRCove connection unavailable · uploads will retry")
@@ -311,8 +319,41 @@ func (s *State) ingest(ctx context.Context, client *http.Client, origin string, 
 		return errors.New("Some avatars are awaiting verification · will retry")
 	}
 	s.Failures = 0
-	s.RetryAt, s.RetryReason = time.Now().Add(pace), "Pacing uploads"
 	return nil
+}
+
+// nextSlot is when the next ingestion request may be sent. Each request uses
+// a token from a bucket of burst that refills one per pace, and requests in any
+// window stay below windowMax.
+func (s *State) nextSlot(now time.Time) time.Time {
+	s.Uploads = slices.DeleteFunc(s.Uploads, func(t time.Time) bool { return now.Sub(t) >= window })
+	tokens, last := float64(burst), time.Time{}
+	for _, t := range s.Uploads {
+		if !last.IsZero() {
+			tokens = min(burst, tokens+float64(t.Sub(last))/float64(pace))
+		}
+		tokens, last = tokens-1, t
+	}
+	next := now
+	if !last.IsZero() {
+		if tokens = min(burst, tokens+float64(now.Sub(last))/float64(pace)); tokens < 1 {
+			next = now.Add(time.Duration((1 - tokens) * float64(pace)))
+		}
+	}
+	if len(s.Uploads) >= windowMax {
+		if free := s.Uploads[len(s.Uploads)-windowMax].Add(window); free.After(next) {
+			next = free
+		}
+	}
+	return next
+}
+
+// paceUploads records an ingestion request and holds the next one until its slot.
+func (s *State) paceUploads(now time.Time) {
+	s.Uploads = append(s.Uploads, now)
+	if next := s.nextSlot(now); next.After(now) && next.After(s.RetryAt) {
+		s.RetryAt, s.RetryReason = next, "Next batch"
+	}
 }
 
 // known asks which IDs VRCove already has. Only the catalog is read.
@@ -399,6 +440,9 @@ func (s *State) retry(err error) error {
 
 // WaitingStatus says why uploads are waiting and until when.
 func (s *State) WaitingStatus() string {
+	if s.RetryReason == "Next batch" {
+		return "Next batch at " + s.RetryAt.Local().Format("15:04:05") + " · collecting locally"
+	}
 	reason := s.RetryReason
 	if reason == "" {
 		reason = "Uploads waiting to retry"

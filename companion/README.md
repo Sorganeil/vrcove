@@ -203,8 +203,9 @@ For each batch of up to five queued IDs:
 
 Ingestion allows 40 requests of up to five IDs per ten minutes per VRChat
 account. Catalog checks and local rejections don't use this quota; an ingestion
-request counts even if the server rejects its IDs. The app waits 16 seconds
-between ingestion requests so it doesn't exhaust the quota at once.
+request counts even if the server rejects its IDs. A backlog starts with a burst
+of ten requests, then the app sends one every 16 seconds and never more than 38
+in any ten minutes, showing **Next batch at** while it waits.
 
 Rate limits from this PC's VRChat calls, VRCove ingestion and the server's
 VRChat verification are shown with their source and retry time. `Retry-After`

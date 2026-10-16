@@ -166,9 +166,46 @@ func TestOnlyVerifiedIDsAreSentAndServerRejectionsCount(t *testing.T) {
 	if s.Added != 1 || s.Existing != 1 || s.Rejected != 2 || len(s.Pending) != 0 {
 		t.Fatalf("counters %+v", s)
 	}
-	// Uploads are paced to stay within forty batches per ten minutes.
-	if wait := time.Until(s.RetryAt); s.RetryReason != "Pacing uploads" || wait < 15*time.Second || wait > pace {
-		t.Fatalf("pacing %s %s", s.RetryReason, wait)
+	// The first upload of a backlog is part of the burst, so nothing waits yet.
+	if len(s.Uploads) != 1 || !s.RetryAt.IsZero() {
+		t.Fatalf("uploads %v retry %s", s.Uploads, s.RetryAt)
+	}
+}
+
+func TestUploadPacingBurstsThenStaysUnderTheServerLimit(t *testing.T) {
+	start := time.Date(2026, 10, 16, 12, 0, 0, 0, time.UTC)
+	s, now, sent := New(), start, []time.Time{}
+	for now.Before(start.Add(time.Hour)) {
+		next := s.nextSlot(now)
+		if next.After(now) {
+			now = next
+			continue
+		}
+		sent = append(sent, now)
+		s.paceUploads(now)
+	}
+	for i := range burst {
+		if !sent[i].Equal(start) {
+			t.Fatalf("request %d of the burst waited until %s", i, sent[i])
+		}
+	}
+	if gap := sent[burst].Sub(sent[burst-1]); gap != pace {
+		t.Fatalf("first paced request after %s", gap)
+	}
+	if s.RetryReason != "Next batch" || !strings.HasPrefix(s.WaitingStatus(), "Next batch at ") {
+		t.Fatalf("status %q", s.WaitingStatus())
+	}
+	// The server counts fixed ten-minute windows, so check every alignment.
+	for offset := time.Duration(0); offset < window; offset += time.Second {
+		counts := map[int64]int{}
+		for _, at := range sent {
+			counts[int64(at.Sub(start.Add(-offset))/window)]++
+		}
+		for _, n := range counts {
+			if n > 40 {
+				t.Fatalf("%d requests in one server window", n)
+			}
+		}
 	}
 }
 
@@ -182,8 +219,8 @@ func TestTemporaryCheckFailureKeepsUncheckedIDsQueued(t *testing.T) {
 	if len(f.ingested) != 1 || !slices.Equal(f.ingested[0], []string{public}) {
 		t.Fatalf("ingested %v", f.ingested)
 	}
-	if time.Until(s.RetryAt) < 15*time.Second {
-		t.Fatal("check failure shortened upload pacing")
+	if len(s.Uploads) != 1 || time.Until(s.RetryAt) < 5*time.Second {
+		t.Fatal("check failure did not back off")
 	}
 }
 

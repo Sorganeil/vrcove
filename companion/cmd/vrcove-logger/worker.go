@@ -107,7 +107,7 @@ func worker(ctx context.Context, path string, s *logger.State, commands <-chan c
 		// Submit an isolated batch. The collector remains the sole owner of the
 		// live state and can read cache writes while the network is waiting.
 		batch := logger.New()
-		batch.Config, batch.Failures, batch.Verifier = s.Config, s.Failures, s.Verifier
+		batch.Config, batch.Failures, batch.Verifier, batch.Uploads = s.Config, s.Failures, s.Verifier, slices.Clone(s.Uploads)
 		batch.Pending = append([]string(nil), s.Pending[:min(5, len(s.Pending))]...)
 		for _, id := range batch.Pending {
 			batch.Seen[id] = "queued"
@@ -145,7 +145,7 @@ func worker(ctx context.Context, path string, s *logger.State, commands <-chan c
 			s.Rejected += batch.Rejected
 			s.Events = append(batch.Events, s.Events...)
 			s.Events = s.Events[:min(8, len(s.Events))]
-			s.RetryAt, s.Failures, s.RetryReason = batch.RetryAt, batch.Failures, batch.RetryReason
+			s.RetryAt, s.Failures, s.RetryReason, s.Uploads = batch.RetryAt, batch.Failures, batch.RetryReason, batch.Uploads
 			if result.err != nil && !paused {
 				s.Status = result.err.Error()
 			}
