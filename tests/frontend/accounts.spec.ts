@@ -213,7 +213,9 @@ test('guest actions require VRCove first and the header shows the VRCove identit
  await expect(page.locator('.topbar .account-chip')).toHaveText(name);
  const denied=await page.request.post('/api/cove/collections/create',{headers:{Origin:origin},data:{kind:'world',name:'Unlinked'}});
  expect(denied.status()).toBe(403);
- await page.locator('.topbar').getByRole('button',{name:'Sign out of VRCove'}).click();
+ // Phones sign out from the account page; the header keeps only the essentials.
+ if(page.viewportSize()!.width<650){await page.goto('/#account');await page.getByRole('button',{name:'Sign out',exact:true}).click();}
+ else await page.locator('.topbar').getByRole('button',{name:'Sign out of VRCove'}).click();
  await expect(page.locator('.topbar').getByRole('button',{name:'Sign in to VRCove',exact:true})).toBeVisible();
  await expect(page.locator('.account-chip')).toHaveCount(0);
 });

@@ -39,8 +39,8 @@ test('avatar deep links and legacy links open the correct page',async({page})=>{
  await expect(page.getByRole('heading',{name:'Shared Avatar',exact:true})).toBeVisible();
  await expect(page.getByRole('button',{name:'Copy link',exact:true})).toBeVisible();
  if(page.viewportSize()!.width<650)await page.getByRole('button',{name:'Open navigation',exact:true}).click();
- await page.getByRole('button',{name:'Home',exact:true}).click();
- await expect(page).toHaveURL(/\/#home$/);
+ await page.locator('.sidebar').getByRole('link',{name:'Home',exact:true}).click();
+ await expect(page).toHaveURL(/:\d+\/$/);
  await page.goto('/#avatar/'+avatar);
  await expect(page).toHaveURL(new RegExp('/avatar/'+avatar+'$'));
  await expect(page.getByRole('heading',{name:'Shared Avatar',exact:true})).toBeVisible();

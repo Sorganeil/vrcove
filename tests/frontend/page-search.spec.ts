@@ -88,8 +88,8 @@ test('my groups page lists memberships from the VRChat section',async({page})=>{
  const nav=page.locator('section.nav-group[aria-label="VRChat"]');
  const menu=page.getByRole('button',{name:'Open navigation',exact:true});
  if(await menu.isVisible())await menu.click();
- await nav.getByRole('button',{name:'My groups'}).click();
- await expect(page).toHaveURL(/#my-groups$/);
+ await nav.getByRole('link',{name:'My groups'}).click();
+ await expect(page).toHaveURL(/\/my-groups$/);
  await expect(page.getByRole('heading',{level:1,name:'My groups'})).toBeVisible();
  await expect(page.getByRole('group',{name:'Group search scope'})).toHaveCount(0);
  await expect(page.locator('.search-result')).toHaveCount(2);

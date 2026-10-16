@@ -1,4 +1,4 @@
-import {entityPath,covePath,appLink,goTo,type EntityKind} from './routes';
+import {entityPath,covePath,appLink,goTo,openQuickView,type EntityKind} from './routes';
 import {t as tr,useLocale} from './i18n';
 import {useState,useEffect,useRef} from 'react';
 import {LoaderCircle,Library,Lock,Globe2,Plus,Check,Trash2,Copy,Pencil,ChevronLeft,UserRound,Star,Users,X,FolderPlus} from 'lucide-react';
@@ -8,6 +8,8 @@ type Summary={id:string;kind:CollectionKind;name:string;description:string;publi
 const kindLabel:Record<string,string>={user:'User',world:'World',avatar:'Avatar',group:'Group'};
 /* Where a reviewed or collected VRChat item opens in this app. */
 const targetHref=(kind:string,id:string)=>entityPath(kind as EntityKind,id);
+// A plain click opens the quick view, as elsewhere; modified clicks open the full page.
+const targetLink=(kind:string,id:string)=>({href:targetHref(kind,id),onClick:(e:React.MouseEvent)=>{if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||e.button)return;e.preventDefault();openQuickView(kind as EntityKind,id);}});
 function Thumb({url,alt=''}:{url?:string;alt?:string}){useLocale();const [fail,setFail]=useState(false);return url&&!fail?<img src={'/api/image?url='+encodeURIComponent(url)} alt={alt} onError={()=>setFail(true)} referrerPolicy="no-referrer" loading="lazy"/>:<div className="image-fallback"><Library strokeWidth={.8}/></div>;}
 function Back(){useLocale();return <div className="detail-toolbar"><button className="text-link" onClick={()=>window.history.back()}><ChevronLeft size={14}/>{tr("Back")}</button></div>;}
 function useResource(path:string){
@@ -36,7 +38,7 @@ export function ProfilePage({username}:{username:string}){useLocale();
   {p.bio&&<section className="entity-section cove-about"><h3>{tr("About")}</h3><p className="description cove-bio">{p.bio}</p></section>}
   <section className="entity-section"><h3><Library size={16}/>{tr("Collections")}{p.collections.length>0&&<small>{p.collections.length}</small>}</h3>{p.collections.length?<div className="entity-grid">{p.collections.map((c:Summary)=><CollectionCard key={c.id} c={c}/>)}</div>:<p className="fineprint">{p.mine?<>{tr("No collections yet.")} <a className="text-link" href="#collections">{tr("Make one")}</a>.</>:tr("No public collections.")}</p>}</section>
   <section className="entity-section reviews"><h3><Star size={16}/>{tr("Reviews")}{p.reviewCount>0&&<small>{p.reviewCount}</small>}</h3>
-   {reviews.length?<div className="review-list">{reviews.map((r:any)=><article className="review" key={r.kind+r.target}><header><span className="review-kind">{tr(kindLabel[r.kind])}</span><a className="review-author" href={targetHref(r.kind,r.target)}>{r.name||r.target}</a><Stars value={r.rating}/><small>{day(r.date)}{r.edited?' · edited':''}</small></header>{r.body&&<p>{r.body}</p>}</article>)}</div>:<p className="fineprint">{tr("No reviews yet.")}</p>}
+   {reviews.length?<div className="review-list">{reviews.map((r:any)=><article className="review" key={r.kind+r.target}><header><span className="review-kind">{tr(kindLabel[r.kind])}</span><a className="review-author" {...targetLink(r.kind,r.target)}>{r.name||r.target}</a><Stars value={r.rating}/><small>{day(r.date)}{r.edited?' · edited':''}</small></header>{r.body&&<p>{r.body}</p>}</article>)}</div>:<p className="fineprint">{tr("No reviews yet.")}</p>}
    {moreError&&<p className="form-error" role="alert">{moreError}</p>}{reviews.length<p.reviewCount&&<button className="standard-button" disabled={loadingMore} onClick={loadMore}>{loadingMore?tr("Loading…"):tr("Load more")}</button>}
   </section>
  </div>;
@@ -88,7 +90,7 @@ export function CollectionPage({id,notify}:{id:string;notify:(s:string)=>void}){
    <div className="result-actions">{c.public&&<button className="standard-button" onClick={copy}><Copy size={13}/>{tr("Copy link")}</button>}{c.mine&&<><button className="standard-button" onClick={()=>setEditing(true)}><Pencil size={13}/>{tr("Edit")}</button>{confirmDelete?<><button className="standard-button danger-text" disabled={!!busy} onClick={destroy}>{busy==='delete'?<LoaderCircle size={13} className="spin"/>:<Trash2 size={13}/>}{tr("Delete for good")}</button><button className="standard-button" onClick={()=>setConfirmDelete(false)}>{tr("Keep it")}</button></>:<button className="standard-button danger-text" onClick={()=>setConfirmDelete(true)}><Trash2 size={13}/>{tr("Delete")}</button>}</>}</div>
   </div>}
   {error&&<div className="form-error" role="alert">{error}</div>}
-  {c.items.length?<div className={'entity-grid collection-items '+c.kind}>{c.items.map((it:any)=><div className="collection-item" key={it.id}><a className="entity-card" href={targetHref(c.kind,it.id)}><div className={'entity-card-image'+(c.kind==='world'?' wide':' tall')}><Thumb url={it.image} alt=""/></div><strong>{it.name||it.id}</strong><small>{tr("Added")} {day(it.added)}</small></a>{c.mine&&<button className="icon-button collection-remove" aria-label={'Remove '+(it.name||it.id)} disabled={!!busy} onClick={()=>remove(it.id)}>{busy==='remove:'+it.id?<LoaderCircle size={14} className="spin"/>:<X size={14}/>}</button>}</div>)}</div>:<div className="empty-state"><Library size={30}/><h3>{tr("Nothing here yet")}</h3><p>{c.mine?'Use “Add to collection” on any '+c.kind+' to add it.':tr("This collection is empty.")}</p></div>}
+  {c.items.length?<div className={'entity-grid collection-items '+c.kind}>{c.items.map((it:any)=><div className="collection-item" key={it.id}><a className="entity-card" {...targetLink(c.kind,it.id)}><div className={'entity-card-image'+(c.kind==='world'?' wide':' tall')}><Thumb url={it.image} alt=""/></div><strong>{it.name||it.id}</strong><small>{tr("Added")} {day(it.added)}</small></a>{c.mine&&<button className="icon-button collection-remove" aria-label={'Remove '+(it.name||it.id)} disabled={!!busy} onClick={()=>remove(it.id)}>{busy==='remove:'+it.id?<LoaderCircle size={14} className="spin"/>:<X size={14}/>}</button>}</div>)}</div>:<div className="empty-state"><Library size={30}/><h3>{tr("Nothing here yet")}</h3><p>{c.mine?'Use “Add to collection” on any '+c.kind+' to add it.':tr("This collection is empty.")}</p></div>}
  </div>;
 }
 

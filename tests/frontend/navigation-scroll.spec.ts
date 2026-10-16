@@ -10,7 +10,7 @@ test('opening a section from the home page starts at the top',async({page})=>{
  await expect(browse).toBeVisible();
  await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
  await browse.click();
- await expect(page).toHaveURL(/#avatars$/);
+ await expect(page).toHaveURL(/\/avatars$/);
  await expect(page.getByText('Avatar 35')).toBeAttached();
  await expect.poll(()=>page.evaluate(()=>window.scrollY)).toBe(0);
 });

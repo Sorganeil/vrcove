@@ -51,31 +51,99 @@ var (
 
 const catalogPageSize = 36
 
+// ratingOrder ranks PC performance from best to worst, for "or better" filters.
+var ratingOrder = []string{"Excellent", "Good", "Medium", "Poor", "VeryPoor"}
+
+// contentWarnings maps the content filters to the VRChat content tags they
+// hide. Tags are tokenized in the search index, so content_sex is "content sex".
+var contentWarnings = map[string][]string{
+	"adult":    {"content sex", "content adult"},
+	"gore":     {"content gore", "content violence"},
+	"horror":   {"content horror"},
+	"fallback": {"author quest fallback"},
+}
+
+// ftsPhrase turns free text into an FTS5 phrase query of its words, so user
+// input can never inject query syntax. prefix matches the last word partially.
+func ftsPhrase(text string, prefix bool) string {
+	terms := searchTerm.FindAllString(text, 12)
+	if len(terms) == 0 {
+		return ""
+	}
+	phrase := `"` + strings.Join(terms, " ") + `"`
+	if prefix {
+		phrase += "*"
+	}
+	return phrase
+}
+
 func (s *Server) catalog(w http.ResponseWriter, r *http.Request) error {
 	query := r.URL.Query()
-	q := []rune(query.Get("q"))
-	if len(q) > 150 {
-		q = q[:150]
+	limit := func(key string, n int) string {
+		v := []rune(strings.TrimSpace(query.Get(key)))
+		if len(v) > n {
+			v = v[:n]
+		}
+		return string(v)
 	}
-	term := strings.TrimSpace(string(q))
+	term := limit("q", 150)
 	page := queryInt(query.Get("page"), 50000)
 	var where []string
 	var args []any
+	match := func(expr string) {
+		where, args = append(where, "rowid IN (SELECT rowid FROM catalog_fts WHERE catalog_fts MATCH ?)"), append(args, expr)
+	}
+	empty := func() error {
+		writeJSON(w, http.StatusOK, map[string]any{"avatars": []any{}, "total": 0, "page": page})
+		return nil
+	}
 	if term != "" {
 		if avatarID.MatchString(term) {
 			where, args = append(where, "id=?"), append(args, term)
 		} else {
 			terms := searchTerm.FindAllString(term, -1)
 			if len(terms) == 0 {
-				writeJSON(w, http.StatusOK, map[string]any{"avatars": []any{}, "total": 0, "page": page})
-				return nil
+				return empty()
 			}
 			for i, t := range terms {
 				terms[i] = `"` + t + `"*`
 			}
-			where = append(where, "rowid IN (SELECT rowid FROM catalog_fts WHERE catalog_fts MATCH ?)")
-			args = append(args, strings.Join(terms, " AND "))
+			match(strings.Join(terms, " AND "))
 		}
+	}
+	// Creator: the index narrows by name, then the exact name (and ID, when
+	// opened from an avatar) must match.
+	if author := limit("author", 100); author != "" {
+		phrase := ftsPhrase(author, false)
+		if phrase == "" {
+			return empty()
+		}
+		match("author : " + phrase)
+		where, args = append(where, "author = ? COLLATE NOCASE"), append(args, author)
+		if id := query.Get("authorId"); userID.MatchString(id) {
+			where, args = append(where, "json_extract(data, '$.authorId') = ?"), append(args, id)
+		}
+	}
+	if tag := limit("tag", 60); tag != "" {
+		phrase := ftsPhrase(tag, true)
+		if phrase == "" {
+			return empty()
+		}
+		match("tags : " + phrase)
+	}
+	if query.Get("fallback") == "1" {
+		match(`tags : "` + contentWarnings["fallback"][0] + `"`)
+	}
+	var hidden []string
+	for _, key := range strings.Split(query.Get("hide"), ",") {
+		if key != "fallback" {
+			for _, tag := range contentWarnings[key] {
+				hidden = append(hidden, `"`+tag+`"`)
+			}
+		}
+	}
+	if len(hidden) > 0 {
+		where, args = append(where, "rowid NOT IN (SELECT rowid FROM catalog_fts WHERE catalog_fts MATCH ?)"), append(args, "tags : ("+strings.Join(hidden, " OR ")+")")
 	}
 	switch query.Get("platform") {
 	case "quest":
@@ -85,8 +153,18 @@ func (s *Server) catalog(w http.ResponseWriter, r *http.Request) error {
 	case "both":
 		where = append(where, "pc=1 AND quest=1")
 	}
+	// A trailing + means that rating or better, e.g. Good+ is Excellent or Good.
 	if rating := query.Get("rating"); ratings[rating] {
 		where, args = append(where, "rating=?"), append(args, rating)
+	} else if best, ok := strings.CutSuffix(rating, "+"); ok && ratings[best] {
+		placeholders := []string{}
+		for _, r := range ratingOrder {
+			placeholders, args = append(placeholders, "?"), append(args, r)
+			if r == best {
+				break
+			}
+		}
+		where = append(where, "rating IN ("+strings.Join(placeholders, ",")+")")
 	}
 	clause := ""
 	if len(where) > 0 {
@@ -96,6 +174,10 @@ func (s *Server) catalog(w http.ResponseWriter, r *http.Request) error {
 	switch query.Get("sort") {
 	case "name":
 		order = "name COLLATE NOCASE ASC, id ASC"
+	case "name-desc":
+		order = "name COLLATE NOCASE DESC, id ASC"
+	case "author":
+		order = "author COLLATE NOCASE ASC, name COLLATE NOCASE ASC, id ASC"
 	case "oldest":
 		order = "updated ASC, id ASC"
 	}
