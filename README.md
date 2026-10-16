@@ -21,6 +21,7 @@ Browse avatars, worlds, users and groups. Link VRChat to manage friends, favorit
 No PC? No problem. Most VRChat tools are Windows desktop apps, but VRCove runs in the browser you already have, so it works on Android, iPhone and iPad as well as desktop.
 
 - No installer or setup. Open [vrcove.st](https://vrcove.st) and start using it.
+- Play on Quest without a PC? Manage your friends and avatars from your phone.
 - Avatar search, your friends list and account tools all work on a phone or tablet.
 - Layouts are built for touch and small screens, not shrunk down from desktop.
 - Prefer an app? You can install VRCove on your phone like a regular app (see below).
