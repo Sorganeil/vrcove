@@ -127,6 +127,7 @@ test('authentication failures in VRChat panels invalidate the connection but per
 test('returning to the tab detects a revoked session without mislabeling temporary failures', async ({
   page,
 }) => {
+  await page.clock.install();
   await setup(page);
   let state: 'valid' | 'unavailable' | 'invalid' = 'valid';
   await page.route('**/api/account/me', (r) =>
@@ -140,11 +141,15 @@ test('returning to the tab detects a revoked session without mislabeling tempora
   await expect(page.getByRole('button', { name: 'Edit profile', exact: true })).toBeVisible();
   state = 'unavailable';
   const failed = page.waitForResponse((r) => r.url().endsWith('/api/account/me') && r.status() === 503);
+  // Returning to the tab rechecks the session at most once every 30 seconds.
+  await page.clock.fastForward(30_001);
   await page.evaluate(() => window.dispatchEvent(new Event('focus')));
   await failed;
   await expect(banner(page)).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Edit profile', exact: true })).toBeVisible();
   state = 'invalid';
+  // Returning to the tab rechecks the session at most once every 30 seconds.
+  await page.clock.fastForward(30_001);
   await page.evaluate(() => window.dispatchEvent(new Event('focus')));
   await expect(banner(page)).toContainText('VRChat session is no longer valid');
   await expect(page.locator('.account-chip')).toHaveText(me.username);

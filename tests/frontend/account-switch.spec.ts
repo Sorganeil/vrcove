@@ -245,6 +245,7 @@ test('a stale tab refreshes the active identity instead of writing to a differen
 test('verified active sessions override stale link metadata and revoked sessions require reconnect', async ({
   page,
 }) => {
+  await page.clock.install();
   const state = await setup(page);
   state.alphaExpires = 0;
   state.betaExpires = 0;
@@ -270,6 +271,8 @@ test('verified active sessions override stale link metadata and revoked sessions
       json: { code: 'vrchat_session_invalid', error: 'Session revoked' },
     }),
   );
+  // Returning to the tab rechecks the session at most once every 30 seconds.
+  await page.clock.fastForward(30_001);
   await page.evaluate(() => window.dispatchEvent(new Event('focus')));
   await expect(page.locator('.vrchat-session-notice')).toContainText('VRChat session is no longer valid');
   await expect(row.getByRole('button', { name: 'Reconnect', exact: true })).toBeVisible();
@@ -281,6 +284,7 @@ test('verified active sessions override stale link metadata and revoked sessions
 });
 
 test('the session notice prefills the account that expired among multiple links', async ({ page }) => {
+  await page.clock.install();
   await setup(page);
   await page.goto('/#account');
   await expect(selector(page)).toHaveValue(alpha.id);
@@ -291,6 +295,8 @@ test('the session notice prefills the account that expired among multiple links'
       json: { code: 'vrchat_session_invalid', error: 'Session revoked' },
     }),
   );
+  // Returning to the tab rechecks the session at most once every 30 seconds.
+  await page.clock.fastForward(30_001);
   await page.evaluate(() => window.dispatchEvent(new Event('focus')));
   const notice = page.locator('.vrchat-session-notice');
   await expect(notice).toContainText('VRChat session is no longer valid');
