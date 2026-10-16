@@ -6,6 +6,37 @@ A privacy-focused VRChat web frontend, with avatar search built in.
 
 Browse avatars, worlds, users and groups. Link VRChat to manage friends, favorites and avatars. VRCove accounts add reviews and collections. No ads or analytics. Not affiliated with VRChat.
 
+## Features
+
+### Private by default
+
+- No ads, analytics, telemetry, session replay or third-party error reporting. No Google Analytics, Amplitude, Mixpanel or Sentry.
+- Images are proxied through VRCove, so your browser never contacts VRChat's image hosts directly.
+- No friend-location history or play-time tracking. Account data loads only when you open a section or press Refresh.
+- Bookmarks and notes stay in your browser. You can export and import them as a backup.
+- Linked VRChat sessions are stored encrypted. The full breakdown of what is and isn't shared is on the site's privacy page.
+
+### Avatar search
+
+- We maintain our own large avatar database, so you can search public avatars without linking a VRChat account.
+- Open any avatar to see its details, copy its ID, bookmark it, or switch to it if your VRChat account is linked.
+
+### Reviews and collections
+
+- Rate and review any user, group, world or avatar you can find on VRCove.
+- Group avatars and worlds into collections. Keep a collection private or share it by link.
+- Profiles start private. Make yours public to show your bio, reviews and public collections.
+
+### Your VRChat account, in the browser
+
+- Link VRChat to manage friends, friend requests, favorites, notifications and your current avatar.
+- See every avatar and world you've uploaded, including private ones.
+
+### Installable app (PWA)
+
+- Install VRCove from your browser on desktop or phone and it opens in its own window like a native app.
+- No Electron, bundled Chromium or separate webview to download. It runs on the browser you already have.
+
 ## Development
 
 Requires Node.js 22.13+ and Go 1.26+.
