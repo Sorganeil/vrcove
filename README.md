@@ -1,6 +1,6 @@
 # VRCove
 
-A privacy-focused VRChat web frontend, with avatar search built in. Works on PC, phone and Quest.
+A privacy-focused VRChat web frontend, with avatar search built in. Works in any browser on PC or phone.
 
 [Website](https://vrcove.st) · [GitHub](https://github.com/Sorganeil/vrcove)
 
