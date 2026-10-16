@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"html"
 	"net/http"
 	"net/url"
@@ -92,6 +93,9 @@ func (s *Server) cachePreview(kind, id string, data any) {
 }
 
 func (s *Server) pagePreview(r *http.Request) (linkPreview, string) {
+	if kind, id, ok := coveRoute(r.URL.Path); ok {
+		return s.covePreview(r, kind, id)
+	}
 	p := linkPreview{homeTitle, homeDescription, ""}
 	canonical := s.cfg.PublicOrigin + "/"
 	kind, id, ok := detailRoute(r.URL.Path)
@@ -178,20 +182,99 @@ func previewText(s string, limit int) string {
 func (s *Server) previewHTML(r *http.Request, data []byte) []byte {
 	p, canonical := s.pagePreview(r)
 	meta := s.pageMeta(r.URL.Path, p, canonical)
-	if _, _, ok := detailRoute(r.URL.Path); !ok {
+	_, _, detail := detailRoute(r.URL.Path)
+	_, _, cove := coveRoute(r.URL.Path)
+	if !detail && !cove {
 		p.Title, p.Description, canonical = meta.Title, meta.Description, meta.Canonical
 	}
 	// Bump the version when the card changes so chat apps refetch it.
 	image, imageSize := s.cfg.PublicOrigin+"/social-preview.png?v=2", `<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="VRCove: VRChat in your browser, without the tracking">`
+	card := "summary_large_image"
 	if u, err := url.Parse(p.Image); err == nil && allowedImage(u) {
 		image, imageSize = s.cfg.PublicOrigin+"/api/image?url="+url.QueryEscape(p.Image), ""
+	} else if strings.HasPrefix(p.Image, "/api/cove/picture?") {
+		// Profile pictures are small squares, so they get the compact card.
+		image, imageSize, card = s.cfg.PublicOrigin+p.Image, `<meta property="og:image:width" content="256"><meta property="og:image:height" content="256">`, "summary"
 	}
 	title, description := previewText(p.Title, 120), previewText(p.Description, 300)
 	tags := `<meta property="og:site_name" content="VRCove"><meta property="og:type" content="website">` +
 		`<meta property="og:title" content="` + title + `"><meta property="og:description" content="` + description + `">` +
 		`<meta property="og:url" content="` + html.EscapeString(canonical) + `"><meta property="og:image" content="` + html.EscapeString(image) + `">` + imageSize +
-		`<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="` + title + `">` +
+		`<meta name="twitter:card" content="` + card + `"><meta name="twitter:title" content="` + title + `">` +
 		`<meta name="twitter:description" content="` + description + `"><meta name="twitter:image" content="` + html.EscapeString(image) + `">` +
 		`<meta name="theme-color" content="#75c7e6"><link rel="canonical" href="` + html.EscapeString(canonical) + `">`
 	return []byte(strings.Replace(applyPageMeta(string(data), meta), "</head>", tags+"</head>", 1))
+}
+
+// coveRoute matches the shareable /cove/<username> and /collection/<id> paths.
+func coveRoute(path string) (kind, id string, ok bool) {
+	parts := strings.Split(strings.Trim(path, "/"), "/")
+	if len(parts) != 2 {
+		return
+	}
+	kind, id = parts[0], parts[1]
+	switch kind {
+	case "cove":
+		ok = usernamePattern.MatchString(id)
+	case "collection":
+		ok = collectionIDPattern.MatchString(id)
+	}
+	return
+}
+
+// covePreview describes a public VRCove profile or collection. Private and
+// missing ones get the same generic card, so a preview reveals nothing.
+func (s *Server) covePreview(r *http.Request, kind, id string) (linkPreview, string) {
+	canonical := s.cfg.PublicOrigin + "/" + kind + "/" + id
+	ctx := r.Context()
+	if kind == "cove" {
+		p := linkPreview{"VRCove profile", "A profile on VRCove.", ""}
+		if s.accounts == nil {
+			return p, canonical
+		}
+		var accountID int64
+		var username, bio, status string
+		var public bool
+		err := s.accounts.QueryRowContext(ctx, "SELECT id, username, bio, status, public FROM accounts WHERE username_key = ?",
+			strings.ToLower(id)).Scan(&accountID, &username, &bio, &status, &public)
+		if err != nil || !public {
+			return p, canonical
+		}
+		p = linkPreview{username + " · VRCove", bio, s.accountPictureURL(r, accountID, username)}
+		if p.Description == "" {
+			p.Description = status
+		}
+		if p.Description == "" {
+			p.Description = "Reviews and collections by " + username + " on VRCove."
+		}
+		return p, s.cfg.PublicOrigin + "/cove/" + username
+	}
+	p := linkPreview{"VRCove collection", "A collection on VRCove.", ""}
+	if s.accounts == nil {
+		return p, canonical
+	}
+	var name, description, kindName, owner string
+	var public, ownerPublic bool
+	var count int
+	err := s.accounts.QueryRowContext(ctx, `SELECT c.name, c.description, c.public, c.kind, a.username, a.public,
+		(SELECT count(*) FROM collection_items i WHERE i.collection_id = c.id)
+		FROM collections c JOIN accounts a ON a.id = c.account_id WHERE c.id = ?`, id).
+		Scan(&name, &description, &public, &kindName, &owner, &ownerPublic, &count)
+	if err != nil || !public {
+		return p, canonical
+	}
+	p.Title, p.Description = name+" · VRCove", description
+	if p.Description == "" {
+		// The owner is named only when their profile is public, as on the page.
+		if !ownerPublic {
+			owner = "a VRCove user"
+		}
+		items := fmt.Sprintf("%d %ss", count, kindName)
+		if count == 1 {
+			items = "1 " + kindName
+		}
+		p.Description = "A collection of " + items + " by " + owner + " on VRCove."
+	}
+	s.accounts.QueryRowContext(ctx, "SELECT image FROM collection_items WHERE collection_id = ? AND image != '' ORDER BY added DESC, rowid DESC LIMIT 1", id).Scan(&p.Image)
+	return p, canonical
 }

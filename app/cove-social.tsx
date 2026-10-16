@@ -19,7 +19,7 @@ function useResource(path:string){
 }
 function CollectionCard({c}:{c:Summary}){useLocale();return <a className="entity-card collection-card" href={'#collection/'+c.id}><div className={'entity-card-image wide collection-mosaic n'+Math.min(c.preview.length,4)}>{c.preview.length?c.preview.slice(0,4).map((u,i)=><Thumb key={i} url={u}/>):<div className="image-fallback"><Library strokeWidth={.8}/></div>}</div><strong>{c.name}{!c.public&&<Lock size={12} aria-label={tr("Private")}/>}</strong><small>{tr(c.count===1?"1 item":"{count} items",{count:c.count})} {tr("· updated")} {day(c.updated)}</small></a>;}
 
-/* #cove/<username>: a VRCove profile, visible to everyone when public. */
+/* /cove/<username>: a VRCove profile, visible to everyone when public. */
 export function ProfilePage({username}:{username:string}){useLocale();
  const profile=useResource('/cove/profile?username='+encodeURIComponent(username));
  const [more,setMore]=useState<any[]>([]),[offset,setOffset]=useState(0),[loadingMore,setLoadingMore]=useState(false),[moreError,setMoreError]=useState('');
@@ -67,7 +67,7 @@ export function CollectionsPage({notify}:{notify:(s:string)=>void}){useLocale();
  </section>;
 }
 
-/* #collection/<id>: one collection, for its owner or anyone if public. */
+/* /collection/<id>: one collection, for its owner or anyone if public. */
 export function CollectionPage({id,notify}:{id:string;notify:(s:string)=>void}){useLocale();
  const col=useResource('/cove/collection?id='+encodeURIComponent(id));
  const [editing,setEditing]=useState(false),[confirmDelete,setConfirmDelete]=useState(false),[busy,setBusy]=useState(''),[error,setError]=useState('');
@@ -78,7 +78,7 @@ export function CollectionPage({id,notify}:{id:string;notify:(s:string)=>void}){
  const save=(v:any)=>run('save',async()=>{await api('/cove/collections/update',{id,name:v.name,description:v.description,public:v.public});setEditing(false);col.reload();notify(tr("Collection saved"));});
  const remove=(target:string)=>run('remove:'+target,async()=>{await api('/cove/collections/remove',{id,target});col.reload();});
  const destroy=()=>run('delete',async()=>{await api('/cove/collections/delete',{id});notify(tr("Collection deleted"));window.location.hash='#collections';});
- const copy=()=>navigator.clipboard.writeText(window.location.origin+'/#collection/'+id).then(()=>notify(tr("Link copied"))).catch(()=>notify(tr("Clipboard access is unavailable.")));
+ const copy=()=>navigator.clipboard.writeText(window.location.origin+'/collection/'+id).then(()=>notify(tr("Link copied"))).catch(()=>notify(tr("Clipboard access is unavailable.")));
  return <div className="entity-page"><Back/>
   {editing?<CollectionForm initial={c} kindLocked busy={busy==='save'} submit={save} cancel={()=>setEditing(false)}/>:<div className="collection-head">
    <div className="eyebrow">{c.public?<Globe2 size={13}/>:<Lock size={13}/>}{c.kind==='avatar'?'AVATAR':tr("WORLD")} {tr("COLLECTION")}{c.public?'':' / PRIVATE'}</div>

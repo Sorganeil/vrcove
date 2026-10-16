@@ -23,7 +23,7 @@ func TestPageMetaIndexing(t *testing.T) {
 		{"/avatars", "VRChat Avatar Search | VRCove", "index, follow", origin + "/avatars"},
 		{"/friends", homeTitle, "noindex", origin + "/friends"},
 		{"/my-groups", homeTitle, "noindex", origin + "/my-groups"},
-		{"/cove/someone", homeTitle, "noindex", origin + "/"},
+		{"/cove/someone", "VRCove profile | VRCove", "noindex", origin + "/cove/someone"},
 		{"/no/such/page", homeTitle, "noindex", origin + "/"},
 	} {
 		body := h.do(httptest.NewRequest("GET", "http://localhost"+tc.path, nil)).Body.String()

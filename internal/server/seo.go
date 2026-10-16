@@ -58,6 +58,10 @@ func (s *Server) pageMeta(path string, p linkPreview, canonical string) pageMeta
 		// Profiles are shareable but never indexed, to keep people out of search results.
 		return pageMeta{title, p.Description, canonical, kind != "user"}
 	}
+	if _, _, ok := coveRoute(path); ok {
+		// Shareable by link, but people's pages stay out of search results.
+		return pageMeta{strings.TrimSuffix(p.Title, " · VRCove") + " | VRCove", p.Description, canonical, false}
+	}
 	if m, ok := indexedSections[slug]; ok {
 		return pageMeta{m.Title, m.Description, s.cfg.PublicOrigin + "/" + slug, true}
 	}
@@ -84,7 +88,7 @@ func applyPageMeta(doc string, m pageMeta) string {
 func (s *Server) robots(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.Header().Set("Cache-Control", "public, max-age=86400")
-	fmt.Fprintf(w, "User-agent: *\nAllow: /\nDisallow: /api/\nAllow: /api/image\n\nSitemap: %s/sitemap.xml\n", s.cfg.PublicOrigin)
+	fmt.Fprintf(w, "User-agent: *\nAllow: /\nDisallow: /api/\nAllow: /api/image\nAllow: /api/cove/picture\n\nSitemap: %s/sitemap.xml\n", s.cfg.PublicOrigin)
 }
 
 var avatarSitemap = regexp.MustCompile(`^sitemaps/avatars-([1-9][0-9]{0,3})\.xml$`)

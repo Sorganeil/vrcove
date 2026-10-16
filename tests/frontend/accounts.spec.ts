@@ -164,7 +164,7 @@ test('private collections, mobile dialog focus, sharing and removal',async({page
  await page.goto('/#collections');
  await page.getByRole('link',{name:/Late night worlds/}).click();
  await expect(page.locator('h1')).toHaveText('Late night worlds');
- const id=page.url().split('#collection/')[1];
+ const id=page.url().split('/collection/')[1];
  const visitor=await browser.newContext();
  expect((await visitor.request.get(`${origin}/api/cove/collection?id=${id}`)).status()).toBe(404);
  await page.getByRole('button',{name:'Edit',exact:true}).click();
