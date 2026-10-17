@@ -714,3 +714,9 @@
     scroll-behavior: auto !important;
   }
 }
+/* The desktop companion runs only on Windows and Linux PCs. */
+@media (max-width: 650px), (hover: none) and (pointer: coarse) {
+  .desktop-only {
+    display: none !important;
+  }
+}

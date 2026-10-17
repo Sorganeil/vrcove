@@ -15,7 +15,9 @@ export default function Sidebar({ open }: { open: boolean }) {
     return (
       <a
         key={entry.name}
-        className={'nav-item ' + (active ? 'active' : '')}
+        className={
+          'nav-item ' + (active ? 'active' : '') + (entry.name === 'Companion' ? ' desktop-only' : '')
+        }
         aria-current={active ? 'page' : undefined}
         {...sectionLink(entry.name)}
       >
