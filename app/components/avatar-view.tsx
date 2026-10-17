@@ -20,6 +20,7 @@ import { RawJson } from './raw-json';
 import { detailLink } from './detail-links';
 import { Reviews } from './reviews';
 import { AddToCollection } from './add-to-collection';
+import { RemovalRequest } from './moderation';
 
 /* One avatar, shown in the quick-view modal or as a full page (/avatar/<id>). */
 export default function AvatarView({ avatar: a, page }: { avatar: Avatar; page: boolean }) {
@@ -153,6 +154,7 @@ export default function AvatarView({ avatar: a, page }: { avatar: Avatar; page: 
               'This avatar comes from VRCove’s own database, so it may be out of date or no longer public.',
             )}
           </p>
+          <RemovalRequest avatarId={a.id} name={a.name} />
           <RawJson
             kind="avatar"
             id={a.id}
@@ -266,6 +268,7 @@ export default function AvatarView({ avatar: a, page }: { avatar: Avatar; page: 
               'This avatar comes from VRCove’s own database, so it may be out of date or no longer public.',
             )}
           </p>
+          <RemovalRequest avatarId={a.id} name={a.name} />
           <RawJson
             kind="avatar"
             id={a.id}

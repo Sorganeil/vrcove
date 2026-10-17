@@ -50,6 +50,7 @@ export const sectionLabels: Record<string, string> = {
   Profile: 'My profile',
   Account: 'VRCove account',
   Companion: 'Desktop companion',
+  Admin: 'Moderation',
   CoveProfile: 'Profile',
   Settings: 'Settings',
 };

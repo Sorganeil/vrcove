@@ -64,6 +64,12 @@ export default function PrivacyDialog({ close }: { close: () => void }) {
             'Your profile starts private. Making it public shares your bio, review history and public collections. Reviews remain public on the reviewed items even with a private profile. Collections start private unless you choose public; anyone with a public collection’s link can view it. Its owner is named only when their profile is public. Linked VRChat accounts never appear in these public views. Deleting your account removes your reviews, collections and links; older backups may retain copies.',
           )}
         </p>
+        <h3>{tr('Reports and moderation')}</h3>
+        <p>
+          {tr(
+            'Reports, removal requests and moderation actions are visible only to VRCove moderators. A report stores your username, the reason, your note and a copy of what you reported. A removal request stores your username, your proof and whether your connected VRChat account uploaded the avatar. Moderators can suspend, ban or delete accounts; a banned account’s reviews, profile and collections are hidden.',
+          )}
+        </p>
         <h3>{tr('What leaves this site')}</h3>
         <p>
           {tr(

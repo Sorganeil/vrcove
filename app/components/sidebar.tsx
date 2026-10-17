@@ -2,6 +2,7 @@ import type { ComponentType } from 'react';
 import { t as tr, useLocale } from '../lib/i18n';
 import { useApp } from '../lib/app-context';
 import { navigationGroups, primaryNavigation, accountNavigation } from '../lib/navigation';
+import { ShieldCheck } from 'lucide-react';
 import InstallApp from './install-app';
 
 type NavItem = { name: string; label: string; icon: ComponentType<{ size?: number }> };
@@ -9,7 +10,8 @@ type NavItem = { name: string; label: string; icon: ComponentType<{ size?: numbe
 /** Main navigation. On phones it slides in when `open`. */
 export default function Sidebar({ open }: { open: boolean }) {
   useLocale();
-  const { section, sectionLink, saved, openPrivacy } = useApp();
+  const { section, sectionLink, saved, openPrivacy, coveAccount } = useApp();
+  const staff = coveAccount?.role === 'admin' || coveAccount?.role === 'owner';
   function item(entry: NavItem) {
     const active = section === entry.name;
     return (
@@ -43,7 +45,10 @@ export default function Sidebar({ open }: { open: boolean }) {
       </nav>
       <div className="sidebar-bottom">
         <InstallApp />
-        <nav aria-label={tr('Account')}>{accountNavigation.map(item)}</nav>
+        <nav aria-label={tr('Account')}>
+          {accountNavigation.map(item)}
+          {staff && item({ name: 'Admin', label: 'Moderation', icon: ShieldCheck })}
+        </nav>
         <div className="sidebar-links">
           <a aria-current={section === 'About' ? 'page' : undefined} {...sectionLink('About')}>
             {tr('About')}

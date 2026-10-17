@@ -9,6 +9,7 @@ import { Stars } from '../components/reviews';
 import { Back, CollectionCard, Summary, kindLabel, targetLink } from '../components/cove-shared';
 import { useResource } from '../lib/use-resource';
 import type { Review } from '../lib/types';
+import { ReportButton } from '../components/moderation';
 
 /* /cove/<username>: a VRCove profile, visible to everyone when public. */
 export function ProfilePage({ username }: { username: string }) {
@@ -88,6 +89,9 @@ export function ProfilePage({ username }: { username: string }) {
           <Pencil size={14} />
           {tr('Edit VRCove profile')}
         </a>
+      )}
+      {!p.mine && p.public && (
+        <ReportButton target={{ kind: 'profile', username: p.username }} className="profile-report" />
       )}
       {p.mine && !p.public && (
         <div className="privacy-note">

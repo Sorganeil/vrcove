@@ -68,12 +68,17 @@ func (s *Server) loggerAvatars(w http.ResponseWriter, r *http.Request) error {
 	}
 	results := []loggerResult{}
 	seen := map[string]bool{}
+	// Avatars removed at their owner's request are never added again.
+	removed, err := s.blacklisted(r.Context(), ids)
+	if err != nil {
+		return err
+	}
 	for _, id := range ids {
 		if seen[id] {
 			continue
 		}
 		seen[id] = true
-		if !loggerAvatarID.MatchString(id) {
+		if !loggerAvatarID.MatchString(id) || removed[id] {
 			results = append(results, loggerResult{id, "rejected"})
 			continue
 		}
@@ -233,9 +238,19 @@ func (s *Server) loggerKnown(w http.ResponseWriter, r *http.Request) error {
 		loggerRetry(w, "vrcove", wait)
 		return errStatus(http.StatusTooManyRequests, "Catalog check limit reached. Try again later.")
 	}
+	// Removed avatars are reported as existing so desktops skip them without
+	// spending ingestion quota.
+	removed, err := s.blacklisted(r.Context(), ids)
+	if err != nil {
+		return err
+	}
 	existing := []string{}
 	for _, id := range ids {
 		if !loggerAvatarID.MatchString(id) || slices.Contains(existing, id) {
+			continue
+		}
+		if removed[id] {
+			existing = append(existing, id)
 			continue
 		}
 		var found int

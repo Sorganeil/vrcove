@@ -45,7 +45,9 @@ func (s *Server) listReviews(w http.ResponseWriter, r *http.Request, a *account)
 	}
 	ctx := r.Context()
 	distribution := make([]int, 5)
-	rows, err := s.accounts.QueryContext(ctx, "SELECT rating, count(*) FROM reviews WHERE kind = ? AND target = ? GROUP BY rating", kind, id)
+	// Banned accounts' reviews are hidden everywhere.
+	rows, err := s.accounts.QueryContext(ctx, `SELECT r.rating, count(*) FROM reviews r JOIN accounts a ON a.id = r.account_id
+		WHERE r.kind = ? AND r.target = ? AND a.banned = 0 GROUP BY r.rating`, kind, id)
 	if err != nil {
 		return err
 	}
@@ -69,7 +71,7 @@ func (s *Server) listReviews(w http.ResponseWriter, r *http.Request, a *account)
 		accountID = a.ID
 	}
 	rows, err = s.accounts.QueryContext(ctx, `SELECT r.id, a.username, a.public, r.rating, r.body, r.created, r.updated, r.account_id = ?
-		FROM reviews r JOIN accounts a ON a.id = r.account_id WHERE r.kind = ? AND r.target = ?
+		FROM reviews r JOIN accounts a ON a.id = r.account_id WHERE r.kind = ? AND r.target = ? AND a.banned = 0
 		ORDER BY r.account_id = ? DESC, r.updated DESC, r.id DESC LIMIT ? OFFSET ?`,
 		accountID, kind, id, accountID, reviewPageSize, queryInt(query.Get("offset"), 100000))
 	if err != nil {

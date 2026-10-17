@@ -61,6 +61,23 @@ func listen(addr string, tunnelOnly bool) (net.Listener, error) {
 
 func main() {
 	log.SetFlags(0)
+	// vrcove set-role <username> <user|admin|owner> changes a role, using the
+	// same ACCOUNTS_PATH as the server. It is the only way to make an owner.
+	if len(os.Args) > 1 && os.Args[1] == "set-role" {
+		if len(os.Args) != 4 {
+			log.Fatal("usage: vrcove set-role <username> <user|admin|owner>")
+		}
+		accounts, err := server.OpenAccounts(env("ACCOUNTS_PATH", ".data/accounts.sqlite"))
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer accounts.Close()
+		if err := server.SetRole(context.Background(), accounts, os.Args[2], os.Args[3]); err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("%s is now %s\n", os.Args[2], os.Args[3])
+		return
+	}
 	addr := env("LISTEN_ADDR", "127.0.0.1:8080")
 	cfg := server.Config{
 		PublicOrigin: env("PUBLIC_ORIGIN", "http://localhost:5173"),

@@ -47,6 +47,24 @@ var accountMigrations = []string{
 	CREATE TABLE logger_keys (id INTEGER PRIMARY KEY AUTOINCREMENT, account_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
 		session_hash BLOB NOT NULL UNIQUE REFERENCES vrchat_sessions(token_hash) ON DELETE CASCADE, key_hash BLOB NOT NULL UNIQUE, created INTEGER NOT NULL);
 	CREATE INDEX logger_keys_account ON logger_keys(account_id);`,
+	`ALTER TABLE accounts ADD COLUMN role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin', 'owner'));
+	ALTER TABLE accounts ADD COLUMN banned INTEGER NOT NULL DEFAULT 0;
+	ALTER TABLE accounts ADD COLUMN suspended_until INTEGER NOT NULL DEFAULT 0;
+	CREATE TABLE reports (id INTEGER PRIMARY KEY, reporter_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
+		kind TEXT NOT NULL CHECK (kind IN ('review', 'profile')), target_id INTEGER NOT NULL, account_id INTEGER REFERENCES accounts(id) ON DELETE CASCADE,
+		reason TEXT NOT NULL, details TEXT NOT NULL, snapshot TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'open', resolution TEXT NOT NULL DEFAULT '',
+		created INTEGER NOT NULL, handled_by INTEGER REFERENCES accounts(id) ON DELETE SET NULL, handled INTEGER NOT NULL DEFAULT 0);
+	CREATE INDEX reports_status ON reports(status, created);
+	CREATE INDEX reports_account ON reports(account_id, status);
+	CREATE UNIQUE INDEX reports_open ON reports(reporter_id, kind, target_id) WHERE status = 'open';
+	CREATE TABLE blacklist_requests (id INTEGER PRIMARY KEY, account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL, avatar_id TEXT NOT NULL,
+		avatar_name TEXT NOT NULL, proof TEXT NOT NULL, verified INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'open', note TEXT NOT NULL DEFAULT '',
+		created INTEGER NOT NULL, handled_by INTEGER REFERENCES accounts(id) ON DELETE SET NULL, handled INTEGER NOT NULL DEFAULT 0);
+	CREATE INDEX blacklist_requests_status ON blacklist_requests(status, created);
+	CREATE UNIQUE INDEX blacklist_requests_open ON blacklist_requests(avatar_id) WHERE status = 'open';
+	CREATE TABLE avatar_blacklist (avatar_id TEXT PRIMARY KEY, request_id INTEGER, added INTEGER NOT NULL);
+	CREATE TABLE moderation_log (id INTEGER PRIMARY KEY, actor_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL, actor TEXT NOT NULL,
+		action TEXT NOT NULL, target TEXT NOT NULL, created INTEGER NOT NULL);`,
 }
 
 func migrateAccounts(db *sql.DB) error {
@@ -244,7 +262,7 @@ func (s *Server) profile(w http.ResponseWriter, r *http.Request, viewer *account
 	var id int64
 	var username, created, bio, status string
 	var public bool
-	err := s.accounts.QueryRowContext(ctx, "SELECT id, username, created, bio, status, public FROM accounts WHERE username_key = ?",
+	err := s.accounts.QueryRowContext(ctx, "SELECT id, username, created, bio, status, public FROM accounts WHERE username_key = ? AND banned = 0",
 		strings.ToLower(r.URL.Query().Get("username"))).Scan(&id, &username, &created, &bio, &status, &public)
 	mine := viewer != nil && viewer.ID == id
 	if errors.Is(err, sql.ErrNoRows) || (err == nil && !public && !mine) {
@@ -368,7 +386,7 @@ func (s *Server) collection(w http.ResponseWriter, r *http.Request, viewer *acco
 	err := sql.ErrNoRows
 	if collectionIDPattern.MatchString(id) {
 		err = s.accounts.QueryRowContext(ctx, `SELECT c.account_id, c.kind, c.name, c.description, c.public, c.updated, a.username, a.public
-			FROM collections c JOIN accounts a ON a.id = c.account_id WHERE c.id = ?`, id).
+			FROM collections c JOIN accounts a ON a.id = c.account_id WHERE c.id = ? AND a.banned = 0`, id).
 			Scan(&owner, &kind, &name, &description, &public, &updated, &username, &ownerPublic)
 	}
 	mine := viewer != nil && viewer.ID == owner

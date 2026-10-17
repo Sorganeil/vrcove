@@ -1,0 +1,251 @@
+/* Reports, removal requests and the admin panel. */
+.report-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.report-button:hover,
+.report-button:focus-visible {
+  color: #f0a8a6;
+  background: rgba(226, 125, 123, 0.1);
+}
+.profile-report {
+  margin: 0 0 14px;
+}
+.text-button.removal-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 0 14px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.text-button.removal-link:hover,
+.text-button.removal-link:focus-visible {
+  color: var(--accent);
+}
+.moderation-dialog form {
+  display: grid;
+  gap: 14px;
+}
+.moderation-dialog fieldset {
+  display: grid;
+  gap: 6px;
+}
+.moderation-dialog legend {
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.moderation-dialog > p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.moderation-dialog > p svg {
+  display: inline;
+  vertical-align: -3px;
+  color: var(--green);
+}
+.moderation-choice {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.moderation-choice input {
+  accent-color: var(--accent);
+}
+.admin-page .section-heading h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.admin-page .section-heading h2 svg {
+  color: var(--accent);
+}
+.admin-tabs,
+.admin-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 18px 0 14px;
+}
+.admin-filter {
+  margin-top: 0;
+}
+.admin-tabs button,
+.admin-filter button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.admin-filter button {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+.admin-tabs button.active,
+.admin-filter button.active {
+  border-color: var(--accent);
+  color: var(--text);
+}
+.admin-tabs small {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 9px;
+  background: #1b2b3a;
+  font-size: 11px;
+  text-align: center;
+}
+.admin-list {
+  display: grid;
+  gap: 10px;
+}
+.admin-card {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--panel);
+  min-width: 0;
+}
+.admin-card header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.admin-card header svg {
+  color: var(--muted);
+}
+.admin-card header small {
+  color: var(--muted);
+  font-size: 11px;
+}
+.admin-card blockquote {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--line);
+  background: rgba(255, 255, 255, 0.02);
+  color: #c8d9e7;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.admin-card blockquote small {
+  color: var(--muted);
+}
+.admin-note {
+  color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.admin-pill {
+  padding: 1px 8px;
+  border-radius: 9px;
+  background: #1b2b3a;
+  color: #c8d9e7;
+  font-size: 11px;
+}
+.admin-pill.good {
+  background: rgba(124, 208, 172, 0.14);
+  color: var(--green);
+}
+.admin-pill.bad {
+  background: rgba(226, 125, 123, 0.14);
+  color: #f0a8a6;
+}
+.admin-id {
+  color: var(--muted);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+.admin-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 6px 6px 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--panel);
+}
+.admin-search svg {
+  flex-shrink: 0;
+  color: var(--muted);
+}
+.admin-search input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  outline: none;
+}
+.admin-suspend {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.admin-suspend input {
+  width: 64px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: transparent;
+}
+.admin-log li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+.admin-log small {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 11px;
+}
+.admin-card .notes-panel {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.admin-card .notes-panel input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+}
+.admin-suspend small {
+  color: var(--muted);
+  font-size: 12px;
+}
+.moderation-dialog label.moderation-choice {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  text-align: left;
+}
+.moderation-dialog .notes-panel textarea {
+  min-height: 96px;
+}

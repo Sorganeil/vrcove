@@ -5,6 +5,7 @@ import { LoaderCircle, Trash2, Star, Check, ArrowUpRight } from 'lucide-react';
 import { covePath, appLink } from '../lib/routes';
 import { day } from '../lib/dates';
 import type { Review } from '../lib/types';
+import { ReportButton } from './moderation';
 
 export function Stars({ value, size = 14 }: { value: number; size?: number }) {
   useLocale();
@@ -286,6 +287,7 @@ export function ReviewList({ kind, id, name }: ReviewTarget) {
                   {day(r.date)}
                   {r.edited ? ' · edited' : ''}
                 </small>
+                <ReportButton target={{ kind: 'review', id: r.id }} />
               </header>
               {r.body && <p>{r.body}</p>}
             </article>

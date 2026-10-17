@@ -31,7 +31,7 @@ var indexedSections = map[string]linkPreview{
 
 // Personal pages need a session or describe a person, so crawlers skip them.
 var personalSections = map[string]bool{"friends": true, "favorites": true, "bookmarks": true, "profile": true,
-	"notifications": true, "settings": true, "uploads": true, "account": true, "collections": true, "my-groups": true}
+	"notifications": true, "settings": true, "uploads": true, "account": true, "collections": true, "my-groups": true, "admin": true}
 
 var (
 	titleTag       = regexp.MustCompile(`(?is)<title>.*?</title>`)

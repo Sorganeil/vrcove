@@ -183,6 +183,7 @@ func (s *Server) linkKey(vrcID string) []byte {
 type account struct {
 	ID       int64
 	Username string
+	Role     string
 }
 
 func (s *Server) accountCookieName() string {
@@ -232,8 +233,11 @@ func (s *Server) readAccount(r *http.Request) (*account, error) {
 		return nil, nil
 	}
 	var a account
-	err = s.accounts.QueryRowContext(r.Context(), `SELECT a.id, a.username FROM account_sessions s JOIN accounts a ON a.id = s.account_id
-		WHERE s.token_hash = ? AND s.expires > ?`, tokenHash(token), s.now().Unix()).Scan(&a.ID, &a.Username)
+	// Banned and suspended accounts are signed out by moderation; this check
+	// also covers sessions created before a suspension started.
+	now := s.now().Unix()
+	err = s.accounts.QueryRowContext(r.Context(), `SELECT a.id, a.username, a.role FROM account_sessions s JOIN accounts a ON a.id = s.account_id
+		WHERE s.token_hash = ? AND s.expires > ? AND a.banned = 0 AND a.suspended_until <= ?`, tokenHash(token), now, now).Scan(&a.ID, &a.Username, &a.Role)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
@@ -312,11 +316,18 @@ func (s *Server) cove(w http.ResponseWriter, r *http.Request, p string) error {
 	if handled, err := s.social(w, r, p, acct); handled || err != nil {
 		return err
 	}
+	if rest, ok := strings.CutPrefix(p, "admin/"); ok {
+		return s.admin(w, r, rest, acct)
+	}
 	if acct == nil {
 		writeError(w, http.StatusUnauthorized, "Sign in to your VRCove account.")
 		return nil
 	}
 	switch {
+	case p == "report" && post:
+		return s.report(w, r, acct)
+	case p == "removal-request" && post:
+		return s.requestRemoval(w, r, acct)
 	case p == "logger-keys":
 		return s.loggerKeys(w, r, acct)
 	case p == "logger-keys/revoke" && post:
@@ -505,6 +516,12 @@ func (s *Server) accountLogin(w http.ResponseWriter, r *http.Request) error {
 		writeError(w, http.StatusUnauthorized, "Wrong username or password.")
 		return nil
 	}
+	if block, err := s.accountBlock(r.Context(), a.ID); err != nil {
+		return err
+	} else if block != "" {
+		writeError(w, http.StatusForbidden, block)
+		return nil
+	}
 	if err := s.startAccountSession(r.Context(), w, a.ID); err != nil {
 		return err
 	}
@@ -623,7 +640,7 @@ func (s *Server) accountMe(w http.ResponseWriter, r *http.Request, a *account) e
 	if err := rows.Err(); err != nil {
 		return err
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"showLinkReminder": !reminderSeen && len(links) == 0, "recoveryCodesRemaining": remaining, "picture": s.accountPictureURL(r, a.ID, a.Username), "username": a.Username, "created": created, "bio": bio, "status": status, "public": public, "links": links})
+	writeJSON(w, http.StatusOK, map[string]any{"showLinkReminder": !reminderSeen && len(links) == 0, "recoveryCodesRemaining": remaining, "picture": s.accountPictureURL(r, a.ID, a.Username), "username": a.Username, "role": a.Role, "created": created, "bio": bio, "status": status, "public": public, "links": links})
 	return nil
 }
 

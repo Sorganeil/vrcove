@@ -49,6 +49,8 @@ export type CoveAccount = {
   status: string;
   public: boolean;
   picture: string;
+  /** Moderation role; admins and owners see the hidden admin page. */
+  role?: 'user' | 'admin' | 'owner';
   recoveryCodesRemaining: number;
   showLinkReminder?: boolean;
   links: LinkedAccount[];
