@@ -1,4 +1,4 @@
-import { Library, Upload, KeyRound } from 'lucide-react';
+import { Library, Upload, KeyRound, MonitorDown } from 'lucide-react';
 import {
   HomeIcon,
   AvatarIcon,
@@ -49,6 +49,7 @@ export const sectionLabels: Record<string, string> = {
   Uploads: 'My uploads',
   Profile: 'My profile',
   Account: 'VRCove account',
+  Companion: 'Desktop companion',
   CoveProfile: 'Profile',
   Settings: 'Settings',
 };
@@ -57,6 +58,7 @@ export const primaryNavigation = [
   { name: 'Search', label: 'Search', icon: SearchIcon },
 ];
 export const accountNavigation = [
+  { name: 'Companion', label: 'Desktop companion', icon: MonitorDown },
   { name: 'Account', label: 'VRCove account', icon: KeyRound },
   { name: 'Settings', label: 'Settings', icon: SettingsIcon },
 ];
