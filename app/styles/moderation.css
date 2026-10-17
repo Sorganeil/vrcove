@@ -199,12 +199,20 @@
   align-items: center;
   gap: 6px;
 }
-.admin-suspend input {
-  width: 64px;
+.admin-suspend label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.admin-suspend select {
   padding: 6px 8px;
   border: 1px solid var(--line);
   border-radius: 5px;
-  background: transparent;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
 }
 .admin-log li {
   display: flex;
@@ -234,10 +242,6 @@
   background: var(--bg);
   color: var(--text);
   font-size: 13px;
-}
-.admin-suspend small {
-  color: var(--muted);
-  font-size: 12px;
 }
 .moderation-dialog label.moderation-choice {
   flex-direction: row;

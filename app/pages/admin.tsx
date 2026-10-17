@@ -26,6 +26,14 @@ const tabs = [
 ] as const;
 type Tab = (typeof tabs)[number][0];
 
+const suspensions = [
+  ['1', '1 day'],
+  ['3', '3 days'],
+  ['7', '1 week'],
+  ['30', '1 month'],
+  ['90', '3 months'],
+  ['365', '1 year'],
+] as const;
 const when = (seconds: number) => new Date(seconds * 1000).toLocaleString(document.documentElement.lang);
 const reasonLabel = (value: string) => tr(reportReasons.find(([v]) => v === value)?.[1] || value);
 
@@ -447,16 +455,19 @@ function Users({
                         </button>
                       ) : (
                         <span className="admin-suspend">
-                          <input
-                            type="number"
-                            min={1}
-                            max={365}
-                            aria-label={tr('Suspension days')}
-                            placeholder="7"
-                            value={days[u.id] || ''}
-                            onChange={(e) => setDays({ ...days, [u.id]: e.target.value })}
-                          />
-                          <small>{tr('days')}</small>
+                          <label>
+                            {tr('Suspend for')}
+                            <select
+                              value={days[u.id] || '7'}
+                              onChange={(e) => setDays({ ...days, [u.id]: e.target.value })}
+                            >
+                              {suspensions.map(([n, label]) => (
+                                <option key={n} value={n}>
+                                  {tr(label)}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
                           <button
                             className="standard-button"
                             disabled={!!busy}
