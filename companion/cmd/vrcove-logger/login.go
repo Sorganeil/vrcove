@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"gioui.org/layout"
+	"gioui.org/widget"
 	"vrcove/companion/internal/buildinfo"
 	"vrcove/companion/internal/vrchat"
 )
@@ -95,28 +96,29 @@ func (g *gui) loginRow(gtx layout.Context) layout.Dimensions {
 	if info.State == vrchat.Ready || info.State == vrchat.NeedsCode {
 		title = "Manage"
 	}
-	return card(gtx, func(gtx layout.Context) layout.Dimensions {
-		return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
-			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-				children := []layout.FlexChild{layout.Rigid(g.label("1 · VRChat login on this PC", 12, fg, true)), gap(4), layout.Rigid(g.label(loginStatus(info), 11, muted, false))}
-				if info.Message != "" {
-					children = append(children, gap(4), layout.Rigid(g.label(info.Message, 11, warn, false)))
-				}
-				return layout.Flex{Axis: layout.Vertical}.Layout(gtx, children...)
-			}), hgap(12), layout.Rigid(g.button(&g.manage, title, false)))
-	})
+	return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
+		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+			children := []layout.FlexChild{layout.Rigid(g.label("VRChat login", 13, fg, false)), gap(2), layout.Rigid(g.label(loginStatus(info), 12, muted, false))}
+			if info.Message != "" {
+				children = append(children, gap(2), layout.Rigid(g.label(info.Message, 12, warn, false)))
+			}
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, children...)
+		}), hgap(10), layout.Rigid(g.button(&g.manage, title, false)))
 }
 
 func (g *gui) loginView(gtx layout.Context) layout.Dimensions {
 	info := g.vrc.Info()
 	items := []layout.Widget{
-		g.label("VRCOVE · "+buildinfo.Version, 10, accent, true), layout.Spacer{Height: 8}.Layout,
-		g.label("VRChat login", 24, fg, true), layout.Spacer{Height: 8}.Layout,
-		g.label("Checks avatars on this PC before upload. Your password goes only to VRChat and is never saved or sent to VRCove. The session is stored in Windows Credential Manager or your system keyring.", 11, muted, false),
-		layout.Spacer{Height: 16}.Layout,
+		func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
+				layout.Flexed(1, g.label("VRChat login", 17, fg, true)), layout.Rigid(g.label(buildinfo.Version, 12, muted, false)))
+		},
+		space(4),
+		g.label("Used to check avatars on this PC before upload. Your password goes only to VRChat and isn’t saved. The session is kept in Windows Credential Manager or your system keyring.", 12, muted, false),
+		space(12),
 	}
 	if g.preview {
-		items = append(items, g.label("Preview · any login works and nothing is sent to VRChat.", 11, accent, false), layout.Spacer{Height: 12}.Layout)
+		items = append(items, g.label("Preview: any login works and nothing is sent to VRChat.", 12, accent, false), space(10))
 	}
 	busy := func(title string) string {
 		if info.Busy {
@@ -126,11 +128,11 @@ func (g *gui) loginView(gtx layout.Context) layout.Dimensions {
 	}
 	switch info.State {
 	case vrchat.Loading:
-		items = append(items, g.label("Reading the saved login. Your keyring may ask you to unlock it.", 12, fg, false))
+		items = append(items, g.label("Reading the saved login. Your keyring may ask you to unlock it.", 13, fg, false))
 	case vrchat.SignedOut:
 		items = append(items,
-			g.field("Username or email", "VRChat username", &g.username), layout.Spacer{Height: 12}.Layout,
-			g.field("Password", "VRChat password", &g.password), layout.Spacer{Height: 14}.Layout,
+			g.field("Username or email", "VRChat username", &g.username), space(10),
+			g.field("Password", "VRChat password", &g.password), space(10),
 			func(gtx layout.Context) layout.Dimensions {
 				children := []layout.FlexChild{layout.Rigid(g.button(&g.signIn, busy("Sign in to VRChat"), true))}
 				if info.Busy {
@@ -139,46 +141,58 @@ func (g *gui) loginView(gtx layout.Context) layout.Dimensions {
 				return layout.Flex{}.Layout(gtx, children...)
 			})
 	case vrchat.NeedsCode:
-		if !slices.Contains(info.Methods, g.method.Value) && len(info.Methods) > 0 {
+		// VRChat says which codes it accepts: email-code accounts get emailOtp,
+		// authenticator accounts get totp plus recovery codes (otp).
+		if len(info.Methods) > 0 && !slices.Contains(info.Methods, g.method.Value) {
 			g.method.Value = info.Methods[0]
+			if slices.Contains(info.Methods, vrchat.Authenticator) {
+				g.method.Value = vrchat.Authenticator
+			}
 		}
-		names := map[string]string{vrchat.Authenticator: "Authenticator app", vrchat.EmailCode: "Email code", vrchat.RecoveryCode: "Recovery code"}
-		items = append(items, g.label("VRChat needs a verification code", 12, fg, true), layout.Spacer{Height: 8}.Layout,
+		other := ""
+		switch {
+		case g.method.Value == vrchat.Authenticator && slices.Contains(info.Methods, vrchat.RecoveryCode):
+			other = vrchat.RecoveryCode
+		case g.method.Value == vrchat.RecoveryCode && slices.Contains(info.Methods, vrchat.Authenticator):
+			other = vrchat.Authenticator
+		}
+		if other != "" && g.methods[0].Clicked(gtx) {
+			g.method.Value, other = other, g.method.Value
+			g.code.SetText("")
+		}
+		title, hint := "Code from your authenticator app", "6-digit code"
+		switch g.method.Value {
+		case vrchat.EmailCode:
+			title = "Code VRChat emailed you"
+		case vrchat.RecoveryCode:
+			title, hint = "Recovery code", "For example abcd-1234"
+		}
+		items = append(items, g.field(title, hint, &g.code), space(10),
 			func(gtx layout.Context) layout.Dimensions {
-				var children []layout.FlexChild
-				for i, m := range info.Methods {
-					click := &g.methods[i]
-					if click.Clicked(gtx) {
-						g.method.Value = m
+				children := []layout.FlexChild{layout.Rigid(g.button(&g.verify, busy("Verify"), true)), hgap(8), layout.Rigid(g.button(&g.signOut, "Start over", false))}
+				if other != "" {
+					switch_ := "Use a recovery code instead"
+					if other == vrchat.Authenticator {
+						switch_ = "Use your authenticator app instead"
 					}
-					children = append(children, layout.Rigid(g.button(click, names[m], m == g.method.Value)), hgap(8))
+					children = append(children, layout.Flexed(1, layout.Spacer{}.Layout), layout.Rigid(g.link(&g.methods[0], switch_)))
 				}
 				return layout.Flex{Alignment: layout.Middle}.Layout(gtx, children...)
-			}, layout.Spacer{Height: 12}.Layout)
-		hint := "6-digit code"
-		if g.method.Value == vrchat.RecoveryCode {
-			hint = "Recovery code, for example abcd-1234"
-		} else if g.method.Value == vrchat.EmailCode {
-			hint = "6-digit code from VRChat’s email"
-		}
-		items = append(items, g.field("Code", hint, &g.code), layout.Spacer{Height: 14}.Layout,
-			func(gtx layout.Context) layout.Dimensions {
-				return layout.Flex{}.Layout(gtx, layout.Rigid(g.button(&g.verify, busy("Verify"), true)), hgap(10), layout.Rigid(g.button(&g.signOut, "Start over", false)))
 			})
 	case vrchat.Ready:
-		items = append(items, g.label(loginStatus(info), 14, fg, true), layout.Spacer{Height: 6}.Layout,
-			g.label("Signing out removes the saved session from this PC and ends it at VRChat. Your queue stays saved.", 11, muted, false), layout.Spacer{Height: 14}.Layout,
+		items = append(items, g.label(loginStatus(info), 14, fg, true), space(4),
+			g.label("Signing out removes the saved session from this PC and ends it at VRChat. Your queue stays saved.", 12, muted, false), space(10),
 			func(gtx layout.Context) layout.Dimensions {
 				return layout.Flex{}.Layout(gtx, layout.Rigid(g.button(&g.signOut, "Sign out", false)))
 			})
 	}
 	for _, msg := range []string{info.Message, g.loginMsg} {
 		if msg != "" {
-			items = append(items, layout.Spacer{Height: 12}.Layout, g.label(msg, 11, warn, false))
+			items = append(items, space(10), g.label(msg, 12, warn, false))
 		}
 	}
-	items = append(items, layout.Spacer{Height: 18}.Layout, func(gtx layout.Context) layout.Dimensions {
-		return layout.Flex{Spacing: layout.SpaceStart}.Layout(gtx, layout.Rigid(g.button(&g.back, "Back to settings", false)))
+	items = append(items, space(14), func(gtx layout.Context) layout.Dimensions {
+		return layout.Flex{}.Layout(gtx, layout.Rigid(g.button(&g.back, "Back", false)))
 	})
 	return g.list.Layout(gtx, len(items), func(gtx layout.Context, i int) layout.Dimensions { return items[i](gtx) })
 }
@@ -220,7 +234,7 @@ func (previewTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	switch {
 	case strings.HasSuffix(r.URL.Path, "/auth/user") && r.Header.Get("Authorization") != "":
 		h.Add("Set-Cookie", "auth=preview-session; Path=/")
-		body = `{"requiresTwoFactorAuth":["totp","otp","emailOtp"]}`
+		body = `{"requiresTwoFactorAuth":["totp","otp"]}`
 	case strings.HasSuffix(r.URL.Path, "/verify"):
 		h.Add("Set-Cookie", "twoFactorAuth=preview-2fa; Path=/")
 		body = `{"verified":true}`
@@ -228,4 +242,13 @@ func (previewTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 		body = `{"id":"usr_00000000-0000-0000-0000-000000000000","displayName":"Preview user"}`
 	}
 	return &http.Response{StatusCode: http.StatusOK, Header: h, Body: io.NopCloser(strings.NewReader(body)), Request: r}, nil
+}
+
+// link is a borderless text button for secondary choices.
+func (g *gui) link(click *widget.Clickable, title string) layout.Widget {
+	return func(gtx layout.Context) layout.Dimensions {
+		return click.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			return layout.UniformInset(4).Layout(gtx, g.label(title, 12, accent, false))
+		})
+	}
 }

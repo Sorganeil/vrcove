@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -194,6 +195,75 @@ func TestClearCacheSavesIDsBeforeClearing(t *testing.T) {
 			saved, err := logger.Load(path)
 			if err != nil || !slices.Contains(saved.Pending, id) || string(contents) != "[]" {
 				t.Fatal("clear did not preserve the queued ID and reset analytics")
+			}
+		})
+	}
+}
+
+func TestAutoStartCollectsAsSoonAsTheWorkerStarts(t *testing.T) {
+	for _, auto := range []bool{true, false} {
+		t.Run(fmt.Sprint("autostart=", auto), func(t *testing.T) {
+			id := "avtr_12345678-1234-1234-1234-123456789abc"
+			folder := t.TempDir()
+			if err := os.WriteFile(filepath.Join(folder, "amplitude.cache"), []byte(`[{"avatar":"`+id+`"}]`), 0600); err != nil {
+				t.Fatal(err)
+			}
+			state := logger.New()
+			state.Config = logger.Config{Folder: folder, AutoStart: auto}
+			path := filepath.Join(t.TempDir(), "state.json")
+			ctx, cancel := context.WithCancel(context.Background())
+			done := make(chan struct{})
+			updates := make(chan snapshot, 1)
+			go func() { defer close(done); worker(ctx, path, state, make(chan command), updates, func() {}) }()
+			defer func() { cancel(); <-done }()
+			// Well before the three-second polling tick.
+			deadline := time.Now().Add(time.Second)
+			collected := false
+			for time.Now().Before(deadline) && !collected {
+				saved, err := logger.Load(path)
+				collected = err == nil && slices.Contains(saved.Pending, id)
+				time.Sleep(20 * time.Millisecond)
+			}
+			if collected != auto {
+				t.Fatalf("collected = %v", collected)
+			}
+			if snap := <-updates; snap.paused == auto {
+				t.Fatalf("paused = %v", snap.paused)
+			}
+		})
+	}
+}
+
+func TestOnlyServerOrKeyChangesResetRateLimitWait(t *testing.T) {
+	until := time.Now().Add(5 * time.Minute).Truncate(time.Second)
+	for _, tc := range []struct {
+		name  string
+		edit  func(*logger.Config)
+		reset bool
+	}{
+		{"auto-start", func(c *logger.Config) { c.AutoStart = true }, false},
+		{"api key", func(c *logger.Config) { c.Token = "other-key" }, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			state := logger.New()
+			state.Config = logger.Config{Folder: t.TempDir(), Server: "https://vrcove.example", Token: "test-only"}
+			state.RetryAt = until
+			path := filepath.Join(t.TempDir(), "state.json")
+			ctx, cancel := context.WithCancel(context.Background())
+			done := make(chan struct{})
+			commands := make(chan command)
+			go func() { defer close(done); worker(ctx, path, state, commands, make(chan snapshot, 1), func() {}) }()
+			next := state.Config
+			tc.edit(&next)
+			commands <- command{kind: "config", config: next}
+			cancel()
+			<-done
+			saved, err := logger.Load(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if saved.RetryAt.IsZero() != tc.reset || saved.Config != next {
+				t.Fatalf("retry %v config %+v", saved.RetryAt, saved.Config)
 			}
 		})
 	}

@@ -12,7 +12,8 @@ Setup and details: https://vrcove.st/companion
 2. Generate an API key on your VRCove account page and paste it into Settings.
 3. Sign in to VRChat in Settings. Your password only goes to VRChat and isn't
    saved; the session is kept in Windows Credential Manager or your Linux keyring.
-4. Press Start and play.
+4. Press Start and play. To skip this step, turn on "Start collecting when the
+   app opens" in Settings.
 
 Closing the window keeps it running in the tray. On Linux that needs a tray
 host (KDE Plasma, or a GNOME tray extension).

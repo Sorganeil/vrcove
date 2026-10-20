@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"gioui.org/app"
+	"gioui.org/f32"
 	"gioui.org/font"
 	"gioui.org/font/opentype"
 	"gioui.org/io/event"
@@ -44,19 +45,21 @@ var (
 )
 
 type gui struct {
-	th                                    *material.Theme
-	config                                logger.Config
-	snap                                  snapshot
-	preview, settings, login              bool
-	message                               string
-	commands                              chan command
-	toggle, change, connect, save, cancel widget.Clickable
-	quit                                  widget.Clickable
-	clearCache                            widget.Clickable
-	clearReply                            chan string
-	onQuit                                func()
-	folder, server, token                 widget.Editor
-	list                                  widget.List
+	th                            *material.Theme
+	config                        logger.Config
+	snap                          snapshot
+	preview, settings, login      bool
+	message                       string
+	commands                      chan command
+	toggle, connect, save, cancel widget.Clickable
+	quit                          widget.Clickable
+	clearCache                    widget.Clickable
+	autoStart                     widget.Clickable
+	auto                          bool
+	clearReply                    chan string
+	onQuit                        func()
+	folder, server, token         widget.Editor
+	list                          widget.List
 
 	// The desktop's own VRChat login, used for client-side avatar checks.
 	vrc                                   *vrchat.Client
@@ -137,12 +140,18 @@ func run(preview bool, path, screen string) error {
 	g.folder.SetText(g.config.Folder)
 	g.server.SetText(g.config.Server)
 	g.token.SetText(g.config.Token)
+	g.auto = g.config.AutoStart
 	g.list.Axis = layout.Vertical
 	g.folder.SingleLine = true
 	g.server.SingleLine = true
 	g.token.SingleLine = true
 	g.token.Mask = '•'
-	g.snap = snapshot{status: "Collection paused", detected: len(s.Seen), added: s.Added, existing: s.Existing, rejected: s.Rejected, pending: len(s.Pending), events: append([]logger.Event(nil), s.Events...), paused: true}
+	g.snap = snapshot{status: "Collection paused", detected: len(s.Seen), added: s.Added, existing: s.Existing, rejected: s.Rejected, pending: len(s.Pending), events: append([]logger.Event(nil), s.Events...), paused: !s.Config.AutoStart}
+	if g.snap.paused {
+		g.snap.status = "Paused"
+	} else {
+		g.snap.status = "Watching VRChat analytics"
+	}
 	if preview {
 		g.snap = previewSnapshot()
 	}
@@ -184,7 +193,7 @@ func run(preview bool, path, screen string) error {
 			return nil
 		}
 		w := new(app.Window)
-		w.Option(app.Title("VRCove Logger "+buildinfo.Version), app.Size(500, 530), app.MinSize(460, 480))
+		w.Option(app.Title("VRCove Logger "+buildinfo.Version), app.Size(460, 500), app.MinSize(400, 400))
 		slot.set(w)
 		err := g.windowLoop(ctx, w, updates, show, tray)
 		slot.set(nil)
@@ -285,7 +294,7 @@ func (g *gui) windowLoop(ctx context.Context, w *app.Window, updates <-chan snap
 			gtx := app.NewContext(&ops, e)
 			g.actions(gtx)
 			paint.Fill(gtx.Ops, bg)
-			layout.UniformInset(unit.Dp(18)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			layout.UniformInset(unit.Dp(16)).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				if g.login {
 					return g.loginView(gtx)
 				}
@@ -342,7 +351,7 @@ func (g *gui) actions(gtx layout.Context) {
 		if g.preview {
 			g.snap.paused = !g.snap.paused
 			if g.snap.paused {
-				g.snap.status = "Collection paused"
+				g.snap.status = "Paused"
 			} else {
 				g.snap.status = "Watching VRChat analytics"
 			}
@@ -357,7 +366,11 @@ func (g *gui) actions(gtx layout.Context) {
 			}
 		}
 	}
-	if g.change.Clicked(gtx) || g.connect.Clicked(gtx) {
+	if g.autoStart.Clicked(gtx) {
+		g.auto = !g.auto
+	}
+	if g.connect.Clicked(gtx) {
+		g.auto = g.config.AutoStart
 		g.folder.SetText(g.config.Folder)
 		g.server.SetText(g.config.Server)
 		g.token.SetText(g.config.Token)
@@ -383,7 +396,7 @@ func (g *gui) actions(gtx layout.Context) {
 				return
 			}
 		}
-		candidate := logger.Config{Folder: folder, Server: origin, Token: strings.TrimSpace(g.token.Text())}
+		candidate := logger.Config{Folder: folder, Server: origin, Token: strings.TrimSpace(g.token.Text()), AutoStart: g.auto}
 		if !g.preview && !g.send(command{kind: "config", config: candidate}) {
 			return
 		}
@@ -395,9 +408,14 @@ func (g *gui) actions(gtx layout.Context) {
 }
 
 func (g *gui) label(value string, size unit.Sp, c color.NRGBA, bold bool) layout.Widget {
+	return g.text(value, size, c, bold, 0)
+}
+
+// text is a label limited to maxLines (0 for no limit).
+func (g *gui) text(value string, size unit.Sp, c color.NRGBA, bold bool, maxLines int) layout.Widget {
 	return func(gtx layout.Context) layout.Dimensions {
 		l := material.Label(g.th, size, value)
-		l.Color = c
+		l.Color, l.MaxLines = c, maxLines
 		if bold {
 			l.Font.Weight = font.Bold
 		}
@@ -406,12 +424,13 @@ func (g *gui) label(value string, size unit.Sp, c color.NRGBA, bold bool) layout
 }
 func gap(n unit.Dp) layout.FlexChild  { return layout.Rigid(layout.Spacer{Height: n}.Layout) }
 func hgap(n unit.Dp) layout.FlexChild { return layout.Rigid(layout.Spacer{Width: n}.Layout) }
+func space(n unit.Dp) layout.Widget   { return layout.Spacer{Height: n}.Layout }
 func (g *gui) button(click *widget.Clickable, title string, primary bool) layout.Widget {
 	return func(gtx layout.Context) layout.Dimensions {
 		b := material.Button(g.th, click, title)
-		b.TextSize = unit.Sp(12)
-		b.CornerRadius = unit.Dp(9)
-		b.Inset = layout.Inset{Top: 8, Bottom: 8, Left: 12, Right: 12}
+		b.TextSize = unit.Sp(13)
+		b.CornerRadius = unit.Dp(7)
+		b.Inset = layout.Inset{Top: 7, Bottom: 7, Left: 12, Right: 12}
 		if !primary {
 			b.Background = line
 			b.Color = fg
@@ -419,147 +438,169 @@ func (g *gui) button(click *widget.Clickable, title string, primary bool) layout
 		return b.Layout(gtx)
 	}
 }
-func card(gtx layout.Context, body layout.Widget) layout.Dimensions {
-	return widget.Border{Color: line, CornerRadius: 12, Width: 1}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return layout.Background{}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-			r := clip.UniformRRect(image.Rectangle{Max: gtx.Constraints.Min}, gtx.Dp(12))
-			paint.FillShape(gtx.Ops, panel, r.Op(gtx.Ops))
-			return layout.Dimensions{Size: gtx.Constraints.Min}
-		}, func(gtx layout.Context) layout.Dimensions { return layout.UniformInset(unit.Dp(12)).Layout(gtx, body) })
-	})
+func divider(gtx layout.Context) layout.Dimensions {
+	size := image.Pt(gtx.Constraints.Max.X, gtx.Dp(1))
+	paint.FillShape(gtx.Ops, line, clip.Rect{Max: size}.Op())
+	return layout.Dimensions{Size: size}
+}
+
+// checkbox draws its own box; the material theme here carries no icons.
+func (g *gui) checkbox(click *widget.Clickable, on bool, title string) layout.Widget {
+	return func(gtx layout.Context) layout.Dimensions {
+		return click.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					n := gtx.Dp(18)
+					size := image.Pt(n, n)
+					box := clip.UniformRRect(image.Rectangle{Max: size}, gtx.Dp(4))
+					if !on {
+						paint.FillShape(gtx.Ops, muted, clip.Stroke{Path: box.Path(gtx.Ops), Width: float32(gtx.Dp(1.5))}.Op())
+						return layout.Dimensions{Size: size}
+					}
+					paint.FillShape(gtx.Ops, accent, box.Op(gtx.Ops))
+					f := float32(n)
+					var check clip.Path
+					check.Begin(gtx.Ops)
+					check.MoveTo(f32.Pt(f*0.24, f*0.52))
+					check.LineTo(f32.Pt(f*0.42, f*0.70))
+					check.LineTo(f32.Pt(f*0.77, f*0.31))
+					paint.FillShape(gtx.Ops, bg, clip.Stroke{Path: check.End(), Width: float32(gtx.Dp(2))}.Op())
+					return layout.Dimensions{Size: size}
+				}),
+				hgap(8), layout.Flexed(1, g.label(title, 13, fg, false)))
+		})
+	}
+}
+
+// resultLabel matches the counters: "Existing" avatars are already in VRCove.
+func resultLabel(result string) string {
+	if result == "Existing" {
+		return "Known"
+	}
+	return result
+}
+
+// attention marks statuses that need the user to do something.
+func attention(status string) bool {
+	for _, s := range []string{"API key", "sign in", "rate limit", "unavailable", "expired", "not cleared", "Storage", "invalid", "Invalid"} {
+		if strings.Contains(status, s) {
+			return true
+		}
+	}
+	return false
 }
 
 func (g *gui) dashboard(gtx layout.Context) layout.Dimensions {
+	title, statusColor := "Pause", accent
+	if g.snap.paused {
+		title, statusColor = "Start", muted
+	} else if attention(g.snap.status) {
+		statusColor = warn
+	}
+	version := buildinfo.Version
+	if g.preview {
+		version += " · preview"
+	}
 	items := []layout.Widget{
 		func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
-				layout.Flexed(1, g.label("V R C O V E", 10, accent, true)), layout.Rigid(g.label(func() string {
-					if g.preview {
-						return buildinfo.Version + " · PREVIEW"
-					}
-					return buildinfo.Version
-				}(), 10, accent, true)))
+				layout.Rigid(g.label("VRCove Logger", 17, fg, true)), hgap(8),
+				layout.Flexed(1, g.label(version, 12, muted, false)),
+				layout.Rigid(g.button(&g.connect, "Settings", false)), hgap(8),
+				layout.Rigid(g.button(&g.toggle, title, true)))
 		},
+		space(4),
+		g.text(g.snap.status, 13, statusColor, false, 2),
+		space(12),
 		func(gtx layout.Context) layout.Dimensions {
-			return layout.Inset{Top: 6, Bottom: 4}.Layout(gtx, g.label("Avatar logger", 24, fg, true))
-		},
-		layout.Spacer{Height: 14}.Layout,
-		func(gtx layout.Context) layout.Dimensions {
-			return card(gtx, func(gtx layout.Context) layout.Dimensions {
-				title := "Pause"
-				if g.snap.paused {
-					title = "Start"
-				}
-				hint := "New avatars are checked with your VRChat login, then uploaded to VRCove."
-				switch {
-				case g.preview:
-					hint = "Sample activity · no data read or uploads sent."
-				case g.snap.paused:
-					hint = "Your queue is saved. Resume whenever you’re ready."
-				case g.config.Token == "":
-					hint = "To upload queued IDs, add an API key in Settings."
-				case !g.vrc.Ready():
-					hint = "To upload queued IDs, sign in to VRChat in Settings."
-				}
-				return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
-							layout.Rigid(g.label("●", 20, accent, false)), hgap(10), layout.Flexed(1, g.label(g.snap.status, 14, fg, true)), hgap(10), layout.Rigid(g.button(&g.toggle, title, true)))
-					}),
-					gap(8), layout.Rigid(g.label(hint, 11, muted, false)))
-			})
-		},
-		layout.Spacer{Height: 14}.Layout,
-		func(gtx layout.Context) layout.Dimensions {
-			var children []layout.FlexChild
-			for i, name := range []string{"Detected", "Added", "Already known", "Queued"} {
-				n := []int{g.snap.detected, g.snap.added, g.snap.existing, g.snap.pending}[i]
-				children = append(children, layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-					return layout.Flex{Axis: layout.Vertical}.Layout(gtx, layout.Rigid(g.label(fmt.Sprint(n), 24, fg, true)), gap(4), layout.Rigid(g.label(name, 10, muted, false)))
+			var cols []layout.FlexChild
+			for i, name := range []string{"Found", "Added", "Known", "Queued", "Rejected"} {
+				n := []int{g.snap.detected, g.snap.added, g.snap.existing, g.snap.pending, g.snap.rejected}[i]
+				cols = append(cols, layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+					return layout.Flex{Axis: layout.Vertical}.Layout(gtx, layout.Rigid(g.label(fmt.Sprint(n), 19, fg, true)), layout.Rigid(g.label(name, 12, muted, false)))
 				}))
 			}
-			return layout.Flex{}.Layout(gtx, children...)
+			return layout.Flex{}.Layout(gtx, cols...)
 		},
-		layout.Spacer{Height: 18}.Layout,
-		g.label("AVATAR SOURCE", 10, muted, true),
-		func(gtx layout.Context) layout.Dimensions {
-			return layout.Inset{Top: 6, Bottom: 14}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
-					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-						l := material.Label(g.th, 12, displayFolder(g.config.Folder))
-						l.Color = fg
-						l.MaxLines = 2
-						return l.Layout(gtx)
-					}), hgap(12), layout.Rigid(g.button(&g.change, "Change", false)))
-			})
-		},
-		func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{}.Layout(gtx, layout.Flexed(1, g.label("RECENT ACTIVITY", 10, muted, true)), layout.Rigid(g.label(fmt.Sprintf("%d not public / invalid", g.snap.rejected), 11, muted, false)))
-		},
-		layout.Spacer{Height: 6}.Layout,
+		space(12), divider, space(8),
+		g.label("Recent", 12, muted, true), space(2),
 	}
 	if len(g.snap.events) == 0 {
-		items = append(items, g.label("No avatars yet. Start collecting, then play VRChat.", 12, muted, false))
+		items = append(items, space(4), g.label("Nothing yet. Start collecting, then play VRChat.", 13, muted, false))
 	}
-	for _, e := range g.snap.events[:min(4, len(g.snap.events))] {
+	for _, e := range g.snap.events[:min(6, len(g.snap.events))] {
 		items = append(items, func(gtx layout.Context) layout.Dimensions {
-			c := accent
-			if e.Result == "Existing" {
+			c := map[string]color.NRGBA{"Added": accent, "Existing": muted, "Queued": color.NRGBA{R: 139, G: 187, B: 246, A: 255}, "Rejected": warn}[e.Result]
+			if c == (color.NRGBA{}) {
 				c = muted
-			}
-			if e.Result == "Queued" {
-				c = color.NRGBA{R: 139, G: 187, B: 246, A: 255}
-			}
-			if e.Result == "Rejected" {
-				c = color.NRGBA{R: 230, G: 180, B: 124, A: 255}
 			}
 			id := e.ID
 			if len(id) > 26 {
 				id = id[:18] + "…" + id[len(id)-4:]
 			}
-			return layout.Inset{Top: 6, Bottom: 6}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				return layout.Flex{Alignment: layout.Middle}.Layout(gtx, layout.Rigid(g.label(e.Time, 11, muted, false)), hgap(16), layout.Flexed(1, g.label(id, 12, fg, false)), layout.Rigid(g.label(e.Result, 11, c, false)))
+			return layout.Inset{Top: 4, Bottom: 4}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				return layout.Flex{Alignment: layout.Middle}.Layout(gtx, layout.Rigid(g.label(e.Time, 12, muted, false)), hgap(12), layout.Flexed(1, g.label(id, 13, fg, false)), layout.Rigid(g.label(resultLabel(e.Result), 12, c, false)))
 			})
 		})
 	}
-	items = append(items, layout.Spacer{Height: 14}.Layout, func(gtx layout.Context) layout.Dimensions {
-		return layout.Flex{Alignment: layout.Middle}.Layout(gtx, layout.Flexed(1, g.label("VRCove only receives avatar IDs.", 10, muted, false)), layout.Rigid(g.button(&g.connect, "Settings", false)))
-	}, layout.Spacer{Height: 8}.Layout, g.label("Close to tray · Quit from Settings or the tray menu.", 10, muted, false))
+	items = append(items, space(10), divider, space(10),
+		g.label("Analytics folder", 12, muted, true), space(4),
+		func(gtx layout.Context) layout.Dimensions {
+			// Paths rarely have spaces, so let them wrap anywhere instead of cutting off.
+			l := material.Label(g.th, 13, displayFolder(g.config.Folder))
+			l.Color, l.WrapPolicy = fg, text.WrapGraphemes
+			return l.Layout(gtx)
+		})
 	return g.list.Layout(gtx, len(items), func(gtx layout.Context, i int) layout.Dimensions { return items[i](gtx) })
 }
 
 func (g *gui) field(title, hint string, editor *widget.Editor) layout.Widget {
 	return func(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-			layout.Rigid(g.label(title, 12, fg, true)), gap(8), layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return widget.Border{Color: line, CornerRadius: 8, Width: 1}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-					return layout.UniformInset(12).Layout(gtx, material.Editor(g.th, editor, hint).Layout)
+			layout.Rigid(g.label(title, 13, fg, false)), gap(4), layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				return widget.Border{Color: line, CornerRadius: 6, Width: 1}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					e := material.Editor(g.th, editor, hint)
+					e.TextSize, e.HintColor = 14, muted
+					return layout.Inset{Top: 8, Bottom: 8, Left: 11, Right: 11}.Layout(gtx, e.Layout)
 				})
 			}))
 	}
 }
+
 func (g *gui) settingsView(gtx layout.Context) layout.Dimensions {
 	items := []layout.Widget{
-		g.label("VRCOVE · "+buildinfo.Version, 10, accent, true), layout.Spacer{Height: 8}.Layout,
-		g.label("Logger settings", 24, fg, true), layout.Spacer{Height: 16}.Layout,
-		g.field("VRChat analytics folder", "Paste the folder containing amplitude.cache", &g.folder), layout.Spacer{Height: 14}.Layout,
-		g.button(&g.clearCache, "Clear Amplitude analytics cache", false), layout.Spacer{Height: 6}.Layout,
-		g.label("Saves avatar IDs first, then empties amplitude.cache. Your queue stays saved.", 11, muted, false), layout.Spacer{Height: 14}.Layout,
-		g.label("UPLOADS NEED TWO SEPARATE LOGINS", 10, muted, true), layout.Spacer{Height: 8}.Layout,
-		g.loginRow, layout.Spacer{Height: 6}.Layout,
-		g.label("Checks each new avatar on this PC and skips private or invalid ones before upload.", 11, muted, false), layout.Spacer{Height: 14}.Layout,
-		g.field("2 · VRCove API key", "Generate one on your VRCove account page", &g.token), layout.Spacer{Height: 6}.Layout,
-		g.label("Identifies your encrypted VRChat session on VRCove, which the server uses to verify avatars again. The key expires when that session ends or expires. Leave blank to collect locally.", 11, muted, false), layout.Spacer{Height: 14}.Layout,
-		g.field("Server", "https://vrcove.st", &g.server), layout.Spacer{Height: 12}.Layout,
-		g.label(g.message, 11, warn, false), layout.Spacer{Height: 12}.Layout,
 		func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Spacing: layout.SpaceStart}.Layout(gtx, layout.Rigid(g.button(&g.quit, "Quit", false)), hgap(10), layout.Rigid(g.button(&g.cancel, "Cancel", false)), hgap(10), layout.Rigid(g.button(&g.save, "Save settings", true)))
+			return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
+				layout.Flexed(1, g.label("Settings", 17, fg, true)),
+				layout.Rigid(g.button(&g.cancel, "Cancel", false)), hgap(8), layout.Rigid(g.button(&g.save, "Save", true)))
 		},
-		layout.Spacer{Height: 16}.Layout,
-		g.label(buildinfo.Summary(), 10, muted, false),
+		space(10),
+		g.field("VRChat analytics folder", "Folder containing amplitude.cache", &g.folder), space(6),
+		func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
+				layout.Rigid(g.button(&g.clearCache, "Clear analytics cache", false)), hgap(10),
+				layout.Flexed(1, g.label("Saves avatar IDs first.", 12, muted, false)))
+		},
+		space(10),
+		g.checkbox(&g.autoStart, g.auto, "Start collecting when the app opens"),
+		space(12), divider, space(10),
+		g.label("Uploading", 13, fg, true), space(2),
+		g.label("Needs both logins. Your VRChat login checks avatars on this PC; VRCove checks them again with the VRChat session your API key belongs to. The key expires when that session ends.", 12, muted, false),
+		space(8),
+		g.loginRow, space(8),
+		g.field("VRCove API key", "From your VRCove account page", &g.token), space(8),
+		g.field("Server", "https://vrcove.st", &g.server), space(10),
 	}
+	if g.message != "" {
+		items = append(items, g.label(g.message, 12, warn, false), space(10))
+	}
+	items = append(items, divider, space(10), func(gtx layout.Context) layout.Dimensions {
+		return layout.Flex{Alignment: layout.Middle}.Layout(gtx,
+			layout.Flexed(1, g.text(buildinfo.Summary(), 11, muted, false, 2)), hgap(10), layout.Rigid(g.button(&g.quit, "Quit", false)))
+	})
 	return g.list.Layout(gtx, len(items), func(gtx layout.Context, i int) layout.Dimensions { return items[i](gtx) })
 }
+
 func previewSnapshot() snapshot {
 	return snapshot{status: "Watching VRChat analytics", detected: 128, added: 86, existing: 31, rejected: 8, pending: 3, events: []logger.Event{
 		{Time: "14:32", ID: "avtr_8a4207d1-1284-4fe6-b087-804c8f2ac039", Result: "Added"},

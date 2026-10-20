@@ -42,6 +42,8 @@ type Config struct {
 	Folder string `json:"folder"`
 	Server string `json:"server"`
 	Token  string `json:"token,omitempty"`
+	// AutoStart starts collecting as soon as the app opens.
+	AutoStart bool `json:"autoStart,omitempty"`
 }
 
 type Cursor struct {

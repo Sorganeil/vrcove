@@ -33,8 +33,11 @@ type uploadResult struct {
 
 func worker(ctx context.Context, path string, s *logger.State, commands <-chan command, updates chan snapshot, wake func()) {
 	client := &http.Client{Timeout: 30 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
-	paused := true
-	s.Status = "Collection paused"
+	paused := !s.Config.AutoStart
+	s.Status = "Paused"
+	if !paused {
+		s.Status = "Watching VRChat analytics"
+	}
 	var previous *snapshot
 	publish := func() {
 		snap := snapshot{s.Status, len(s.Seen), s.Added, s.Existing, s.Rejected, len(s.Pending), append([]logger.Event(nil), s.Events...), paused}
@@ -116,6 +119,20 @@ func worker(ctx context.Context, path string, s *logger.State, commands <-chan c
 		s.Status = "Checking and uploading avatars · collecting locally"
 		go func() { results <- uploadResult{batch, batch.Submit(ctx, client)} }()
 	}
+	// cycle reads the analytics cache and uploads when collecting.
+	cycle := func() {
+		watch()
+		if !paused {
+			if err := s.Scan(); err != nil {
+				s.Status = err.Error()
+			} else if persist() {
+				submit()
+			}
+		}
+		publish()
+	}
+	// With auto-start on, collect right away instead of at the first tick.
+	cycle()
 	ticker := time.NewTicker(3 * time.Second)
 	defer ticker.Stop()
 	for {
@@ -128,7 +145,7 @@ func worker(ctx context.Context, path string, s *logger.State, commands <-chan c
 			batch := result.state
 			// A response from an old connection must not remove IDs intended for
 			// the newly configured server.
-			if batch.Config != s.Config {
+			if batch.Config.Server != s.Config.Server || batch.Config.Token != s.Config.Token {
 				continue
 			}
 			for id, status := range batch.Seen {
@@ -194,23 +211,19 @@ func worker(ctx context.Context, path string, s *logger.State, commands <-chan c
 				paused = false
 			case "pause":
 				paused = true
-				s.Status = "Collection paused"
+				s.Status = "Paused"
 			case "config":
+				// A new server or key gets a fresh start; other settings keep
+				// any rate-limit wait.
+				if c.config.Server != s.Config.Server || c.config.Token != s.Config.Token {
+					s.RetryAt, s.Failures, s.RetryReason = time.Time{}, 0, ""
+				}
 				s.Config = c.config
-				s.RetryAt, s.Failures, s.RetryReason = time.Time{}, 0, ""
 			}
 			persist()
 		case <-ticker.C:
 		}
-		watch()
-		if !paused {
-			if err := s.Scan(); err != nil {
-				s.Status = err.Error()
-			} else if persist() {
-				submit()
-			}
-		}
-		publish()
+		cycle()
 	}
 }
 
