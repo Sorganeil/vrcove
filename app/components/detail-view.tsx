@@ -41,6 +41,11 @@ import {
   userImage,
   userThumb,
 } from '../lib/vrchat-format';
+
+// VRChat reads the instance ID from launch links without decoding it, so the
+// ":" between world and instance must stay literal. The server already limits
+// locations to these characters; this keeps anything else out of the link.
+const launchable = /^wrld_[a-f0-9-]{36}:[A-Za-z0-9~()_.-]{1,200}$/;
 export function DetailView({
   coveAccount,
   kind,
@@ -142,14 +147,16 @@ export function DetailView({
         {busy === 'selfInvite:' + location ? <LoaderCircle size={13} className="spin" /> : <Send size={13} />}
         {tr('Invite me')}
       </button>
-      <a
-        className="standard-button"
-        href={'vrchat://launch?ref=vrcove&id=' + encodeURIComponent(location)}
-        aria-label={'Launch ' + label + ' in VRChat'}
-      >
-        <Play size={13} />
-        {tr('Launch')}
-      </a>
+      {launchable.test(location) && (
+        <a
+          className="standard-button"
+          href={'vrchat://launch?ref=vrcove&id=' + location}
+          aria-label={'Launch ' + label + ' in VRChat'}
+        >
+          <Play size={13} />
+          {tr('Launch')}
+        </a>
+      )}
     </div>
   );
   const confirmBox = confirm && (
