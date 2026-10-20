@@ -8,7 +8,7 @@ export default function CompanionDownload() {
   useLocale();
   const { sectionLink } = useApp();
   return (
-    <aside className="companion-download" aria-label={tr('Desktop companion')}>
+    <aside className="companion-download desktop-only" aria-label={tr('Desktop companion')}>
       <span className="companion-download-icon" aria-hidden="true">
         <MonitorDown size={22} />
       </span>

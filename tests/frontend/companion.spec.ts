@@ -1,8 +1,18 @@
 import { test, expect } from '@playwright/test';
 
-test('companion page opens by path and from the banner, and downloads from GitHub', async ({ page }) => {
+test('companion page opens by path and from the banner, and downloads from GitHub', async ({
+  page,
+  isMobile,
+}) => {
   await page.goto('/avatars');
-  await page.locator('.companion-download').getByRole('link', { name: 'Get the companion' }).click();
+  const banner = page.locator('.companion-download');
+  if (isMobile) {
+    // Phones can't run the desktop app, so the banner stays hidden there.
+    await expect(banner).toBeHidden();
+    await page.goto('/companion');
+  } else {
+    await banner.getByRole('link', { name: 'Get the companion' }).click();
+  }
   await expect(page).toHaveURL(/\/companion$/);
   await expect(page.getByRole('heading', { name: 'Help grow the avatar database.' })).toBeVisible();
   for (const name of [
