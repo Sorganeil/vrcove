@@ -620,3 +620,6 @@ button.entity-card {
   font: inherit;
   color: inherit;
 }
+.show-more {
+  margin-top: 12px;
+}

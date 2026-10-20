@@ -25,7 +25,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import { Kind, detailHref, detailLink } from './detail-links';
-import { Section } from './detail-section';
+import { Section, ShowMore } from './detail-section';
 import { Photo } from './photo';
 import { RawJson } from './raw-json';
 import { useLoad } from '../lib/use-load';
@@ -532,8 +532,11 @@ export function DetailView({
     extras = (
       <>
         <Section title={tr('Worlds')} state={userWorlds}>
-          <div className="entity-grid">
-            {userWorlds.data?.map((x: any) => (
+          <ShowMore
+            items={userWorlds.data || []}
+            more={tr('Show all {count} worlds', { count: userWorlds.data?.length })}
+          >
+            {(x: any) => (
               <a className="entity-card" key={x.id} {...link('world', x.id)}>
                 <div className="entity-card-image wide">
                   <Photo url={x.thumbnailImageUrl} name={x.name} />
@@ -544,12 +547,18 @@ export function DetailView({
                   {count(x.occupants)} {tr('online')}
                 </small>
               </a>
-            ))}
-          </div>
+            )}
+          </ShowMore>
         </Section>
         <Section title={tr('Groups')} state={userGroups} empty="No public group memberships.">
-          <div className="entity-grid">
-            {userGroups.data?.map((g: any) => (
+          {/* The group they represent comes first. */}
+          <ShowMore
+            items={[...(userGroups.data || [])].sort(
+              (a: any, b: any) => Number(!!b.isRepresenting) - Number(!!a.isRepresenting),
+            )}
+            more={tr('Show all {count} groups', { count: userGroups.data?.length })}
+          >
+            {(g: any) => (
               <a className="entity-card" key={g.id} {...link('group', g.id)}>
                 <div className="entity-card-image">
                   <Photo url={g.iconUrl} fallbackUrl={g.bannerUrl} name={g.name} />
@@ -562,8 +571,8 @@ export function DetailView({
                   {g.shortCode}.{g.discriminator} · {count(g.memberCount)} {tr('members')}
                 </small>
               </a>
-            ))}
-          </div>
+            )}
+          </ShowMore>
         </Section>
       </>
     );
