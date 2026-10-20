@@ -622,4 +622,9 @@ button.entity-card {
 }
 .show-more {
   margin-top: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.show-more > div {
+  flex-wrap: wrap;
 }

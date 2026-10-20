@@ -1,6 +1,6 @@
 import { t as tr, useLocale } from '../lib/i18n';
 import { useState, type ReactNode } from 'react';
-import { LoaderCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LoaderCircle } from 'lucide-react';
 
 export function Section({ title, state, empty, children }: any) {
   useLocale();
@@ -39,7 +39,7 @@ export function Section({ title, state, empty, children }: any) {
   );
 }
 
-/* A card grid that shows the first few items, with a button for the rest, so long lists don't bury the reviews below. */
+/* A card grid shown a page at a time, with previous/next and a button for everything, so long lists don't bury the reviews below. */
 export function ShowMore<T>({
   items,
   more,
@@ -52,14 +52,42 @@ export function ShowMore<T>({
   children: (item: T) => ReactNode;
 }) {
   useLocale();
-  const [all, setAll] = useState(false);
+  const [all, setAll] = useState(false),
+    [start, setStart] = useState(0);
+  const paged = items.length > limit;
+  const shown = all || !paged ? items : items.slice(start, start + limit);
   return (
     <>
-      <div className="entity-grid">{(all ? items : items.slice(0, limit)).map(children)}</div>
-      {items.length > limit && (
-        <button className="standard-button show-more" aria-expanded={all} onClick={() => setAll(!all)}>
-          {all ? tr('Show fewer') : more}
-        </button>
+      <div className="entity-grid">{shown.map(children)}</div>
+      {paged && (
+        <div className="pagination show-more">
+          <span>
+            {all
+              ? tr('All {total}', { total: items.length })
+              : tr('{from}–{to} of {total}', {
+                  from: start + 1,
+                  to: Math.min(start + limit, items.length),
+                  total: items.length,
+                })}
+          </span>
+          <div>
+            {!all && (
+              <>
+                <button disabled={start === 0} onClick={() => setStart(Math.max(0, start - limit))}>
+                  <ChevronLeft size={15} />
+                  {tr('Previous')}
+                </button>
+                <button disabled={start + limit >= items.length} onClick={() => setStart(start + limit)}>
+                  {tr('Next')}
+                  <ChevronRight size={15} />
+                </button>
+              </>
+            )}
+            <button aria-expanded={all} onClick={() => setAll(!all)}>
+              {all ? tr('Show fewer') : more}
+            </button>
+          </div>
+        </div>
       )}
     </>
   );

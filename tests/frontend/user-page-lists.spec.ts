@@ -11,7 +11,7 @@ const group = (n: number) => ({
   isRepresenting: n === 20,
 });
 
-test('long group lists start short so reviews stay close', async ({ page }) => {
+test('long group lists start short so reviews stay close', async ({ page }, testInfo) => {
   await page.route('**/api/cove/me', (r) =>
     r.fulfill({ json: { username: 'tester', links: [{ vrchatId: me }] } }),
   );
@@ -32,6 +32,18 @@ test('long group lists start short so reviews stay close', async ({ page }) => {
   await expect(groups.locator('.entity-card')).toHaveCount(8);
   // The group they represent is shown first even though VRChat listed it last.
   await expect(groups.locator('.entity-card').first()).toContainText('Group 20');
+  await expect(groups.getByText('1–8 of 20')).toBeVisible();
+  await expect(groups.getByRole('button', { name: 'Previous' })).toBeDisabled();
+  await groups.getByRole('button', { name: 'Next' }).click();
+  await expect(groups.getByText('9–16 of 20')).toBeVisible();
+  await expect(groups.locator('.entity-card').first()).toContainText('Group 8');
+  await groups.getByRole('button', { name: 'Next' }).click();
+  await expect(groups.getByText('17–20 of 20')).toBeVisible();
+  await expect(groups.locator('.entity-card')).toHaveCount(4);
+  await expect(groups.getByRole('button', { name: 'Next' })).toBeDisabled();
+  await groups.getByRole('button', { name: 'Previous' }).click();
+  await expect(groups.getByText('9–16 of 20')).toBeVisible();
+  await groups.locator('.show-more').screenshot({ path: testInfo.outputPath('group-paging.png') });
   await groups.getByRole('button', { name: 'Show all 20 groups' }).click();
   await expect(groups.locator('.entity-card')).toHaveCount(20);
   await groups.getByRole('button', { name: 'Show fewer' }).click();
