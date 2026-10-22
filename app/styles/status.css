@@ -140,10 +140,24 @@
   overflow-wrap: anywhere;
   margin-bottom: 0;
 }
-.online-elsewhere {
+.online-subheading {
   grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
   color: var(--muted);
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.online-subheading small {
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: #233d52;
+  color: #a3c4dd;
+  font-size: 11px;
 }
 .friend-count {
   margin: 12px 0 16px;

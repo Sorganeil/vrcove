@@ -104,8 +104,19 @@ export default function Dashboard({
       setBusy(false);
     }
   }
-  // People on the website or app are online but not in game, so they aren't shown here.
-  const inGame = friends.filter((f) => !notInGame(f));
+  // People on the website or app are online but not in game, so they get their own row.
+  const inGame = friends.filter((f) => !notInGame(f)),
+    elsewhere = friends.filter((f) => notInGame(f));
+  const friendCard = (f: any) => (
+    <a key={f.id} {...detailLink('user', f.id)}>
+      <div>
+        <Photo url={f.userIcon || f.profilePicOverride || f.currentAvatarThumbnailImageUrl} />
+        <i className={'status-dot ' + userPresence(f).tone} aria-hidden="true" />
+      </div>
+      <strong>{f.displayName}</strong>
+      <UserStatus user={f} />
+    </a>
+  );
   if (!user)
     return (
       <div className="guest-home">
@@ -287,29 +298,20 @@ export default function Dashboard({
             </div>
             {user ? (
               <div className="online-grid">
-                {inGame.slice(0, 12).map((f) => (
-                  <a key={f.id} {...detailLink('user', f.id)}>
-                    <div>
-                      <Photo url={f.userIcon || f.profilePicOverride || f.currentAvatarThumbnailImageUrl} />
-                      <i className={'status-dot ' + userPresence(f).tone} aria-hidden="true" />
-                    </div>
-                    <strong>{f.displayName}</strong>
-                    <UserStatus user={f} />
-                  </a>
-                ))}
+                {inGame.slice(0, 12).map(friendCard)}
                 {!inGame.length && (
                   <div className="panel-empty">
                     <Users size={25} />
                     <p>{busy ? tr('Loading friends…') : tr('No friends in game right now.')}</p>
                   </div>
                 )}
-                {friends.length > inGame.length && (
-                  <p className="online-elsewhere">
-                    {tr('{count} more on the website or app, not in game.', {
-                      count: friends.length - inGame.length,
-                    })}
-                  </p>
+                {elsewhere.length > 0 && (
+                  <h3 className="online-subheading">
+                    {tr('Not in game')}
+                    <small>{elsewhere.length}</small>
+                  </h3>
                 )}
+                {elsewhere.slice(0, 6).map(friendCard)}
               </div>
             ) : (
               <div className="panel-empty">

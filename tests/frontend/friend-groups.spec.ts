@@ -48,7 +48,7 @@ async function mock(page: Page) {
 const headings = (page: Page) => page.locator('.friend-section > h2');
 const card = (page: Page, name: string) => page.locator('.friend-card').filter({ hasText: name });
 
-test('people on the website are not shown as offline or in game', async ({ page }) => {
+test('people on the website are not shown as offline or in game', async ({ page }, testInfo) => {
   await mock(page);
   await page.goto('/friends');
   await expect(headings(page)).toHaveText([/^In game\s*2$/, /^Not in game\s*2$/]);
@@ -60,8 +60,14 @@ test('people on the website are not shown as offline or in game', async ({ page 
   await page.goto('/');
   const panel = page.locator('.dashboard-panel').filter({ hasText: 'Friends online' });
   await expect(panel.locator('h2 small')).toHaveText('2');
-  await expect(panel.locator('.online-grid > a')).toHaveCount(2);
-  await expect(panel).toContainText('2 more on the website or app, not in game.');
+  // People on the website or app follow under their own heading.
+  await expect(panel.locator('.online-grid > a')).toHaveCount(4);
+  await expect(panel.locator('.online-subheading')).toHaveText(/^Not in game\s*2$/);
+  await panel.screenshot({ path: testInfo.outputPath('home-friends.png') });
+  await expect(panel.locator('.online-grid > a').nth(2)).toContainText('Web Friend');
+  await expect(panel.locator('.online-grid > a').nth(2).locator('.user-availability')).toHaveText(
+    'Not in game',
+  );
 });
 
 test('friends can be grouped by VRChat favorite groups, and the choice is remembered', async ({
