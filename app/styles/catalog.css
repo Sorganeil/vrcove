@@ -2,7 +2,7 @@
 /* Search */
 .companion-download {
   display: grid;
-  grid-template-columns: 36px minmax(0, 1fr) auto;
+  grid-template-columns: 36px minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 14px;
   margin: 16px 0 22px;
@@ -34,6 +34,19 @@
   justify-content: center;
   text-align: center;
 }
+.companion-dismiss {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  color: var(--muted);
+}
+.companion-dismiss:hover,
+.companion-dismiss:focus-visible {
+  background: #1b2b3a;
+  color: var(--text);
+}
 @media (max-width: 720px) {
   .companion-download {
     grid-template-columns: 36px minmax(0, 1fr);
@@ -44,6 +57,15 @@
   .companion-download > a {
     grid-column: 2;
     justify-self: start;
+  }
+  .companion-download {
+    position: relative;
+    padding-right: 44px;
+  }
+  .companion-dismiss {
+    position: absolute;
+    top: 8px;
+    right: 8px;
   }
 }
 .catalog-section {

@@ -38,3 +38,18 @@ test('companion page opens by path and from the banner, and downloads from GitHu
     page.getByRole('heading', { name: 'アバターデータベースの拡充にご協力ください。' }),
   ).toBeVisible();
 });
+
+test('the companion banner can be dismissed and stays hidden', async ({ page, isMobile }, testInfo) => {
+  test.skip(isMobile, 'The banner is desktop only.');
+  await page.goto('/avatars');
+  const banner = page.locator('.companion-download');
+  await banner.screenshot({ path: testInfo.outputPath('companion-banner.png') });
+  await banner.getByRole('button', { name: 'Dismiss' }).click();
+  await expect(banner).toHaveCount(0);
+  await page.reload();
+  await expect(page.locator('.companion-download')).toHaveCount(0);
+  await page.goto('/');
+  await expect(page.locator('.companion-download')).toHaveCount(0);
+  // The companion page is still one click away in the sidebar.
+  await expect(page.getByRole('link', { name: 'Desktop companion' }).first()).toBeVisible();
+});
