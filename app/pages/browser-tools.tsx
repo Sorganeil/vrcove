@@ -355,7 +355,7 @@ export default function BrowserTools({
             <div className="settings-content">
               <p>
                 {tr(
-                  'VRCove cannot read VRChat game logs, track time while closed, run overlays, control Discord, or manage game files. There is no desktop companion.',
+                  'VRCove cannot read VRChat game logs, track time while closed, run overlays, control Discord, or manage game files. The optional desktop companion doesn’t add any of this either: it only finds avatar IDs for the shared catalog.',
                 )}
               </p>
               <p>
