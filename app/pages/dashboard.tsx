@@ -104,7 +104,7 @@ export default function Dashboard({
       setBusy(false);
     }
   }
-  // People on the website or app are online but not in game, so they get their own row.
+  // People in game come first; those on the website or app follow with a "Not in game" badge.
   const inGame = friends.filter((f) => !notInGame(f)),
     elsewhere = friends.filter((f) => notInGame(f));
   const friendCard = (f: any) => (
@@ -284,12 +284,7 @@ export default function Dashboard({
               <h2>
                 <Users size={17} />
                 {tr('Friends online')}
-                {user && (
-                  <small>
-                    {inGame.length}
-                    {friends.length === 100 ? '+' : ''}
-                  </small>
-                )}
+                {user && <small>{friends.length === 100 ? '100+' : friends.length}</small>}
               </h2>
               <button onClick={() => navigate('Friends')}>
                 {tr('View all')}
@@ -298,20 +293,13 @@ export default function Dashboard({
             </div>
             {user ? (
               <div className="online-grid">
-                {inGame.slice(0, 12).map(friendCard)}
-                {!inGame.length && (
+                {[...inGame, ...elsewhere].slice(0, 12).map(friendCard)}
+                {!friends.length && (
                   <div className="panel-empty">
                     <Users size={25} />
-                    <p>{busy ? tr('Loading friends…') : tr('No friends in game right now.')}</p>
+                    <p>{busy ? tr('Loading friends…') : tr('No online friends to show.')}</p>
                   </div>
                 )}
-                {elsewhere.length > 0 && (
-                  <h3 className="online-subheading">
-                    {tr('Not in game')}
-                    <small>{elsewhere.length}</small>
-                  </h3>
-                )}
-                {elsewhere.slice(0, 6).map(friendCard)}
               </div>
             ) : (
               <div className="panel-empty">

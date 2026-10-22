@@ -56,18 +56,19 @@ test('people on the website are not shown as offline or in game', async ({ page 
   await expect(card(page, 'Web Friend')).toContainText('On the website or app');
   await expect(card(page, 'Game Friend').locator('.user-availability')).toHaveText('Ask me');
 
-  // Home counts only friends who are actually in game.
   await page.goto('/');
   const panel = page.locator('.dashboard-panel').filter({ hasText: 'Friends online' });
-  await expect(panel.locator('h2 small')).toHaveText('2');
-  // People on the website or app follow under their own heading.
+  // Everyone online shows in one row: in game first, then a "Not in game" badge.
+  await expect(panel.locator('h2 small')).toHaveText('4');
   await expect(panel.locator('.online-grid > a')).toHaveCount(4);
-  await expect(panel.locator('.online-subheading')).toHaveText(/^Not in game\s*2$/);
-  await panel.screenshot({ path: testInfo.outputPath('home-friends.png') });
-  await expect(panel.locator('.online-grid > a').nth(2)).toContainText('Web Friend');
-  await expect(panel.locator('.online-grid > a').nth(2).locator('.user-availability')).toHaveText(
+  await expect(panel.locator('.online-grid > a .user-availability')).toHaveText([
+    'Ask me',
+    'Join me',
     'Not in game',
-  );
+    'Not in game',
+  ]);
+  await expect(panel.locator('.online-grid > a').nth(2)).toContainText('Web Friend');
+  await panel.screenshot({ path: testInfo.outputPath('home-friends.png') });
 });
 
 test('friends can be grouped by VRChat favorite groups, and the choice is remembered', async ({
