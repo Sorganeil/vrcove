@@ -6,7 +6,7 @@ import { useLoader } from '../lib/use-loader';
 import { Picture } from '../components/avatar-media';
 import Loading from '../components/loading';
 import Pager from '../components/pager';
-import UserStatus from '../components/user-status';
+import UserStatus, { notInGame } from '../components/user-status';
 import { detailLink } from '../components/detail-links';
 import { ErrorBanner, RequireVRChat, SectionPage } from '../components/section-page';
 import type { VRChatUser } from '../lib/types';
@@ -22,8 +22,38 @@ export default function Friends() {
   );
 }
 
+type FriendFavorites = { groups: { name: string; label: string }[]; groupOf: Record<string, string> };
+
+// VRChat's friend favorite groups (group_0, group_1, ...) and who is in each.
+async function loadFriendFavorites(isAlive: () => boolean): Promise<FriendFavorites> {
+  const groups: { name: string; displayName?: string }[] = await api('/account/favorite-groups?type=friend');
+  const groupOf: Record<string, string> = {};
+  for (let offset = 0; isAlive(); offset += 100) {
+    const page: { favoriteId?: string; tags?: string[] }[] = await api(
+      '/account/favorites?type=friend&offset=' + offset,
+    );
+    for (const f of page) if (f.favoriteId && f.tags?.[0]) groupOf[f.favoriteId] = f.tags[0];
+    if (page.length < 100) break;
+  }
+  return {
+    groups: groups
+      .map((g) => ({ name: g.name, label: g.displayName || g.name }))
+      .sort((a, b) => a.name.localeCompare(b.name)),
+    groupOf,
+  };
+}
+
+const sortKey = 'vrcove-friend-sort';
+
 function FriendList() {
   useLocale();
+  const [sort, setSort] = useState(() => {
+    try {
+      return localStorage.getItem(sortKey) === 'favorites' ? 'favorites' : 'status';
+    } catch {
+      return 'status';
+    }
+  });
   const [search, setSearch] = useState('');
   const [offline, setOffline] = useState(false);
   const [offset, setOffset] = useState(0);
@@ -46,6 +76,11 @@ function FriendList() {
     },
     [offline, offset, searching],
     [] as VRChatUser[],
+  );
+  const favorites = useLoader(
+    (isAlive) => (sort === 'favorites' ? loadFriendFavorites(isAlive) : Promise.resolve(null)),
+    [sort],
+    null as FriendFavorites | null,
   );
   const needle = search.trim().toLocaleLowerCase();
   const friends = data.filter(
@@ -108,37 +143,70 @@ function FriendList() {
             {tr('Offline')}
           </button>
         </div>
-        <span className="muted">{tr('{count} friends on this page', { count: friends.length })}</span>
+        <label className="sort-label">
+          {tr('Sort by')}
+          <select
+            aria-label={tr('Sort friends')}
+            value={sort}
+            onChange={(e) => {
+              setSort(e.target.value);
+              try {
+                localStorage.setItem(sortKey, e.target.value);
+              } catch {
+                // Sorting still works for this visit.
+              }
+            }}
+          >
+            <option value="status">{tr('In game first')}</option>
+            <option value="favorites">{tr('Favorite groups')}</option>
+          </select>
+        </label>
       </div>
-      {loading ? (
+      <p className="muted friend-count">{tr('{count} friends on this page', { count: friends.length })}</p>
+      {sort === 'favorites' && favorites.error && (
+        <p className="fineprint">{tr('Couldn’t load your favorite groups.')}</p>
+      )}
+      {loading || (sort === 'favorites' && favorites.loading) ? (
         <Loading text={tr('Finding your people…')} />
       ) : (
-        <div className="friend-grid">
-          {friends.map((f) => (
-            <a className="friend-card" key={f.id} {...detailLink('user', f.id)}>
-              <div className="friend-photo">
-                <Picture
-                  src={f.userIcon || f.profilePicOverride || f.currentAvatarThumbnailImageUrl}
-                  alt=""
-                />
-              </div>
-              <div>
-                <h3>{f.displayName}</h3>
-                <UserStatus user={f} offline={offline} />
-                <small>
-                  {f.location === 'private'
-                    ? 'In a private instance'
-                    : f.location === 'offline'
-                      ? tr('Offline')
-                      : f.location === 'traveling'
-                        ? 'Traveling'
-                        : tr('View profile')}
-                </small>
-              </div>
-              <ArrowUpRight size={17} />
-            </a>
-          ))}
-        </div>
+        sections(friends, offline, sort === 'favorites' ? favorites.data : null).map((section) => (
+          <section className="friend-section" key={section.key}>
+            {section.title && (
+              <h2>
+                {section.title}
+                <small>{section.friends.length}</small>
+              </h2>
+            )}
+            <div className="friend-grid">
+              {section.friends.map((f) => (
+                <a className="friend-card" key={f.id} {...detailLink('user', f.id)}>
+                  <div className="friend-photo">
+                    <Picture
+                      src={f.userIcon || f.profilePicOverride || f.currentAvatarThumbnailImageUrl}
+                      alt=""
+                    />
+                  </div>
+                  <div>
+                    <h3>{f.displayName}</h3>
+                    <UserStatus user={f} offline={offline} />
+                    <small>
+                      {notInGame(f, offline)
+                        ? tr('On the website or app')
+                        : f.location === 'private'
+                          ? 'In a private instance'
+                          : f.location === 'offline'
+                            ? tr('Offline')
+                            : f.location === 'traveling'
+                              ? 'Traveling'
+                              : tr('View profile')}
+                    </small>
+                  </div>
+                  <ArrowUpRight size={17} />
+                </a>
+              ))}
+            </div>
+          </section>
+        ))
       )}
       {!loading && !friends.length && !error && (
         <div className="empty-state">
@@ -156,4 +224,36 @@ function FriendList() {
       {!searching && <Pager offset={offset} setOffset={setOffset} count={data.length} busy={loading} />}
     </>
   );
+}
+
+type Section = { key: string; title?: string; friends: VRChatUser[] };
+
+/** Splits a page of friends into favorite groups, or into in game and not in game. */
+function sections(friends: VRChatUser[], offline: boolean, favorites: FriendFavorites | null): Section[] {
+  const inGameFirst = (list: VRChatUser[]) =>
+    [...list].sort((a, b) => Number(notInGame(a, offline)) - Number(notInGame(b, offline)));
+  let out: Section[];
+  if (favorites) {
+    const known = new Set(favorites.groups.map((g) => g.name));
+    out = [
+      ...favorites.groups.map((g) => ({
+        key: g.name,
+        title: g.label,
+        friends: inGameFirst(friends.filter((f) => favorites.groupOf[f.id] === g.name)),
+      })),
+      {
+        key: 'other',
+        title: tr('Not in a favorite group'),
+        friends: inGameFirst(friends.filter((f) => !known.has(favorites.groupOf[f.id]))),
+      },
+    ];
+  } else if (!offline) {
+    out = [
+      { key: 'game', title: tr('In game'), friends: friends.filter((f) => !notInGame(f)) },
+      { key: 'web', title: tr('Not in game'), friends: friends.filter((f) => notInGame(f)) },
+    ];
+  } else {
+    out = [{ key: 'all', friends }];
+  }
+  return out.filter((section) => section.friends.length);
 }

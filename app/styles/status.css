@@ -36,6 +36,9 @@
 .user-status.tone-unknown {
   --presence-color: #91a3b4;
 }
+.user-status.tone-web {
+  --presence-color: #a99cf0;
+}
 .user-availability {
   display: inline-flex;
   align-items: center;
@@ -84,6 +87,29 @@
 .status-dot.offline {
   background: #91a3b4;
 }
+.status-dot.web,
+.presence-dot.web {
+  background: #a99cf0;
+}
+.friend-section + .friend-section {
+  margin-top: 26px;
+}
+.friend-section > h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+}
+.friend-section > h2 small {
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: #233d52;
+  color: #a3c4dd;
+  font-size: 11px;
+}
 .online-grid .user-status {
   align-items: center;
   text-align: center;
@@ -113,4 +139,13 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   margin-bottom: 0;
+}
+.online-elsewhere {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 12px;
+}
+.friend-count {
+  margin: 12px 0 16px;
+  font-size: 12px;
 }

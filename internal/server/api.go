@@ -579,13 +579,17 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, sessi
 		if kind == "" {
 			kind = "avatar"
 		}
-		if kind != "avatar" && kind != "world" {
-			writeError(w, http.StatusBadRequest, "Choose avatar or world favorites.")
+		if kind != "avatar" && kind != "world" && kind != "friend" {
+			writeError(w, http.StatusBadRequest, "Choose avatar, world or friend favorites.")
 			return nil
 		}
 		endpoint = "/favorites?type=" + kind + "&n=100&offset=" + offsetParam(r)
 	case p == "/account/favorite-groups":
-		endpoint = "/favorite/groups?type=avatar&n=100"
+		kind := "avatar"
+		if query.Get("type") == "friend" {
+			kind = "friend"
+		}
+		endpoint = "/favorite/groups?type=" + kind + "&n=100"
 	case p == "/account/avatar" && !post:
 		id := query.Get("id")
 		if !avatarID.MatchString(id) {

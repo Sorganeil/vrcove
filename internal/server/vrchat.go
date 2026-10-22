@@ -160,7 +160,7 @@ func (s *Server) vrc(ctx context.Context, path string, session *Session, req vrc
 
 var publicUserFields = []string{"id", "displayName", "bio", "status", "statusDescription",
 	"currentAvatarImageUrl", "currentAvatarThumbnailImageUrl", "userIcon", "profilePicOverride",
-	"location", "state", "tags"}
+	"location", "state", "platform", "tags"}
 
 // publicUser keeps only the profile fields the frontend shows.
 func publicUser(user any) map[string]any {

@@ -1,5 +1,5 @@
 import { gateTitle } from '../components/vrchat-gate';
-import UserStatus, { userPresence } from '../components/user-status';
+import UserStatus, { notInGame, userPresence } from '../components/user-status';
 import CompanionDownload from '../components/companion-download';
 import { api, useVRChatSession } from '../lib/api';
 import { t as tr, useLocale } from '../lib/i18n';
@@ -104,6 +104,8 @@ export default function Dashboard({
       setBusy(false);
     }
   }
+  // People on the website or app are online but not in game, so they aren't shown here.
+  const inGame = friends.filter((f) => !notInGame(f));
   if (!user)
     return (
       <div className="guest-home">
@@ -271,7 +273,12 @@ export default function Dashboard({
               <h2>
                 <Users size={17} />
                 {tr('Friends online')}
-                {user && <small>{friends.length === 100 ? '100+' : friends.length}</small>}
+                {user && (
+                  <small>
+                    {inGame.length}
+                    {friends.length === 100 ? '+' : ''}
+                  </small>
+                )}
               </h2>
               <button onClick={() => navigate('Friends')}>
                 {tr('View all')}
@@ -280,7 +287,7 @@ export default function Dashboard({
             </div>
             {user ? (
               <div className="online-grid">
-                {friends.slice(0, 12).map((f) => (
+                {inGame.slice(0, 12).map((f) => (
                   <a key={f.id} {...detailLink('user', f.id)}>
                     <div>
                       <Photo url={f.userIcon || f.profilePicOverride || f.currentAvatarThumbnailImageUrl} />
@@ -290,11 +297,18 @@ export default function Dashboard({
                     <UserStatus user={f} />
                   </a>
                 ))}
-                {!friends.length && (
+                {!inGame.length && (
                   <div className="panel-empty">
                     <Users size={25} />
-                    <p>{busy ? tr('Loading friends…') : tr('No online friends to show.')}</p>
+                    <p>{busy ? tr('Loading friends…') : tr('No friends in game right now.')}</p>
                   </div>
+                )}
+                {friends.length > inGame.length && (
+                  <p className="online-elsewhere">
+                    {tr('{count} more on the website or app, not in game.', {
+                      count: friends.length - inGame.length,
+                    })}
+                  </p>
                 )}
               </div>
             ) : (
