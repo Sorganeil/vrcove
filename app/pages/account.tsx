@@ -134,6 +134,8 @@ export default function AccountPage({
     [next, setNext] = useState(''),
     [deletePassword, setDeletePassword] = useState(''),
     [deleting, setDeleting] = useState(false),
+    [recovering, setRecovering] = useState(false),
+    [changingPassword, setChangingPassword] = useState(false),
     [renaming, setRenaming] = useState(false),
     [newName, setNewName] = useState(''),
     [renamePassword, setRenamePassword] = useState(''),
@@ -206,6 +208,7 @@ export default function AccountPage({
       const result = await api('/cove/recovery-codes', { password: recoveryPassword });
       setCodes(result.codes);
       setRecoveryPassword('');
+      setRecovering(false);
       await load();
     });
   }
@@ -301,6 +304,7 @@ export default function AccountPage({
       await api('/cove/password', { current, next });
       setCurrent('');
       setNext('');
+      setChangingPassword(false);
       notify(tr('Password changed. Other devices were signed out.'));
     });
   }
@@ -539,187 +543,172 @@ export default function AccountPage({
         </div>
       )}
       <div className="cove-panels">
-        <div className="cove-panel">
-          <div className="eyebrow">{tr('SIGNED IN')}</div>
-          <h3>
-            <CovePicture picture={me.picture} username={me.username} size={40} />
-            {me.username}
-          </h3>
-          <p className="fineprint">
-            {tr('Member since')} {day(me.created)}
-            {tr('. Your username is public on your reviews.')}
-          </p>
-          {renaming ? (
-            <form className="login-content" onSubmit={rename}>
-              <label>
-                {tr('New username')}
-                <input
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  autoComplete="username"
-                  required
-                  minLength={3}
-                  maxLength={32}
-                  pattern="[A-Za-z0-9_.\-]{3,32}"
-                />
-              </label>
-              {newName.trim().length >= 3 &&
-                me.links.some(
-                  (l) =>
-                    similarNames(newName, l.displayName) ||
-                    (!!l.username && similarNames(newName, l.username)),
-                ) && <NameAdvice />}
-              <label>
-                {tr('Confirm with your password')}
-                <input
-                  type="password"
-                  value={renamePassword}
-                  onChange={(e) => setRenamePassword(e.target.value)}
-                  autoComplete="current-password"
-                  required
-                  maxLength={1024}
-                />
-              </label>
-              <p className="fineprint">
-                {tr(
-                  'Your reviews and collections keep working under the new name. Old links to your profile stop working, and anyone can take your old name.',
-                )}
-              </p>
-              <div className="result-actions">
-                <button className="standard-button" type="submit" disabled={!!busy}>
-                  {busy === 'rename' ? <LoaderCircle size={13} className="spin" /> : <Check size={13} />}
-                  {tr('Change username')}
-                </button>
-                <button type="button" className="standard-button" onClick={() => setRenaming(false)}>
-                  {tr('Cancel')}
-                </button>
+        <div className="cove-panel login-content cove-profile-card">
+          <div className="cove-profile-grid">
+            <div className="cove-profile-side">
+              <div className="eyebrow">{tr('SIGNED IN')}</div>
+              <div className="cove-identity">
+                <CovePicture picture={me.picture} username={me.username} size={64} />
+                <div>
+                  <h3>{me.username}</h3>
+                  <p className="fineprint">
+                    {tr('Member since')} {day(me.created)}
+                    {tr('. Your username is public on your reviews.')}
+                  </p>
+                </div>
               </div>
-            </form>
-          ) : (
-            <div className="result-actions">
-              <button className="standard-button" disabled={!!busy} onClick={() => setRenaming(true)}>
-                <Pencil size={14} />
-                {tr('Change username')}
-              </button>
-              <button className="standard-button" disabled={!!busy} onClick={logout}>
-                <LogOut size={14} />
-                {tr('Sign out')}
-              </button>
+              {renaming ? (
+                <form onSubmit={rename}>
+                  <label>
+                    {tr('New username')}
+                    <input
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      autoComplete="username"
+                      required
+                      minLength={3}
+                      maxLength={32}
+                      pattern="[A-Za-z0-9_.\-]{3,32}"
+                    />
+                  </label>
+                  {newName.trim().length >= 3 &&
+                    me.links.some(
+                      (l) =>
+                        similarNames(newName, l.displayName) ||
+                        (!!l.username && similarNames(newName, l.username)),
+                    ) && <NameAdvice />}
+                  <label>
+                    {tr('Confirm with your password')}
+                    <input
+                      type="password"
+                      value={renamePassword}
+                      onChange={(e) => setRenamePassword(e.target.value)}
+                      autoComplete="current-password"
+                      required
+                      maxLength={1024}
+                    />
+                  </label>
+                  <p className="fineprint">
+                    {tr(
+                      'Your reviews and collections keep working under the new name. Old links to your profile stop working, and anyone can take your old name.',
+                    )}
+                  </p>
+                  <div className="result-actions">
+                    <button className="standard-button" type="submit" disabled={!!busy}>
+                      {busy === 'rename' ? <LoaderCircle size={13} className="spin" /> : <Check size={13} />}
+                      {tr('Change username')}
+                    </button>
+                    <button type="button" className="standard-button" onClick={() => setRenaming(false)}>
+                      {tr('Cancel')}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="result-actions">
+                  <button className="standard-button" disabled={!!busy} onClick={() => setRenaming(true)}>
+                    <Pencil size={14} />
+                    {tr('Change username')}
+                  </button>
+                  <label className={'standard-button picture-upload' + (busy ? ' disabled' : '')}>
+                    <Upload size={14} />
+                    {tr('Upload profile picture')}
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/gif"
+                      disabled={!!busy}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        e.target.value = '';
+                        if (file) setCropping(file);
+                      }}
+                    />
+                  </label>
+                  {me.picture && (
+                    <button className="standard-button" disabled={!!busy} onClick={removePicture}>
+                      <Trash2 size={14} />
+                      {tr('Remove picture')}
+                    </button>
+                  )}
+                  <button className="standard-button" disabled={!!busy} onClick={logout}>
+                    <LogOut size={14} />
+                    {tr('Sign out')}
+                  </button>
+                </div>
+              )}
+              {busy === 'picture' && (
+                <span role="status">
+                  <LoaderCircle size={14} className="spin" />
+                  {tr('Saving picture…')}
+                </span>
+              )}
+              {cropping && (
+                <PictureCropper file={cropping} close={() => setCropping(null)} save={uploadPicture} />
+              )}
             </div>
-          )}
-        </div>
-        <LoggerApiKeys
-          key={`${me.username}:${user?.id || ''}`}
-          currentId={user?.id}
-          connected={!!user && !connection.issue && !!connection.expiresAt && connection.expiresAt > now}
-          links={me.links}
-          notify={notify}
-        />
-        <div className="cove-panel login-content">
-          <div className="eyebrow">{tr('PROFILE PICTURE')}</div>
-          <h3>{tr('Your VRCove picture')}</h3>
-          <CovePicture picture={me.picture} username={me.username} size={80} />
-          <label className={'standard-button picture-upload' + (busy ? ' disabled' : '')}>
-            <Upload size={14} />
-            {tr('Upload profile picture')}
-            <input
-              type="file"
-              accept="image/png,image/jpeg,image/gif"
-              disabled={!!busy}
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                e.target.value = '';
-                if (file) setCropping(file);
-              }}
-            />
-          </label>
-          <p className="fineprint">
-            {tr(
-              'PNG, JPEG or GIF. Before saving, you can move and zoom it to fit the circle. Visible to others when your profile is public.',
-            )}
-          </p>
-          {busy === 'picture' && (
-            <span role="status">
-              <LoaderCircle size={14} className="spin" />
-              {tr('Saving picture…')}
-            </span>
-          )}
-          {cropping && (
-            <PictureCropper file={cropping} close={() => setCropping(null)} save={uploadPicture} />
-          )}
-          {me.picture && (
-            <button className="standard-button" disabled={!!busy} onClick={removePicture}>
-              <Trash2 size={14} />
-              {tr('Remove picture')}
-            </button>
-          )}
-        </div>
-        <div className="cove-panel login-content">
-          <div className="eyebrow">{tr('PUBLIC PROFILE')}</div>
-          <h3>
-            {me.public ? <Globe2 size={18} /> : <Lock size={18} />}
-            {tr(me.public ? 'Profile is public' : 'Profile is private')}
-          </h3>
-          <p className="fineprint">
-            {me.public
-              ? 'Anyone can see your bio, status, every review you’ve posted and your public collections.'
-              : 'Only you can see your profile page. Your reviews still show your username where you posted them.'}{' '}
-            {tr('Linked VRChat accounts are never shown.')}
-          </p>
-          <label className="cove-switch">
-            <input
-              type="checkbox"
-              checked={me.public}
-              disabled={!!busy}
-              onChange={(e) => saveProfile({ public: e.target.checked })}
-            />
-            <span>{tr('Make my profile public')}</span>
-          </label>
-          <p className="fineprint">
-            {tr('Your bio and status belong to your VRCove profile. They are separate from VRChat.')}
-          </p>
-          <label>
-            {tr('VRCove status')}
-            <input
-              value={status ?? me.status ?? ''}
-              onChange={(e) => setStatus(e.target.value)}
-              maxLength={160}
-              placeholder={tr('What are you up to?')}
-              disabled={!!busy}
-            />
-            <small>{(status ?? me.status ?? '').length}/160</small>
-          </label>
-          <label>
-            {tr('Bio')}
-            <textarea
-              value={bio ?? me.bio}
-              onChange={(e) => setBio(e.target.value)}
-              maxLength={500}
-              rows={3}
-              placeholder={tr('What you like to review, if you want to say')}
-              disabled={!!busy}
-            />
-            <small>{(bio ?? me.bio).length}/500</small>
-          </label>
-          <div className="result-actions">
-            {((bio !== null && bio !== me.bio) || (status !== null && status !== (me.status ?? ''))) && (
-              <button
-                className="standard-button"
-                disabled={!!busy}
-                onClick={() => saveProfile({ bio: bio ?? me.bio, status: status ?? me.status ?? '' })}
-              >
-                {busy === 'profile' ? <LoaderCircle size={13} className="spin" /> : <Check size={13} />}
-                {tr('Save profile')}
-              </button>
-            )}
-            <a className="standard-button" {...appLink(covePath('cove', me.username))}>
-              <UserRound size={13} />
-              {tr('View my profile')}
-            </a>
-            <a className="standard-button" {...appLink('/collections')}>
-              <Library size={13} />
-              {tr('My collections')}
-            </a>
+            <div className="cove-profile-fields">
+              <h3>
+                {me.public ? <Globe2 size={16} /> : <Lock size={16} />}
+                {tr(me.public ? 'Profile is public' : 'Profile is private')}
+              </h3>
+              <p className="fineprint">
+                {me.public
+                  ? 'Anyone can see your bio, status, every review you’ve posted and your public collections.'
+                  : 'Only you can see your profile page. Your reviews still show your username where you posted them.'}{' '}
+                {tr('Linked VRChat accounts are never shown.')}
+              </p>
+              <label className="cove-switch">
+                <input
+                  type="checkbox"
+                  checked={me.public}
+                  disabled={!!busy}
+                  onChange={(e) => saveProfile({ public: e.target.checked })}
+                />
+                <span>{tr('Make my profile public')}</span>
+              </label>
+              <label>
+                {tr('VRCove status')}
+                <input
+                  value={status ?? me.status ?? ''}
+                  onChange={(e) => setStatus(e.target.value)}
+                  maxLength={160}
+                  placeholder={tr('What are you up to?')}
+                  disabled={!!busy}
+                />
+                <small>{(status ?? me.status ?? '').length}/160</small>
+              </label>
+              <label>
+                {tr('Bio')}
+                <textarea
+                  value={bio ?? me.bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  maxLength={500}
+                  rows={3}
+                  placeholder={tr('What you like to review, if you want to say')}
+                  disabled={!!busy}
+                />
+                <small>{(bio ?? me.bio).length}/500</small>
+              </label>
+              <div className="result-actions">
+                {((bio !== null && bio !== me.bio) || (status !== null && status !== (me.status ?? ''))) && (
+                  <button
+                    className="standard-button"
+                    disabled={!!busy}
+                    onClick={() => saveProfile({ bio: bio ?? me.bio, status: status ?? me.status ?? '' })}
+                  >
+                    {busy === 'profile' ? <LoaderCircle size={13} className="spin" /> : <Check size={13} />}
+                    {tr('Save profile')}
+                  </button>
+                )}
+                <a className="standard-button" {...appLink(covePath('cove', me.username))}>
+                  <UserRound size={13} />
+                  {tr('View my profile')}
+                </a>
+                <a className="standard-button" {...appLink('/collections')}>
+                  <Library size={13} />
+                  {tr('My collections')}
+                </a>
+              </div>
+            </div>
           </div>
         </div>
         <div className="cove-panel">
@@ -728,11 +717,6 @@ export default function AccountPage({
             <Link2 size={18} />
             {tr('VRChat accounts')}
           </h3>
-          <p className="fineprint">
-            {tr(
-              'These links are private to your account and stored encrypted. The server operator holds the key and can decrypt them. They never appear on public profiles, reviews or collections. A linked account can’t be reviewed by you.',
-            )}
-          </p>
           {me.links.length ? (
             <ul className="cove-links">
               {me.links.map((l) => {
@@ -879,29 +863,48 @@ export default function AccountPage({
               {tr('Link another VRChat account')}
             </button>
           )}
-          <p className="fineprint">
-            {tr(
-              'You can link up to 10 VRChat accounts. Saved sessions stay encrypted in this browser. Switching makes that account active for all VRChat actions in this browser.',
-            )}
-          </p>
-          <p className="fineprint">
-            {tr(
-              'Sign in to VRChat to verify ownership and link it automatically. VRChat sees a sign-in through VRCove but not your VRCove username.',
-            )}
-          </p>
+          <details className="fineprint cove-details">
+            <summary>{tr('How linking works')}</summary>
+            <p>
+              {tr(
+                'These links are private to your account and stored encrypted. The server operator holds the key and can decrypt them. They never appear on public profiles, reviews or collections. A linked account can’t be reviewed by you.',
+              )}
+            </p>
+            <p>
+              {tr(
+                'You can link up to 10 VRChat accounts. Saved sessions stay encrypted in this browser. Switching makes that account active for all VRChat actions in this browser.',
+              )}
+            </p>
+            <p>
+              {tr(
+                'Sign in to VRChat to verify ownership and link it automatically. VRChat sees a sign-in through VRCove but not your VRCove username.',
+              )}
+            </p>
+          </details>
         </div>
+        <LoggerApiKeys
+          key={`${me.username}:${user?.id || ''}`}
+          currentId={user?.id}
+          connected={!!user && !connection.issue && !!connection.expiresAt && connection.expiresAt > now}
+          links={me.links}
+          notify={notify}
+        />
         <div className="cove-panel login-content">
-          <div className="eyebrow">{tr('ACCOUNT RECOVERY')}</div>
-          <h3>
-            <KeyRound size={18} />
-            {tr('Recovery codes')}
-          </h3>
-          <p className="fineprint">
-            {tr('{count} unused recovery codes remaining.', { count: me.recoveryCodesRemaining || 0 })}{' '}
-            {tr(
-              'Each code can reset your password once. Store them somewhere safe; anyone with a code and your username can access your account.',
+          <div className="eyebrow">{tr('SECURITY')}</div>
+          <div className="account-row">
+            <div>
+              <strong>{tr('Recovery codes')}</strong>
+              <small>
+                {tr('{count} unused recovery codes remaining.', { count: me.recoveryCodesRemaining || 0 })}
+              </small>
+            </div>
+            {!recovering && !codes.length && (
+              <button className="standard-button" disabled={!!busy} onClick={() => setRecovering(true)}>
+                <KeyRound size={13} />
+                {tr(me.recoveryCodesRemaining ? 'Replace recovery codes' : 'Generate recovery codes')}
+              </button>
             )}
-          </p>
+          </div>
           {codes.length > 0 ? (
             <div role="region" aria-label={tr('Your new recovery codes')}>
               <p className="fineprint">
@@ -914,83 +917,125 @@ export default function AccountPage({
                   </li>
                 ))}
               </ul>
-              <button className="standard-button" onClick={downloadCodes}>
-                {tr('Download codes')}
-              </button>
-              <button className="standard-button" onClick={() => setCodes([])}>
-                {tr('I saved my codes')}
-              </button>
+              <div className="result-actions">
+                <button className="standard-button" onClick={downloadCodes}>
+                  {tr('Download codes')}
+                </button>
+                <button className="standard-button" onClick={() => setCodes([])}>
+                  {tr('I saved my codes')}
+                </button>
+              </div>
             </div>
           ) : (
-            <form onSubmit={generateCodes}>
+            recovering && (
+              <form onSubmit={generateCodes}>
+                <p className="fineprint">
+                  {tr(
+                    'Each code can reset your password once. Store them somewhere safe; anyone with a code and your username can access your account.',
+                  )}{' '}
+                  {tr('Generating a new set immediately invalidates all previous codes.')}
+                </p>
+                <label>
+                  {tr('Confirm password for recovery codes')}
+                  <input
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                    maxLength={1024}
+                    value={recoveryPassword}
+                    onChange={(e) => setRecoveryPassword(e.target.value)}
+                  />
+                </label>
+                <div className="result-actions">
+                  <button className="standard-button" type="submit" disabled={!!busy}>
+                    {busy === 'recovery' ? (
+                      <LoaderCircle size={13} className="spin" />
+                    ) : (
+                      <KeyRound size={13} />
+                    )}
+                    {tr(me.recoveryCodesRemaining ? 'Replace recovery codes' : 'Generate recovery codes')}
+                  </button>
+                  <button type="button" className="standard-button" onClick={() => setRecovering(false)}>
+                    {tr('Cancel')}
+                  </button>
+                </div>
+              </form>
+            )
+          )}
+          <div className="account-row">
+            <div>
+              <strong>{tr('Password')}</strong>
+            </div>
+            {!changingPassword && (
+              <button className="standard-button" disabled={!!busy} onClick={() => setChangingPassword(true)}>
+                <KeyRound size={13} />
+                {tr('Change password')}
+              </button>
+            )}
+          </div>
+          {changingPassword && (
+            <form onSubmit={changePassword}>
               <label>
-                {tr('Confirm password for recovery codes')}
+                {tr('Current password')}
                 <input
                   type="password"
+                  value={current}
+                  onChange={(e) => setCurrent(e.target.value)}
                   autoComplete="current-password"
                   required
                   maxLength={1024}
-                  value={recoveryPassword}
-                  onChange={(e) => setRecoveryPassword(e.target.value)}
                 />
               </label>
-              <p className="fineprint">
-                {tr('Generating a new set immediately invalidates all previous codes.')}
-              </p>
-              <button className="standard-button" type="submit" disabled={!!busy}>
-                {busy === 'recovery' ? <LoaderCircle size={13} className="spin" /> : <KeyRound size={13} />}
-                {tr(me.recoveryCodesRemaining ? 'Replace recovery codes' : 'Generate recovery codes')}
-              </button>
+              <label>
+                {tr('New password')}
+                <input
+                  type="password"
+                  value={next}
+                  onChange={(e) => setNext(e.target.value)}
+                  autoComplete="new-password"
+                  required
+                  minLength={10}
+                  maxLength={1024}
+                />
+              </label>
+              <div className="result-actions">
+                <button className="standard-button" type="submit" disabled={!!busy}>
+                  {busy === 'password' ? <LoaderCircle size={13} className="spin" /> : <Check size={13} />}
+                  {tr('Change password')}
+                </button>
+                <button type="button" className="standard-button" onClick={() => setChangingPassword(false)}>
+                  {tr('Cancel')}
+                </button>
+              </div>
             </form>
           )}
         </div>
-        <form className="cove-panel login-content" onSubmit={changePassword}>
-          <div className="eyebrow">{tr('SECURITY')}</div>
-          <h3>
-            <KeyRound size={18} />
-            {tr('Change password')}
-          </h3>
-          <label>
-            {tr('Current password')}
-            <input
-              type="password"
-              value={current}
-              onChange={(e) => setCurrent(e.target.value)}
-              autoComplete="current-password"
-              required
-              maxLength={1024}
-            />
-          </label>
-          <label>
-            {tr('New password')}
-            <input
-              type="password"
-              value={next}
-              onChange={(e) => setNext(e.target.value)}
-              autoComplete="new-password"
-              required
-              minLength={10}
-              maxLength={1024}
-            />
-          </label>
-          <button className="standard-button" type="submit" disabled={!!busy}>
-            {busy === 'password' ? <LoaderCircle size={13} className="spin" /> : <Check size={13} />}
-            {tr('Change password')}
-          </button>
-        </form>
         <div className="cove-panel login-content">
           <div className="eyebrow">{tr('YOUR DATA')}</div>
-          <h3>
-            <Download size={18} />
-            {tr('Download your data')}
-          </h3>
-          <p className="fineprint">
-            {tr(
-              'Get a JSON file with everything VRCove stores about your account: profile, picture, VRChat links, devices, reviews, collections and reports you sent. Passwords and keys aren’t included.',
+          <div className="account-row">
+            <div>
+              <strong>{tr('Download your data')}</strong>
+            </div>
+            {!exporting && (
+              <button
+                className="standard-button"
+                onClick={() => {
+                  setExporting(true);
+                  setDeleting(false);
+                }}
+              >
+                <Download size={13} />
+                {tr('Download my data')}
+              </button>
             )}
-          </p>
-          {exporting ? (
+          </div>
+          {exporting && (
             <form onSubmit={downloadData}>
+              <p className="fineprint">
+                {tr(
+                  'Get a JSON file with everything VRCove stores about your account: profile, picture, VRChat links, devices, reviews, collections and reports you sent. Passwords and keys aren’t included.',
+                )}
+              </p>
               <label>
                 {tr('Confirm with your password')}
                 <input
@@ -1002,33 +1047,41 @@ export default function AccountPage({
                   maxLength={1024}
                 />
               </label>
-              <button className="standard-button" type="submit" disabled={!!busy}>
-                {busy === 'export' ? <LoaderCircle size={13} className="spin" /> : <Download size={13} />}
-                {tr('Download')}
-              </button>
-              <button type="button" className="standard-button" onClick={() => setExporting(false)}>
-                {tr('Cancel')}
-              </button>
+              <div className="result-actions">
+                <button className="standard-button" type="submit" disabled={!!busy}>
+                  {busy === 'export' ? <LoaderCircle size={13} className="spin" /> : <Download size={13} />}
+                  {tr('Download')}
+                </button>
+                <button type="button" className="standard-button" onClick={() => setExporting(false)}>
+                  {tr('Cancel')}
+                </button>
+              </div>
             </form>
-          ) : (
-            <button className="standard-button" onClick={() => setExporting(true)}>
-              {tr('Download my data')}
-            </button>
           )}
-        </div>
-        <div className="cove-panel login-content">
-          <div className="eyebrow">{tr('DANGER ZONE')}</div>
-          <h3>
-            <Trash2 size={18} />
-            {tr('Delete account')}
-          </h3>
-          <p className="fineprint">
-            {tr(
-              'Deletes your account, all your reviews, collections and every VRChat link. This can’t be undone.',
+          <div className="account-row">
+            <div>
+              <strong>{tr('Delete account')}</strong>
+            </div>
+            {!deleting && (
+              <button
+                className="standard-button danger-text"
+                onClick={() => {
+                  setDeleting(true);
+                  setExporting(false);
+                }}
+              >
+                <Trash2 size={13} />
+                {tr('Delete my account')}
+              </button>
             )}
-          </p>
-          {deleting ? (
+          </div>
+          {deleting && (
             <form onSubmit={remove}>
+              <p className="fineprint">
+                {tr(
+                  'Deletes your account, all your reviews, collections and every VRChat link. This can’t be undone.',
+                )}
+              </p>
               <label>
                 {tr('Confirm with your password')}
                 <input
@@ -1040,18 +1093,16 @@ export default function AccountPage({
                   maxLength={1024}
                 />
               </label>
-              <button className="standard-button danger-text" type="submit" disabled={!!busy}>
-                {busy === 'delete' ? <LoaderCircle size={13} className="spin" /> : <Trash2 size={13} />}
-                {tr('Delete permanently')}
-              </button>
-              <button type="button" className="standard-button" onClick={() => setDeleting(false)}>
-                {tr('Cancel')}
-              </button>
+              <div className="result-actions">
+                <button className="standard-button danger-text" type="submit" disabled={!!busy}>
+                  {busy === 'delete' ? <LoaderCircle size={13} className="spin" /> : <Trash2 size={13} />}
+                  {tr('Delete permanently')}
+                </button>
+                <button type="button" className="standard-button" onClick={() => setDeleting(false)}>
+                  {tr('Cancel')}
+                </button>
+              </div>
             </form>
-          ) : (
-            <button className="standard-button danger-text" onClick={() => setDeleting(true)}>
-              {tr('Delete my account')}
-            </button>
           )}
         </div>
       </div>

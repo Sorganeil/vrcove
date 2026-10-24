@@ -540,15 +540,6 @@
   .settings-content {
     padding: 18px;
   }
-  .setting-row {
-    gap: 15px;
-  }
-  .setting-row strong {
-    font-size: 13px;
-  }
-  .setting-row p {
-    font-size: 12px;
-  }
   .settings-actions .standard-button {
     font-size: 12px;
   }

@@ -16,7 +16,6 @@ import {
   Upload,
   Trash2,
   LoaderCircle,
-  Check,
   ExternalLink,
   X,
 } from 'lucide-react';
@@ -249,45 +248,6 @@ export default function BrowserTools({
         <div className="settings-grid">
           <section className="dashboard-panel">
             <div className="panel-title">
-              <h2>{tr('Privacy defaults')}</h2>
-            </div>
-            <div className="settings-content">
-              <div className="setting-row">
-                <div>
-                  <strong>{tr('Activity tracking')}</strong>
-                  <p>{tr('No friend-location history or play-time tracking is collected.')}</p>
-                </div>
-                <span className="setting-state">{tr('Off')}</span>
-              </div>
-              <div className="setting-row">
-                <div>
-                  <strong>{tr('Automatic refresh')}</strong>
-                  <p>{tr('Account data loads when you open a section or press Refresh.')}</p>
-                </div>
-                <span className="setting-state">{tr('Manual')}</span>
-              </div>
-              <div className="setting-row">
-                <div>
-                  <strong>{tr('Images')}</strong>
-                  <p>{tr('Proxied through VRCove. No direct image-host requests from your browser.')}</p>
-                </div>
-                <Check size={16} />
-              </div>
-              <div className="setting-row">
-                <div>
-                  <strong>{tr('Session persistence')}</strong>
-                  <p>
-                    {tr(
-                      'Encrypted, HttpOnly cookie. Maximum 2 weeks. No VRChat credentials in the database.',
-                    )}
-                  </p>
-                </div>
-                <Check size={16} />
-              </div>
-            </div>
-          </section>
-          <section className="dashboard-panel">
-            <div className="panel-title">
               <h2>{tr('Local data')}</h2>
             </div>
             <div className="settings-content">
@@ -323,29 +283,6 @@ export default function BrowserTools({
                   {tr('Clear local data')}
                 </button>
               </div>
-            </div>
-          </section>
-          <section className="dashboard-panel notes-panel">
-            <div className="panel-title">
-              <h2>{tr('Private notes')}</h2>
-              <small>{tr('Stored on this device only')}</small>
-            </div>
-            <div className="settings-content">
-              <textarea
-                aria-label={tr('Private notes')}
-                value={notes}
-                onChange={(e) => {
-                  setNotes(e.target.value);
-                  try {
-                    localStorage.setItem('vrcove-notes', e.target.value);
-                    localStorage.removeItem('veilchat-notes');
-                  } catch {
-                    notify(tr('Your browser could not save these notes.'));
-                  }
-                }}
-                maxLength={100000}
-                placeholder={tr('Worlds to visit, avatar ideas, people to catch up with…')}
-              />
             </div>
           </section>
           <section className="dashboard-panel">

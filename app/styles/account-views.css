@@ -227,43 +227,6 @@
 .settings-content > p {
   margin-bottom: 17px;
 }
-.setting-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 22px;
-  padding: 17px 0;
-  border-bottom: 1px solid var(--line);
-}
-.setting-row:first-child {
-  padding-top: 0;
-}
-.setting-row:last-child {
-  padding-bottom: 0;
-  border: 0;
-}
-.setting-row strong {
-  color: #d0e0ed;
-  font-size: 14px;
-  font-weight: 500;
-}
-.setting-row p {
-  margin-top: 5px;
-  color: #8da6bb;
-  font-size: 13px;
-  line-height: 1.65;
-}
-.setting-row > svg {
-  color: #84bfbb;
-}
-.setting-state {
-  flex-shrink: 0;
-  padding: 3px 8px;
-  border-radius: 4px;
-  background: #192e3e;
-  color: #a4cbdf;
-  font-size: 11px;
-}
 .settings-actions {
   display: flex;
   flex-wrap: wrap;

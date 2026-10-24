@@ -468,3 +468,85 @@
     font-size: 25px;
   }
 }
+
+/* Account page: one wide profile card, then compact rows that open their form on demand. */
+.cove-profile-card {
+  grid-column: 1 / -1;
+}
+.cove-profile-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+  gap: 28px;
+  width: 100%;
+}
+.cove-profile-side,
+.cove-profile-fields {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+.cove-profile-fields h3 {
+  font-size: 15px;
+}
+.cove-identity {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.cove-identity h3 {
+  overflow-wrap: anywhere;
+}
+.cove-identity .fineprint {
+  margin-top: 4px;
+}
+.cove-profile-side .result-actions {
+  margin-top: 0;
+}
+.account-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.eyebrow + .account-row {
+  padding-top: 0;
+  border-top: 0;
+}
+.account-row > div {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+.account-row strong {
+  display: block;
+  color: #d0e0ed;
+  font-size: 14px;
+  font-weight: 500;
+}
+.account-row small {
+  display: block;
+  margin-top: 3px;
+  color: #829db3;
+  font-size: 12px;
+}
+.account-row .standard-button {
+  flex-shrink: 0;
+}
+.cove-details summary {
+  cursor: pointer;
+  color: #9fc3dd;
+}
+.cove-details p {
+  margin-top: 8px;
+}
+@media (max-width: 760px) {
+  .cove-profile-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+  }
+}

@@ -420,6 +420,7 @@ test('VRCove profile pictures upload, persist, respect privacy and can be remove
 
 test('recovery codes reset a forgotten password and can only be used once', async ({ page }, testInfo) => {
   const name = await signup(page);
+  await page.getByRole('button', { name: 'Generate recovery codes', exact: true }).click();
   await page.getByLabel('Confirm password for recovery codes').fill(password);
   await page.getByRole('button', { name: 'Generate recovery codes', exact: true }).click();
   const region = page.getByRole('region', { name: 'Your new recovery codes' });

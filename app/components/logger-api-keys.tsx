@@ -84,21 +84,24 @@ export default function LoggerApiKeys({
         <KeyRound size={18} />
         {tr('Companion API keys')}
       </h3>
-      <p>
-        {tr(
-          'Generate an API key for your active VRChat session, then paste it into the desktop companion’s API key field. The companion also needs its own VRChat login, made directly with VRChat, to check avatars before upload. The server then verifies every avatar again with this session.',
-        )}
-      </p>
-      <p className="fineprint">
-        {tr(
-          'Enabling an API key stores your VRChat session credentials encrypted in the existing server-side session record. This lets the server fetch avatar metadata and verify submissions while your browser is closed. The desktop companion receives only the API key, never your VRChat credentials.',
-        )}
-      </p>
-      <p className="fineprint">
-        {tr(
-          'The API key is tied to this session’s lifetime. It expires when the VRChat session expires or ends, including when you sign out or unlink the account. Reconnecting requires a new API key. Generating another key replaces the previous key for this session.',
-        )}
-      </p>
+      <details className="fineprint cove-details">
+        <summary>{tr('How API keys work')}</summary>
+        <p>
+          {tr(
+            'Generate an API key for your active VRChat session, then paste it into the desktop companion’s API key field. The companion also needs its own VRChat login, made directly with VRChat, to check avatars before upload. The server then verifies every avatar again with this session.',
+          )}
+        </p>
+        <p>
+          {tr(
+            'Enabling an API key stores your VRChat session credentials encrypted in the existing server-side session record. This lets the server fetch avatar metadata and verify submissions while your browser is closed. The desktop companion receives only the API key, never your VRChat credentials.',
+          )}
+        </p>
+        <p>
+          {tr(
+            'The API key is tied to this session’s lifetime. It expires when the VRChat session expires or ends, including when you sign out or unlink the account. Reconnecting requires a new API key. Generating another key replaces the previous key for this session.',
+          )}
+        </p>
+      </details>
       {loading ? (
         <p role="status">{tr('Loading…')}</p>
       ) : (
