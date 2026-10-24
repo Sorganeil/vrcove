@@ -369,6 +369,8 @@ func (s *Server) cove(w http.ResponseWriter, r *http.Request, p string) error {
 		return s.changePassword(w, r, acct)
 	case p == "delete" && post:
 		return s.deleteAccount(w, r, acct)
+	case p == "export" && post:
+		return s.exportAccount(w, r, acct)
 	case p == "link" && post:
 		return s.linkVRChat(w, r, acct)
 	case p == "unlink" && post:

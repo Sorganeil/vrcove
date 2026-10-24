@@ -114,6 +114,18 @@ test('account signup, privacy, public profile and deletion', async ({ page, brow
   expect(visible.status()).toBe(200);
   expect(await visible.json()).not.toHaveProperty('links');
   await page.goto('/#account');
+  await page.getByRole('button', { name: 'Download my data' }).click();
+  await page.getByLabel('Confirm with your password').fill(password);
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Download', exact: true }).click();
+  const file = await download;
+  expect(file.suggestedFilename()).toMatch(new RegExp(`^vrcove-data-${name}-\\d{4}-\\d{2}-\\d{2}\\.json$`));
+  const exported = JSON.parse(readFileSync(await file.path(), 'utf8'));
+  expect(exported.account).toMatchObject({
+    username: name,
+    bio: 'Independent world reviewer.',
+    publicProfile: true,
+  });
   await page.getByRole('button', { name: 'Delete my account' }).click();
   await page.getByLabel('Confirm with your password').fill(password);
   await page.getByRole('button', { name: 'Delete permanently' }).click();

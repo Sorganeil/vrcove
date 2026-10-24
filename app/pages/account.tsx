@@ -10,6 +10,7 @@ import {
   LogOut,
   KeyRound,
   Trash2,
+  Download,
   UserRound,
   TriangleAlert,
   ArrowRight,
@@ -131,7 +132,9 @@ export default function AccountPage({
   const [current, setCurrent] = useState(''),
     [next, setNext] = useState(''),
     [deletePassword, setDeletePassword] = useState(''),
-    [deleting, setDeleting] = useState(false);
+    [deleting, setDeleting] = useState(false),
+    [exportPassword, setExportPassword] = useState(''),
+    [exporting, setExporting] = useState(false);
   function updateMe(value: Me | null) {
     if (!value) setCodes([]);
     setMe(value);
@@ -295,6 +298,27 @@ export default function AccountPage({
       setCurrent('');
       setNext('');
       notify(tr('Password changed. Other devices were signed out.'));
+    });
+  }
+  function downloadData(e: React.FormEvent) {
+    e.preventDefault();
+    run('export', async () => {
+      const response = await fetch('/api/cove/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: exportPassword }),
+      });
+      if (!response.ok) throw new Error((await response.json()).error || 'Download failed');
+      const name = /filename="([^"]+)"/.exec(response.headers.get('Content-Disposition') || '')?.[1];
+      const url = URL.createObjectURL(await response.blob());
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = name || 'vrcove-data.json';
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setExportPassword('');
+      setExporting(false);
+      notify(tr('Your data was downloaded'));
     });
   }
   function remove(e: React.FormEvent) {
@@ -886,6 +910,44 @@ export default function AccountPage({
             {tr('Change password')}
           </button>
         </form>
+        <div className="cove-panel login-content">
+          <div className="eyebrow">{tr('YOUR DATA')}</div>
+          <h3>
+            <Download size={18} />
+            {tr('Download your data')}
+          </h3>
+          <p className="fineprint">
+            {tr(
+              'Get a JSON file with everything VRCove stores about your account: profile, picture, VRChat links, devices, reviews, collections and reports you sent. Passwords and keys aren’t included.',
+            )}
+          </p>
+          {exporting ? (
+            <form onSubmit={downloadData}>
+              <label>
+                {tr('Confirm with your password')}
+                <input
+                  type="password"
+                  value={exportPassword}
+                  onChange={(e) => setExportPassword(e.target.value)}
+                  autoComplete="current-password"
+                  required
+                  maxLength={1024}
+                />
+              </label>
+              <button className="standard-button" type="submit" disabled={!!busy}>
+                {busy === 'export' ? <LoaderCircle size={13} className="spin" /> : <Download size={13} />}
+                {tr('Download')}
+              </button>
+              <button type="button" className="standard-button" onClick={() => setExporting(false)}>
+                {tr('Cancel')}
+              </button>
+            </form>
+          ) : (
+            <button className="standard-button" onClick={() => setExporting(true)}>
+              {tr('Download my data')}
+            </button>
+          )}
+        </div>
         <div className="cove-panel login-content">
           <div className="eyebrow">{tr('DANGER ZONE')}</div>
           <h3>
