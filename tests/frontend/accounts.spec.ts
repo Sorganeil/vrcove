@@ -134,6 +134,27 @@ test('account signup, privacy, public profile and deletion', async ({ page, brow
   await visitor.close();
 });
 
+test('changing the username renames the account and its public profile', async ({ page, browser }) => {
+  const name = await signup(page);
+  await page.getByRole('checkbox', { name: 'Make my profile public' }).check();
+  await expect(page.getByRole('heading', { name: 'Profile is public' })).toBeVisible();
+  const renamed = username();
+  await page.getByRole('button', { name: 'Change username' }).click();
+  await page.getByLabel('New username').fill(renamed);
+  await page.getByLabel('Confirm with your password').fill('wrong passphrase');
+  await page.locator('form').getByRole('button', { name: 'Change username' }).click();
+  await expect(page.getByRole('alert')).toContainText('Your password is wrong.');
+  await page.getByLabel('Confirm with your password').fill(password);
+  await page.locator('form').getByRole('button', { name: 'Change username' }).click();
+  await expect(page.getByRole('heading', { name: renamed, exact: true })).toBeVisible();
+  await expect(page.getByLabel('New username')).toHaveCount(0);
+  await noOverflow(page);
+  const visitor = await browser.newContext();
+  expect((await visitor.request.get(`${origin}/api/cove/profile?username=${renamed}`)).status()).toBe(200);
+  expect((await visitor.request.get(`${origin}/api/cove/profile?username=${name}`)).status()).toBe(404);
+  await visitor.close();
+});
+
 test('reviews keep the item name, survive edits, and link public authors', async ({ page, browser }) => {
   const name = await linkedSignup(page);
   await page.getByRole('checkbox', { name: 'Make my profile public' }).check();

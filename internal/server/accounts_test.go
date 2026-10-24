@@ -443,3 +443,44 @@ func TestLoginLinksAndBindsVRChat(t *testing.T) {
 		t.Fatal("unlinked session reached upstream")
 	}
 }
+
+func TestChangeUsername(t *testing.T) {
+	h, _ := newAccountHarness(t)
+	alice := h.linkedSignup("moonlit", "alice passphrase")
+	h.signup("taken_name", "bob passphrase!")
+	h.do(as(post("/cove/review", jsonBody(`{"kind":"world","id":"`+testWorld+`","rating":5}`)), alice))
+	rename := func(body string) *httptest.ResponseRecorder {
+		return h.do(as(post("/cove/username", jsonBody(body)), alice))
+	}
+	for body, want := range map[string]int{
+		`{"username":"ab","password":"alice passphrase"}`:         400,
+		`{"username":"moonlit","password":"alice passphrase"}`:    400,
+		`{"username":"Taken_Name","password":"alice passphrase"}`: 409,
+		`{"username":"starlit","password":"wrong"}`:               401,
+	} {
+		if w := rename(body); w.Code != want {
+			t.Errorf("%s = %d %s", body, w.Code, w.Body)
+		}
+	}
+	w := rename(`{"username":"starlit","password":"alice passphrase"}`)
+	if w.Code != 200 || decode(t, w).(map[string]any)["username"] != "starlit" {
+		t.Fatalf("rename = %d %s", w.Code, w.Body)
+	}
+	// Changing only the case is allowed.
+	if w := rename(`{"username":"StarLit","password":"alice passphrase"}`); w.Code != 200 {
+		t.Errorf("case-only rename = %d %s", w.Code, w.Body)
+	}
+	if mine := decode(t, h.do(as(get("/cove/reviews?kind=world&id="+testWorld), alice))).(map[string]any)["mine"].(map[string]any); mine["author"] != "StarLit" {
+		t.Errorf("review author = %v", mine["author"])
+	}
+	if w := h.do(post("/cove/login", jsonBody(`{"username":"moonlit","password":"alice passphrase"}`))); w.Code != 401 {
+		t.Errorf("old name login = %d", w.Code)
+	}
+	if w := h.do(post("/cove/login", jsonBody(`{"username":"starlit","password":"alice passphrase"}`))); w.Code != 200 {
+		t.Errorf("new name login = %d %s", w.Code, w.Body)
+	}
+	// The old name is free for someone else.
+	if w := h.do(post("/cove/signup", jsonBody(`{"username":"moonlit","password":"another passphrase"}`))); w.Code != 200 {
+		t.Errorf("reuse old name = %d %s", w.Code, w.Body)
+	}
+}

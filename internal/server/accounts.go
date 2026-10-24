@@ -367,6 +367,8 @@ func (s *Server) cove(w http.ResponseWriter, r *http.Request, p string) error {
 		return s.generateRecoveryCodes(w, r, acct)
 	case p == "password" && post:
 		return s.changePassword(w, r, acct)
+	case p == "username" && post:
+		return s.changeUsername(w, r, acct)
 	case p == "delete" && post:
 		return s.deleteAccount(w, r, acct)
 	case p == "export" && post:
@@ -685,6 +687,46 @@ func (s *Server) changePassword(w http.ResponseWriter, r *http.Request, a *accou
 	}
 	writeJSON(w, http.StatusOK, map[string]bool{"ok": true})
 	return nil
+}
+
+// changeUsername renames the account after a password check. Reviews,
+// collections and links follow, because they refer to the account ID; the old
+// name is freed at once.
+func (s *Server) changeUsername(w http.ResponseWriter, r *http.Request, a *account) error {
+	if !s.limiter.allow(reauthKey(a), s.now()) {
+		return errStatus(http.StatusTooManyRequests, "Too many attempts. Wait 10 minutes.")
+	}
+	body, err := requestJSON(r)
+	if err != nil {
+		return err
+	}
+	username, _ := str(body, "username")
+	password, _ := str(body, "password")
+	username = strings.TrimSpace(username)
+	if !usernamePattern.MatchString(username) {
+		writeError(w, http.StatusBadRequest, "Usernames are 3–32 letters, numbers, dots, dashes or underscores.")
+		return nil
+	}
+	if username == a.Username {
+		writeError(w, http.StatusBadRequest, "That’s already your username.")
+		return nil
+	}
+	if ok, err := s.checkPassword(r.Context(), a.Username, password); err != nil || ok == nil {
+		if err == nil {
+			writeError(w, http.StatusUnauthorized, "Your password is wrong.")
+		}
+		return err
+	}
+	if _, err := s.accounts.ExecContext(r.Context(), "UPDATE accounts SET username = ?, username_key = ? WHERE id = ?",
+		username, strings.ToLower(username), a.ID); err != nil {
+		if strings.Contains(err.Error(), "UNIQUE constraint failed") {
+			writeError(w, http.StatusConflict, "That username is taken.")
+			return nil
+		}
+		return err
+	}
+	a.Username = username
+	return s.accountMe(w, r, a)
 }
 
 // deleteAccount removes the account with its sessions, links and reviews.

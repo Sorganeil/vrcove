@@ -24,6 +24,7 @@ import {
   Smartphone,
   Tablet,
   X,
+  Pencil,
 } from 'lucide-react';
 import { covePath, appLink } from '../lib/routes';
 import { CovePicture } from '../components/cove-picture';
@@ -133,6 +134,9 @@ export default function AccountPage({
     [next, setNext] = useState(''),
     [deletePassword, setDeletePassword] = useState(''),
     [deleting, setDeleting] = useState(false),
+    [renaming, setRenaming] = useState(false),
+    [newName, setNewName] = useState(''),
+    [renamePassword, setRenamePassword] = useState(''),
     [exportPassword, setExportPassword] = useState(''),
     [exporting, setExporting] = useState(false);
   function updateMe(value: Me | null) {
@@ -300,6 +304,16 @@ export default function AccountPage({
       notify(tr('Password changed. Other devices were signed out.'));
     });
   }
+  function rename(e: React.FormEvent) {
+    e.preventDefault();
+    run('rename', async () => {
+      updateMe(await api('/cove/username', { username: newName.trim(), password: renamePassword }));
+      setNewName('');
+      setRenamePassword('');
+      setRenaming(false);
+      notify(tr('Username changed'));
+    });
+  }
   function downloadData(e: React.FormEvent) {
     e.preventDefault();
     run('export', async () => {
@@ -373,7 +387,7 @@ export default function AccountPage({
         {heading}
         <div className="cove-auth">
           <div className="login-content">
-            <div className="chips">
+            <div className="result-actions">
               <button
                 className={mode === 'login' ? 'chosen' : ''}
                 disabled={!!busy}
@@ -535,10 +549,64 @@ export default function AccountPage({
             {tr('Member since')} {day(me.created)}
             {tr('. Your username is public on your reviews.')}
           </p>
-          <button className="standard-button" disabled={!!busy} onClick={logout}>
-            <LogOut size={14} />
-            {tr('Sign out')}
-          </button>
+          {renaming ? (
+            <form className="login-content" onSubmit={rename}>
+              <label>
+                {tr('New username')}
+                <input
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  autoComplete="username"
+                  required
+                  minLength={3}
+                  maxLength={32}
+                  pattern="[A-Za-z0-9_.\-]{3,32}"
+                />
+              </label>
+              {newName.trim().length >= 3 &&
+                me.links.some(
+                  (l) =>
+                    similarNames(newName, l.displayName) ||
+                    (!!l.username && similarNames(newName, l.username)),
+                ) && <NameAdvice />}
+              <label>
+                {tr('Confirm with your password')}
+                <input
+                  type="password"
+                  value={renamePassword}
+                  onChange={(e) => setRenamePassword(e.target.value)}
+                  autoComplete="current-password"
+                  required
+                  maxLength={1024}
+                />
+              </label>
+              <p className="fineprint">
+                {tr(
+                  'Your reviews and collections keep working under the new name. Old links to your profile stop working, and anyone can take your old name.',
+                )}
+              </p>
+              <div className="result-actions">
+                <button className="standard-button" type="submit" disabled={!!busy}>
+                  {busy === 'rename' ? <LoaderCircle size={13} className="spin" /> : <Check size={13} />}
+                  {tr('Change username')}
+                </button>
+                <button type="button" className="standard-button" onClick={() => setRenaming(false)}>
+                  {tr('Cancel')}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="result-actions">
+              <button className="standard-button" disabled={!!busy} onClick={() => setRenaming(true)}>
+                <Pencil size={14} />
+                {tr('Change username')}
+              </button>
+              <button className="standard-button" disabled={!!busy} onClick={logout}>
+                <LogOut size={14} />
+                {tr('Sign out')}
+              </button>
+            </div>
+          )}
         </div>
         <LoggerApiKeys
           key={`${me.username}:${user?.id || ''}`}
