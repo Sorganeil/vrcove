@@ -183,3 +183,35 @@ func TestAvatarsWithLinksAreNotIndexed(t *testing.T) {
 		}
 	}
 }
+
+// Sitemaps list only the avatar pages search engines may index.
+func TestSitemapsSkipNoindexAvatars(t *testing.T) {
+	h, rw := contentHarness(t)
+	const creator = "usr_00000000-0000-0000-0000-0000000000f2"
+	plain, adult, linked := "avtr_00000000-0000-0000-0000-000000000801", "avtr_00000000-0000-0000-0000-000000000802", "avtr_00000000-0000-0000-0000-000000000803"
+	addAvatar(t, rw, plain, "Moon Rabbit", "Maker", creator, "2026-05-01T00:00:00Z", []string{"author_tag_bunny"})
+	addAvatar(t, rw, adult, "Club Outfit", "Maker", creator, "2026-05-02T00:00:00Z", []string{"content_sex"})
+	addAvatar(t, rw, linked, "Free robux at www.example-scam.com", "Maker", creator, "2026-05-03T00:00:00Z", nil)
+	body := h.do(httptest.NewRequest("GET", "/sitemaps/avatars-1.xml", nil)).Body.String()
+	if !strings.Contains(body, "/avatar/"+plain+"</loc>") || strings.Contains(body, adult) || strings.Contains(body, linked) {
+		t.Fatalf("sitemap = %s", body)
+	}
+	// Every listed avatar page really is indexable.
+	if page := h.do(httptest.NewRequest("GET", "/avatar/"+plain, nil)).Body.String(); !strings.Contains(page, `name="robots" content="index`) {
+		t.Error("listed avatar is not indexable")
+	}
+}
+
+// A range whose avatars are all excluded is an empty sitemap, not a 404,
+// because the sitemap index still lists it.
+func TestSitemapRangeWithOnlyExcludedAvatars(t *testing.T) {
+	h, rw := contentHarness(t)
+	addAvatar(t, rw, "avtr_00000000-0000-0000-0000-000000000811", "Club Outfit", "Maker", "usr_00000000-0000-0000-0000-0000000000f3", "2026-05-02T00:00:00Z", []string{"content_adult"})
+	w := h.do(httptest.NewRequest("GET", "/sitemaps/avatars-1.xml", nil))
+	if w.Code != 200 || !strings.Contains(w.Body.String(), "<urlset") || strings.Contains(w.Body.String(), "<url>") {
+		t.Fatalf("all-excluded range = %d %s", w.Code, w.Body)
+	}
+	if w := h.do(httptest.NewRequest("GET", "/sitemaps/avatars-2.xml", nil)); w.Code != 404 {
+		t.Errorf("range past the catalog = %d", w.Code)
+	}
+}

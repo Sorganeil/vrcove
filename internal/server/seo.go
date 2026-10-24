@@ -193,20 +193,26 @@ func (s *Server) buildSitemap(r *http.Request, name string) (body []byte, found 
 		buf.WriteString(`</urlset>`)
 	default:
 		n, _ := strconv.Atoi(avatarSitemap.FindStringSubmatch(name)[1])
-		rows, err := s.db.QueryContext(r.Context(), "SELECT id, coalesce(updated, '') FROM catalog WHERE rowid > ? AND rowid <= ? ORDER BY rowid",
+		rows, err := s.db.QueryContext(r.Context(), "SELECT id, coalesce(name, ''), coalesce(updated, ''), coalesce(data, '{}') FROM catalog WHERE rowid > ? AND rowid <= ? ORDER BY rowid",
 			(n-1)*sitemapSize, n*sitemapSize)
 		if err != nil {
 			return nil, false, err
 		}
 		defer rows.Close()
 		buf.WriteString(`<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`)
-		count := 0
+		// A range with rows stays a valid (possibly empty) sitemap, because the
+		// index lists it; only a range past the catalog's end is missing.
+		scanned := 0
 		for rows.Next() {
-			var id, updated string
-			if rows.Scan(&id, &updated) != nil || !avatarID.MatchString(id) {
+			var id, name, updated, data string
+			if rows.Scan(&id, &name, &updated, &data) != nil {
 				continue
 			}
-			count++
+			scanned++
+			// Only pages search engines may index: no adult or link-spam avatars.
+			if !avatarID.MatchString(id) || !scanAvatar(id, name, "", updated, "", false, false, data).indexable() {
+				continue
+			}
 			buf.WriteString(`<url><loc>` + origin + `/avatar/` + id + `</loc>`)
 			if t, err := time.Parse(time.RFC3339, updated); err == nil {
 				buf.WriteString(`<lastmod>` + t.UTC().Format("2006-01-02") + `</lastmod>`)
@@ -216,7 +222,7 @@ func (s *Server) buildSitemap(r *http.Request, name string) (body []byte, found 
 		if err := rows.Err(); err != nil {
 			return nil, false, err
 		}
-		if count == 0 {
+		if scanned == 0 {
 			return nil, false, nil
 		}
 		buf.WriteString(`</urlset>`)

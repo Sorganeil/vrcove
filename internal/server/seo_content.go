@@ -67,6 +67,10 @@ func (a catalogAvatar) hasLinks() bool {
 	return linkText.MatchString(a.Name) || linkText.MatchString(a.Description)
 }
 
+// indexable is whether search engines may list the avatar's page; the avatar
+// sitemaps use the same rule.
+func (a catalogAvatar) indexable() bool { return !a.adult() && !a.hasLinks() }
+
 func (a catalogAvatar) adult() bool {
 	for _, t := range a.Tags {
 		if t == "content_sex" || t == "content_adult" {
@@ -289,7 +293,7 @@ func (s *Server) avatarPage(ctx context.Context, page seoPage, id string, websit
 	}
 	// Pages still work for adult avatars and ones that advertise a site, but
 	// search engines are asked to leave them out.
-	page.Meta.Index = !a.adult() && !a.hasLinks()
+	page.Meta.Index = a.indexable()
 
 	esc := html.EscapeString
 	var b strings.Builder
