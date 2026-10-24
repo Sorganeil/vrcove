@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS catalog (id TEXT PRIMARY KEY, name TEXT, author TEXT,
 CREATE VIRTUAL TABLE IF NOT EXISTS catalog_fts USING fts5(name,author,description,tags,content="");
 CREATE INDEX IF NOT EXISTS catalog_updated ON catalog(updated DESC);
 CREATE INDEX IF NOT EXISTS catalog_platform ON catalog(quest,pc,updated DESC);
-CREATE INDEX IF NOT EXISTS catalog_rating ON catalog(rating,updated DESC);`
+CREATE INDEX IF NOT EXISTS catalog_rating ON catalog(rating,updated DESC);
+CREATE INDEX IF NOT EXISTS catalog_author_id ON catalog(json_extract(data, '$.authorId'));`
 
 // OpenCatalogWriter is only used by explicitly enabled logger ingestion.
 func OpenCatalogWriter(path string) (*sql.DB, error) {
@@ -93,6 +94,22 @@ func ftsPhrase(text string, prefix bool) string {
 	return phrase
 }
 
+// termFilter matches a typed search: an exact avatar ID, or every word as a
+// prefix of the indexed name, author, description or tags.
+func termFilter(term string) (string, any, bool) {
+	if avatarID.MatchString(term) {
+		return "id=?", term, true
+	}
+	terms := searchTerm.FindAllString(term, -1)
+	if len(terms) == 0 {
+		return "", nil, false
+	}
+	for i, t := range terms {
+		terms[i] = `"` + t + `"*`
+	}
+	return "rowid IN (SELECT rowid FROM catalog_fts WHERE catalog_fts MATCH ?)", strings.Join(terms, " AND "), true
+}
+
 func (s *Server) catalog(w http.ResponseWriter, r *http.Request) error {
 	query := r.URL.Query()
 	limit := func(key string, n int) string {
@@ -114,18 +131,11 @@ func (s *Server) catalog(w http.ResponseWriter, r *http.Request) error {
 		return nil
 	}
 	if term != "" {
-		if avatarID.MatchString(term) {
-			where, args = append(where, "id=?"), append(args, term)
-		} else {
-			terms := searchTerm.FindAllString(term, -1)
-			if len(terms) == 0 {
-				return empty()
-			}
-			for i, t := range terms {
-				terms[i] = `"` + t + `"*`
-			}
-			match(strings.Join(terms, " AND "))
+		clause, arg, ok := termFilter(term)
+		if !ok {
+			return empty()
 		}
+		where, args = append(where, clause), append(args, arg)
 	}
 	// Creator: the index narrows by name, then the exact name (and ID, when
 	// opened from an avatar) must match.

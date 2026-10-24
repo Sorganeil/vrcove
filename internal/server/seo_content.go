@@ -27,12 +27,12 @@ var rankNames = map[string]string{"Excellent": "Excellent", "Good": "Good", "Med
 // Section pages: a heading and a paragraph in the words people search with.
 var sectionCopy = map[string][2]string{
 	"":          {"VRChat avatar search and web client", "Search public VRChat avatars by name, creator or avatar ID, for PC and Quest. Sign in with VRChat to see which friends are online, browse worlds and groups, manage favorites and change avatars from your phone or any browser. Handy if you play on Quest without a PC. Free and open source, with no ads, analytics or tracking."},
-	"avatars":   {"VRChat avatar search", "Find public VRChat avatars by name, creator or tag, or paste an avatar ID (avtr_…) to open that avatar. Filter PC and Quest avatars by performance rank, find Quest fallbacks, and hide adult, gore or horror avatars. No account needed to search. Creators can ask to have their avatars removed."},
+	"avatars":   {"VRChat avatar search", "Find public VRChat avatars by name, creator or tag, or paste an avatar ID (avtr_…) to open that avatar. Filter PC and Quest avatars by performance rank, find Quest fallbacks, and hide adult, gore or horror avatars. No account needed to search, and it works as a VRCX avatar search provider. Creators can ask to have their avatars removed."},
 	"worlds":    {"VRChat world search and reviews", "Browse VRChat worlds and read community reviews from your phone or PC. No ads or analytics."},
 	"groups":    {"VRChat group search and reviews", "Discover VRChat groups and read community reviews from your phone or PC. No ads or analytics."},
 	"users":     {"Find VRChat users", "Look up VRChat players by name from your phone or PC after signing in with VRChat. No ads or analytics."},
 	"search":    {"Search VRChat", "Search VRChat avatars, people, worlds and groups in one place, on phone or PC. No ads, analytics or tracking."},
-	"about":     {"About VRCove", "VRCove is a private VRChat web client and avatar search that works in any browser, including Android, iPhone and iPad. It shows friends, worlds, groups, favorites and notifications, lets you change avatars, and adds reviews and collections."},
+	"about":     {"About VRCove", "VRCove is a private VRChat web client and avatar search that works in any browser, including Android, iPhone and iPad. It shows friends, worlds, groups, favorites and notifications, lets you change avatars, and adds reviews and collections. VRCX users can add VRCove as an avatar search provider."},
 	"companion": {"VRCove desktop companion", "A small Windows and Linux app that collects public VRChat avatar IDs while you play and adds new ones to VRCove's avatar search. It never sends your VRChat login to VRCove."},
 	"donations": {"Support VRCove", "Help keep VRCove independent, private and free of ads."},
 }
@@ -40,9 +40,9 @@ var sectionCopy = map[string][2]string{
 const seoNav = `<nav class="seo-nav" aria-label="VRCove"><a href="/">VRCove</a><a href="/avatars">Avatar search</a><a href="/worlds">Worlds</a><a href="/groups">Groups</a><a href="/users">Users</a><a href="/companion">Desktop companion</a><a href="/about">About</a></nav>`
 
 type catalogAvatar struct {
-	ID, Name, Author, AuthorID, Description, Image, Created, Updated, Rank string
-	PC, Quest                                                              bool
-	Tags                                                                   []string
+	ID, Name, Author, AuthorID, Description, Image, Full, Created, Updated, Rank string
+	PC, Quest                                                                    bool
+	Tags                                                                         []string
 }
 
 // platforms names where an avatar works, such as "PC and Quest".
@@ -98,7 +98,7 @@ func scanAvatar(id, name, author, updated, rank string, pc, quest bool, data str
 	}
 	if json.Unmarshal([]byte(data), &d) == nil {
 		a.AuthorID, a.Description, a.Created = d.AuthorID, d.Description, d.Created
-		a.Image = d.Thumbnail
+		a.Image, a.Full = d.Thumbnail, d.Image
 		if a.Image == "" {
 			a.Image = d.Image
 		}

@@ -26,3 +26,18 @@ test('about page opens by path and from the menu, and links onward', async ({ pa
   await page.locator('.about-actions').getByRole('button', { name: 'Privacy & data' }).click();
   await expect(page.getByRole('dialog')).toBeVisible();
 });
+
+test('about page explains how to add VRCove to VRCX and the provider answers', async ({ page, context }) => {
+  await page.goto('/about');
+  const card = page.getByRole('article', { name: 'Use it in VRCX' });
+  const address = new URL('/api/vrcx/avatars', page.url()).href;
+  await expect(card.locator('code')).toHaveText(address);
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await card.getByRole('button', { name: 'Copy address' }).click();
+  await expect(card.getByRole('button', { name: 'Copied' })).toBeVisible();
+  const response = await page.request.get(address + '?search=zzzz-no-such-avatar&n=5000', {
+    headers: { Referer: 'https://vrcx.app' },
+  });
+  expect(response.status()).toBe(200);
+  expect(await response.json()).toEqual([]);
+});

@@ -1,5 +1,10 @@
 {
   "es": {
+    "Use it in VRCX": "Úsalo en VRCX",
+    "Copy address": "Copiar dirección",
+    "Copied": "Copiado",
+    "Add VRCove’s avatar search to VRCX on PC. In VRCX, open Settings, then Integrations. Under Remote Avatar Database, turn on Enable, choose Avatar Database Provider, then Add Provider and paste this address:": "Añade el buscador de avatares de VRCove a VRCX en PC. En VRCX, abre Settings y luego Integrations. En Remote Avatar Database, activa Enable, elige Avatar Database Provider, luego Add Provider y pega esta dirección:",
+    "VRCX then searches VRCove’s catalog, and shows creators’ public avatars on their profiles.": "VRCX buscará entonces en el catálogo de VRCove y mostrará los avatares públicos de los creadores en sus perfiles.",
     "How API keys work": "Cómo funcionan las claves de API",
     "How linking works": "Cómo funciona la vinculación",
     "Language": "Idioma",
@@ -599,6 +604,11 @@
     "Reports, removal requests and moderation actions are visible only to VRCove moderators. A report stores your username, the reason, your note and a copy of what you reported. A removal request stores your username, your proof and whether your connected VRChat account uploaded the avatar. Moderators can suspend, ban or delete accounts; a banned account\u2019s reviews, profile and collections are hidden.": "Las denuncias, las solicitudes de retirada y las acciones de moderación solo son visibles para los moderadores de VRCove. Una denuncia guarda tu nombre de usuario, el motivo, tu nota y una copia de lo denunciado. Una solicitud de retirada guarda tu nombre de usuario, tu prueba y si tu cuenta de VRChat conectada subió el avatar. Los moderadores pueden suspender, bloquear o eliminar cuentas; las reseñas, el perfil y las colecciones de una cuenta bloqueada se ocultan."
   },
   "fr": {
+    "Use it in VRCX": "L’utiliser dans VRCX",
+    "Copy address": "Copier l’adresse",
+    "Copied": "Copié",
+    "Add VRCove’s avatar search to VRCX on PC. In VRCX, open Settings, then Integrations. Under Remote Avatar Database, turn on Enable, choose Avatar Database Provider, then Add Provider and paste this address:": "Ajoutez la recherche d’avatars de VRCove à VRCX sur PC. Dans VRCX, ouvrez Settings, puis Integrations. Sous Remote Avatar Database, activez Enable, choisissez Avatar Database Provider, puis Add Provider et collez cette adresse :",
+    "VRCX then searches VRCove’s catalog, and shows creators’ public avatars on their profiles.": "VRCX recherchera alors dans le catalogue de VRCove et affichera les avatars publics des créateurs sur leur profil.",
     "How API keys work": "Fonctionnement des clés d’API",
     "How linking works": "Fonctionnement des liens",
     "Language": "Langue",
@@ -1198,6 +1208,11 @@
     "Reports, removal requests and moderation actions are visible only to VRCove moderators. A report stores your username, the reason, your note and a copy of what you reported. A removal request stores your username, your proof and whether your connected VRChat account uploaded the avatar. Moderators can suspend, ban or delete accounts; a banned account\u2019s reviews, profile and collections are hidden.": "Les signalements, demandes de retrait et actions de modération ne sont visibles que par les modérateurs de VRCove. Un signalement enregistre votre nom d’utilisateur, le motif, votre note et une copie de ce que vous avez signalé. Une demande de retrait enregistre votre nom d’utilisateur, votre preuve et si votre compte VRChat connecté a mis en ligne l’avatar. Les modérateurs peuvent suspendre, bannir ou supprimer des comptes ; les avis, le profil et les collections d’un compte banni sont masqués."
   },
   "de": {
+    "Use it in VRCX": "In VRCX nutzen",
+    "Copy address": "Adresse kopieren",
+    "Copied": "Kopiert",
+    "Add VRCove’s avatar search to VRCX on PC. In VRCX, open Settings, then Integrations. Under Remote Avatar Database, turn on Enable, choose Avatar Database Provider, then Add Provider and paste this address:": "Füge die Avatarsuche von VRCove in VRCX auf dem PC hinzu. Öffne in VRCX Settings und dann Integrations. Schalte unter Remote Avatar Database Enable ein, wähle Avatar Database Provider, dann Add Provider und füge diese Adresse ein:",
+    "VRCX then searches VRCove’s catalog, and shows creators’ public avatars on their profiles.": "VRCX durchsucht dann den Katalog von VRCove und zeigt die öffentlichen Avatare von Erstellern in ihren Profilen.",
     "How API keys work": "So funktionieren API-Schlüssel",
     "How linking works": "So funktioniert die Verknüpfung",
     "Language": "Sprache",
@@ -1797,6 +1812,11 @@
     "Reports, removal requests and moderation actions are visible only to VRCove moderators. A report stores your username, the reason, your note and a copy of what you reported. A removal request stores your username, your proof and whether your connected VRChat account uploaded the avatar. Moderators can suspend, ban or delete accounts; a banned account\u2019s reviews, profile and collections are hidden.": "Meldungen, Entfernungsanträge und Moderationsmaßnahmen sehen nur VRCove-Moderatoren. Eine Meldung speichert deinen Benutzernamen, den Grund, deine Notiz und eine Kopie des Gemeldeten. Ein Entfernungsantrag speichert deinen Benutzernamen, deinen Nachweis und ob dein verbundenes VRChat-Konto den Avatar hochgeladen hat. Moderatoren können Konten sperren, bannen oder löschen; Bewertungen, Profil und Sammlungen eines gebannten Kontos werden ausgeblendet."
   },
   "ja": {
+    "Use it in VRCX": "VRCXで使う",
+    "Copy address": "アドレスをコピー",
+    "Copied": "コピーしました",
+    "Add VRCove’s avatar search to VRCX on PC. In VRCX, open Settings, then Integrations. Under Remote Avatar Database, turn on Enable, choose Avatar Database Provider, then Add Provider and paste this address:": "PC版VRCXにVRCoveのアバター検索を追加できます。VRCXでSettings、Integrationsの順に開き、Remote Avatar DatabaseでEnableをオンにして、Avatar Database Provider、Add Providerの順に選び、このアドレスを貼り付けます：",
+    "VRCX then searches VRCove’s catalog, and shows creators’ public avatars on their profiles.": "するとVRCXがVRCoveのカタログを検索し、作者のプロフィールに公開アバターを表示します。",
     "How API keys work": "APIキーのしくみ",
     "How linking works": "連携のしくみ",
     "Language": "言語",
@@ -2396,6 +2416,11 @@
     "Reports, removal requests and moderation actions are visible only to VRCove moderators. A report stores your username, the reason, your note and a copy of what you reported. A removal request stores your username, your proof and whether your connected VRChat account uploaded the avatar. Moderators can suspend, ban or delete accounts; a banned account\u2019s reviews, profile and collections are hidden.": "報告、削除申請、モデレーション操作はVRCoveのモデレーターのみが閲覧できます。報告には、あなたのユーザー名、理由、メモ、報告対象のコピーが保存されます。削除申請には、あなたのユーザー名、証明、接続中のVRChatアカウントがそのアバターをアップロードしたかどうかが保存されます。モデレーターはアカウントの一時停止、BAN、削除ができ、BANされたアカウントのレビュー、プロフィール、コレクションは非表示になります。"
   },
   "ru": {
+    "Use it in VRCX": "Использовать в VRCX",
+    "Copy address": "Скопировать адрес",
+    "Copied": "Скопировано",
+    "Add VRCove’s avatar search to VRCX on PC. In VRCX, open Settings, then Integrations. Under Remote Avatar Database, turn on Enable, choose Avatar Database Provider, then Add Provider and paste this address:": "Добавьте поиск аватаров VRCove в VRCX на ПК. В VRCX откройте Settings, затем Integrations. В разделе Remote Avatar Database включите Enable, выберите Avatar Database Provider, затем Add Provider и вставьте этот адрес:",
+    "VRCX then searches VRCove’s catalog, and shows creators’ public avatars on their profiles.": "После этого VRCX будет искать в каталоге VRCove и показывать публичные аватары авторов в их профилях.",
     "How API keys work": "Как работают API-ключи",
     "How linking works": "Как работает привязка",
     "Language": "Язык",
@@ -2995,6 +3020,11 @@
     "Reports, removal requests and moderation actions are visible only to VRCove moderators. A report stores your username, the reason, your note and a copy of what you reported. A removal request stores your username, your proof and whether your connected VRChat account uploaded the avatar. Moderators can suspend, ban or delete accounts; a banned account\u2019s reviews, profile and collections are hidden.": "Жалобы, запросы на удаление и действия модераторов видны только модераторам VRCove. В жалобе сохраняются ваше имя пользователя, причина, ваш комментарий и копия того, на что вы пожаловались. В запросе на удаление сохраняются ваше имя пользователя, доказательство и то, загрузил ли аватар ваш подключённый аккаунт VRChat. Модераторы могут временно заблокировать, забанить или удалить аккаунт; отзывы, профиль и коллекции забаненного аккаунта скрываются."
   },
   "uk": {
+    "Use it in VRCX": "Використовувати у VRCX",
+    "Copy address": "Скопіювати адресу",
+    "Copied": "Скопійовано",
+    "Add VRCove’s avatar search to VRCX on PC. In VRCX, open Settings, then Integrations. Under Remote Avatar Database, turn on Enable, choose Avatar Database Provider, then Add Provider and paste this address:": "Додайте пошук аватарів VRCove до VRCX на ПК. У VRCX відкрийте Settings, потім Integrations. У розділі Remote Avatar Database увімкніть Enable, виберіть Avatar Database Provider, потім Add Provider і вставте цю адресу:",
+    "VRCX then searches VRCove’s catalog, and shows creators’ public avatars on their profiles.": "Після цього VRCX шукатиме в каталозі VRCove і показуватиме публічні аватари авторів у їхніх профілях.",
     "How API keys work": "Як працюють API-ключі",
     "How linking works": "Як працює прив’язка",
     "Language": "Мова",
@@ -3594,6 +3624,11 @@
     "Reports, removal requests and moderation actions are visible only to VRCove moderators. A report stores your username, the reason, your note and a copy of what you reported. A removal request stores your username, your proof and whether your connected VRChat account uploaded the avatar. Moderators can suspend, ban or delete accounts; a banned account\u2019s reviews, profile and collections are hidden.": "Скарги, запити на видалення й дії модераторів бачать лише модератори VRCove. Скарга зберігає ваше ім’я користувача, причину, вашу примітку й копію того, на що ви поскаржилися. Запит на видалення зберігає ваше ім’я користувача, доказ і те, чи завантажив аватар ваш підключений обліковий запис VRChat. Модератори можуть тимчасово заблокувати, забанити або видалити обліковий запис; відгуки, профіль і колекції забаненого облікового запису приховуються."
   },
   "zh-CN": {
+    "Use it in VRCX": "在 VRCX 中使用",
+    "Copy address": "复制地址",
+    "Copied": "已复制",
+    "Add VRCove’s avatar search to VRCX on PC. In VRCX, open Settings, then Integrations. Under Remote Avatar Database, turn on Enable, choose Avatar Database Provider, then Add Provider and paste this address:": "在电脑版 VRCX 中添加 VRCove 的虚拟形象搜索。在 VRCX 中打开 Settings，然后打开 Integrations。在 Remote Avatar Database 下开启 Enable，选择 Avatar Database Provider，再选择 Add Provider 并粘贴此地址：",
+    "VRCX then searches VRCove’s catalog, and shows creators’ public avatars on their profiles.": "之后 VRCX 会搜索 VRCove 的目录，并在创作者的个人资料中显示其公开虚拟形象。",
     "How API keys work": "API 密钥的工作方式",
     "How linking works": "关联的工作方式",
     "Language": "语言",
@@ -4193,6 +4228,11 @@
     "Reports, removal requests and moderation actions are visible only to VRCove moderators. A report stores your username, the reason, your note and a copy of what you reported. A removal request stores your username, your proof and whether your connected VRChat account uploaded the avatar. Moderators can suspend, ban or delete accounts; a banned account\u2019s reviews, profile and collections are hidden.": "举报、移除申请和管理操作仅对 VRCove 管理员可见。举报会保存你的用户名、原因、备注以及被举报内容的副本。移除申请会保存你的用户名、证明，以及你连接的 VRChat 账户是否上传了该头像。管理员可以暂停、封禁或删除账户；被封禁账户的评价、个人资料和收藏会被隐藏。"
   },
   "ko": {
+    "Use it in VRCX": "VRCX에서 사용하기",
+    "Copy address": "주소 복사",
+    "Copied": "복사됨",
+    "Add VRCove’s avatar search to VRCX on PC. In VRCX, open Settings, then Integrations. Under Remote Avatar Database, turn on Enable, choose Avatar Database Provider, then Add Provider and paste this address:": "PC용 VRCX에 VRCove의 아바타 검색을 추가하세요. VRCX에서 Settings를 열고 Integrations로 이동합니다. Remote Avatar Database에서 Enable을 켜고 Avatar Database Provider를 선택한 다음 Add Provider를 누르고 이 주소를 붙여 넣으세요:",
+    "VRCX then searches VRCove’s catalog, and shows creators’ public avatars on their profiles.": "그러면 VRCX가 VRCove 카탈로그를 검색하고 제작자 프로필에 공개 아바타를 보여 줍니다.",
     "How API keys work": "API 키 작동 방식",
     "How linking works": "연결 방식 안내",
     "Language": "언어",

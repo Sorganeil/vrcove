@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react';
 import { t as tr, useLocale } from '../lib/i18n';
 import {
   ShieldCheck,
@@ -10,6 +11,8 @@ import {
   Info,
   ArrowUpRight,
   Heart,
+  Copy,
+  Check,
 } from 'lucide-react';
 
 const features = [
@@ -70,6 +73,15 @@ const features = [
 /* About VRCove: what it is and what it does. */
 export default function About({ onPrivacy, onDonate }: { onPrivacy: () => void; onDonate: () => void }) {
   useLocale();
+  const provider = window.location.origin + '/api/vrcx/avatars';
+  const [copied, setCopied] = useState(false);
+  const address = useRef<HTMLElement>(null);
+  // Browsers can refuse clipboard access; then select the address to copy by hand.
+  function selectAddress() {
+    const selection = window.getSelection();
+    if (!address.current || !selection) return;
+    selection.selectAllChildren(address.current);
+  }
   return (
     <section className="about-page" aria-labelledby="about-title">
       <div className="about-intro">
@@ -100,6 +112,32 @@ export default function About({ onPrivacy, onDonate }: { onPrivacy: () => void; 
         ))}
       </div>
       <div className="about-footer">
+        <article className="about-feature about-open about-vrcx" aria-labelledby="about-vrcx">
+          <h2 id="about-vrcx">
+            <Search size={18} />
+            {tr('Use it in VRCX')}
+          </h2>
+          <p>
+            {tr(
+              'Add VRCove’s avatar search to VRCX on PC. In VRCX, open Settings, then Integrations. Under Remote Avatar Database, turn on Enable, choose Avatar Database Provider, then Add Provider and paste this address:',
+            )}
+          </p>
+          <code ref={address}>{provider}</code>
+          <button
+            className="standard-button"
+            onClick={() =>
+              navigator.clipboard
+                ? navigator.clipboard.writeText(provider).then(() => setCopied(true), selectAddress)
+                : selectAddress()
+            }
+          >
+            {copied ? <Check size={15} /> : <Copy size={15} />}
+            {tr(copied ? 'Copied' : 'Copy address')}
+          </button>
+          <p>
+            {tr('VRCX then searches VRCove’s catalog, and shows creators’ public avatars on their profiles.')}
+          </p>
+        </article>
         <article className="about-feature about-open">
           <h2>
             <Code size={18} />

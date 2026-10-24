@@ -82,6 +82,8 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, p string) error {
 		return s.loggerAvatars(w, r)
 	case p == "/catalog" && !post:
 		return s.catalog(w, r)
+	case p == "/vrcx/avatars" && !post:
+		return s.vrcxAvatars(w, r)
 	case p == "/stats":
 		return s.stats(w, r)
 	case p == "/image":

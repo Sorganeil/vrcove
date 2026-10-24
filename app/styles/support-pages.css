@@ -282,3 +282,17 @@
 .companion-setup > p {
   margin-bottom: 0;
 }
+.about-vrcx code {
+  display: block;
+  margin-bottom: 12px;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #080f17;
+  color: #c1d6e7;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.about-vrcx .standard-button {
+  margin-bottom: 14px;
+}
