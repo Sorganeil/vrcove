@@ -2,6 +2,7 @@ package server
 
 import (
 	"database/sql"
+	"html"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -20,14 +21,14 @@ func TestPageMetaIndexing(t *testing.T) {
 		path, title, robots, canonical string
 	}{
 		{"/", homeTitle, "index, follow", origin + "/"},
-		{"/avatars", "VRChat Avatar Search | VRCove", "index, follow", origin + "/avatars"},
+		{"/avatars", "VRChat Avatar Search: Find PC & Quest Avatars | VRCove", "index, follow", origin + "/avatars"},
 		{"/friends", homeTitle, "noindex", origin + "/friends"},
 		{"/my-groups", homeTitle, "noindex", origin + "/my-groups"},
 		{"/cove/someone", "VRCove profile | VRCove", "noindex", origin + "/cove/someone"},
 		{"/no/such/page", homeTitle, "noindex", origin + "/"},
 	} {
 		body := h.do(httptest.NewRequest("GET", "http://localhost"+tc.path, nil)).Body.String()
-		for _, want := range []string{"<title>" + tc.title + "</title>", `name="robots" content="` + tc.robots, `rel="canonical" href="` + tc.canonical + `"`} {
+		for _, want := range []string{"<title>" + html.EscapeString(tc.title) + "</title>", `name="robots" content="` + tc.robots, `rel="canonical" href="` + tc.canonical + `"`} {
 			if !strings.Contains(body, want) {
 				t.Errorf("%s missing %q: %s", tc.path, want, body)
 			}

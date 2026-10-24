@@ -182,6 +182,8 @@ func previewText(s string, limit int) string {
 func (s *Server) previewHTML(r *http.Request, data []byte) []byte {
 	p, canonical := s.pagePreview(r)
 	meta := s.pageMeta(r.URL.Path, p, canonical)
+	page := s.seoContent(r, meta)
+	meta = page.Meta
 	_, _, detail := detailRoute(r.URL.Path)
 	_, _, cove := coveRoute(r.URL.Path)
 	if !detail && !cove {
@@ -203,7 +205,16 @@ func (s *Server) previewHTML(r *http.Request, data []byte) []byte {
 		`<meta name="twitter:card" content="` + card + `"><meta name="twitter:title" content="` + title + `">` +
 		`<meta name="twitter:description" content="` + description + `"><meta name="twitter:image" content="` + html.EscapeString(image) + `">` +
 		`<meta name="theme-color" content="#75c7e6"><link rel="canonical" href="` + html.EscapeString(canonical) + `">`
-	return []byte(strings.Replace(applyPageMeta(string(data), meta), "</head>", tags+"</head>", 1))
+	doc := strings.Replace(applyPageMeta(string(data), meta), "</head>", tags+"</head>", 1)
+	if page.Body != "" {
+		doc = strings.Replace(doc, `<div id="root"></div>`, `<div id="root">`+page.Body+`</div>`, 1)
+	}
+	if page.Graph != nil {
+		// json.Marshal escapes <, > and &, so names cannot close the script.
+		ld, _ := json.Marshal(map[string]any{"@context": "https://schema.org", "@graph": page.Graph})
+		doc = structuredData.ReplaceAllLiteralString(doc, `<script type="application/ld+json">`+string(ld)+`</script>`)
+	}
+	return []byte(doc)
 }
 
 // coveRoute matches the shareable /cove/<username> and /collection/<id> paths.

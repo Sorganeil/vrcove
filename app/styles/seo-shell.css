@@ -1,0 +1,76 @@
+/* Server-rendered page text inside #root. Search engines read it, and it shows
+   briefly until the app replaces it. */
+.seo-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+.seo-nav a:first-child {
+  color: #e4eff8;
+  font-weight: 600;
+}
+.seo-page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 32px 20px 60px;
+  color: #c1d6e7;
+  font-size: 15px;
+  line-height: 1.7;
+}
+.seo-page a,
+.seo-nav a {
+  color: #75c7e6;
+}
+.seo-page h1 {
+  margin-bottom: 8px;
+  color: #e4eff8;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.seo-page h2 {
+  margin: 28px 0 8px;
+  color: #e4eff8;
+  font-size: 18px;
+  font-weight: 600;
+}
+.seo-page p {
+  margin-bottom: 12px;
+}
+.seo-crumbs,
+.seo-lead,
+.seo-page small {
+  color: #8da6bb;
+  font-size: 13px;
+}
+.seo-crumbs {
+  margin-bottom: 12px;
+}
+.seo-page img {
+  max-width: 256px;
+  margin: 12px 0;
+  border-radius: 4px;
+}
+.seo-page dl {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 4px 16px;
+  margin-bottom: 16px;
+}
+.seo-page dt {
+  color: #8da6bb;
+}
+.seo-page code {
+  overflow-wrap: anywhere;
+}
+.seo-list {
+  padding-left: 20px;
+  list-style: disc;
+}
+.seo-list li {
+  overflow-wrap: anywhere;
+}

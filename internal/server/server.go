@@ -53,6 +53,7 @@ type Config struct {
 
 type Server struct {
 	previews previewStore
+	recent   recentCache
 	cfg      Config
 	secure   bool
 	host     string

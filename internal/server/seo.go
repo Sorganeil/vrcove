@@ -12,21 +12,21 @@ import (
 )
 
 const (
-	homeTitle       = "VRCove | Private VRChat Web Client with Avatar Search"
-	homeDescription = "VRChat avatar search, friends and reviews from your phone or PC. No ads, analytics or tracking."
+	homeTitle       = "VRCove: VRChat Avatar Search & Web Client for Phone and PC"
+	homeDescription = "Search public VRChat avatars by name, creator or avatar ID for PC and Quest, and use VRChat friends, worlds and groups from any browser. Free, with no ads or tracking."
 	sitemapSize     = 50000
 )
 
 // Public pages that work without a VRChat session and are worth indexing.
 var indexedSections = map[string]linkPreview{
-	"avatars":   {"VRChat Avatar Search | VRCove", "Search PC and Quest VRChat avatars by name, author, platform and performance. Works on phone and PC with no account, ads or tracking.", ""},
-	"worlds":    {"VRChat Worlds | VRCove", "Browse VRChat worlds and read community reviews from your phone or PC. No ads or analytics.", ""},
-	"groups":    {"VRChat Groups | VRCove", "Discover VRChat groups and read community reviews from your phone or PC. No ads or analytics.", ""},
-	"users":     {"Find VRChat Users | VRCove", "Find VRChat players by name from your phone or PC. No ads or analytics.", ""},
-	"search":    {"Search VRChat | VRCove", "Search VRChat avatars, people, worlds and groups in one place, on phone or PC. No ads, analytics or tracking.", ""},
+	"avatars":   {"VRChat Avatar Search: Find PC & Quest Avatars | VRCove", "Search public VRChat avatars by name, creator, tag or avatar ID. Filter PC and Quest avatars by performance rank and find Quest fallbacks. Free, with no account, ads or tracking.", ""},
+	"worlds":    {"VRChat World Search & Reviews | VRCove", "Browse VRChat worlds and read community reviews from your phone or PC. No ads or analytics.", ""},
+	"groups":    {"VRChat Group Search & Reviews | VRCove", "Discover VRChat groups and read community reviews from your phone or PC. No ads or analytics.", ""},
+	"users":     {"Find VRChat Users by Name | VRCove", "Find VRChat players by name from your phone or PC. No ads or analytics.", ""},
+	"search":    {"Search VRChat Avatars, Worlds, Users & Groups | VRCove", "Search VRChat avatars, people, worlds and groups in one place, on phone or PC. No ads, analytics or tracking.", ""},
 	"donations": {"Support VRCove", "Help keep VRCove independent, private and free of ads.", ""},
-	"companion": {"VRCove Desktop Companion | Avatar Logger", "A small Windows and Linux app that collects public VRChat avatar IDs while you play and adds new ones to VRCove's avatar search.", ""},
-	"about":     {"About VRCove | Features", "What VRCove does: private VRChat web client, avatar search, reviews and collections, on phone or PC.", ""},
+	"companion": {"VRChat Avatar Logger for Windows & Linux | VRCove Companion", "A small Windows and Linux app that collects public VRChat avatar IDs while you play and adds new ones to VRCove's avatar search.", ""},
+	"about":     {"About VRCove: VRChat in Your Browser, on Phone or PC", "VRCove is a free VRChat web client and avatar search for phone and PC: friends, worlds, groups, favorites, avatar switching, reviews and collections, with no ads or tracking.", ""},
 }
 
 // Personal pages need a session or describe a person, so crawlers skip them.
@@ -37,6 +37,7 @@ var (
 	titleTag       = regexp.MustCompile(`(?is)<title>.*?</title>`)
 	descriptionTag = regexp.MustCompile(`(?is)<meta\s+name="description"[^>]*>`)
 	robotsTag      = regexp.MustCompile(`(?is)<meta\s+name="robots"[^>]*>`)
+	structuredData = regexp.MustCompile(`(?is)<script type="application/ld\+json">.*?</script>`)
 )
 
 // pageMeta describes how a path should appear to search engines.
