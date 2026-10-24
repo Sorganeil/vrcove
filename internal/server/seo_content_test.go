@@ -160,3 +160,26 @@ func TestSectionPagesHaveContent(t *testing.T) {
 		t.Error("personal page got content")
 	}
 }
+
+func TestAvatarsWithLinksAreNotIndexed(t *testing.T) {
+	h, rw := contentHarness(t)
+	const creator = "usr_00000000-0000-0000-0000-0000000000e1"
+	plain, linked := "avtr_00000000-0000-0000-0000-000000000601", "avtr_00000000-0000-0000-0000-000000000602"
+	addAvatar(t, rw, plain, "Moon Rabbit", "Maker", creator, "2026-05-01T00:00:00Z", nil)
+	addAvatar(t, rw, linked, "Free robux at www.example-scam.com", "Maker", creator, "2026-05-02T00:00:00Z", nil)
+	if b := h.do(httptest.NewRequest("GET", "/avatar/"+plain, nil)).Body.String(); !strings.Contains(b, `name="robots" content="index`) {
+		t.Error("plain avatar is not indexable")
+	}
+	b := h.do(httptest.NewRequest("GET", "/avatar/"+linked, nil)).Body.String()
+	if !strings.Contains(b, `name="robots" content="noindex`) || !strings.Contains(b, "<h1>Free robux") {
+		t.Error("avatar with a link is indexable, or lost its page")
+	}
+	if home := h.do(httptest.NewRequest("GET", "/", nil)).Body.String(); strings.Contains(home, "Free robux") || !strings.Contains(home, "Moon Rabbit") {
+		t.Error("home lists the avatar with a link")
+	}
+	for text, want := range map[string]bool{"Made on VRCmods.com": true, "see https://x.y": true, "discord.gg/abc": true, "Miku v2.0": false, "Mr. Fox": false, "Ver 1.5 Final": false} {
+		if got := (catalogAvatar{Name: text}).hasLinks(); got != want {
+			t.Errorf("hasLinks(%q) = %v", text, got)
+		}
+	}
+}

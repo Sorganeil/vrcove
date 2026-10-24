@@ -292,3 +292,64 @@ func TestRemovalRequestsBlockAvatarsAfterApproval(t *testing.T) {
 		t.Errorf("ingestion of removed avatar: %d %s, fetches %d", w.Code, w.Body, h.fetches.Load()-before)
 	}
 }
+
+func TestStaffRemoveAvatarsDirectly(t *testing.T) {
+	h, browser, key := newLoggerHarness(t)
+	writer := h.srv.cfg.Logger.Catalog
+	h.srv.db = writer
+	spam, requested := "avtr_00000000-0000-0000-0000-0000000000b1", "avtr_00000000-0000-0000-0000-0000000000b2"
+	for _, id := range []string{spam, requested} {
+		if _, err := writer.Exec("INSERT INTO catalog(id,name,data) VALUES(?,?,?)", id, "Avatar", `{"name":"Avatar","authorId":"`+testVRCUser+`"}`); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if w := browser.do(post("/cove/removal-request", jsonBody(`{"avatarId":"`+requested+`","proof":""}`))); w.Code != 200 {
+		t.Fatalf("request: %d %s", w.Code, w.Body)
+	}
+	user := h.signup("bystander", "bystander passphrase")
+	admin := h.signup("frog", "owner passphrase")
+	h.promote("frog", roleAdmin)
+	remove := func(c *http.Cookie, body string) *httptest.ResponseRecorder {
+		return h.do(as(post("/cove/admin/avatar/remove", jsonBody(body)), c))
+	}
+	if w := remove(user, `{"avatarId":"`+spam+`","reason":"spam"}`); w.Code != 404 {
+		t.Errorf("non-staff removal = %d", w.Code)
+	}
+	for body, want := range map[string]int{
+		`{"avatarId":"avtr_bad","reason":"spam"}`: 400,
+		`{"avatarId":"` + spam + `","reason":""}`: 400,
+	} {
+		if w := remove(admin, body); w.Code != want {
+			t.Errorf("%s = %d", body, w.Code)
+		}
+	}
+	for _, id := range []string{spam, requested} {
+		w := remove(admin, `{"avatarId":"`+id+`","reason":"Advertises a website"}`)
+		if w.Code != 200 || decode(t, w).(map[string]any)["removed"] != true {
+			t.Fatalf("remove %s: %d %s", id, w.Code, w.Body)
+		}
+	}
+	// Removing again is harmless and reports that nothing was left to remove.
+	if w := remove(admin, `{"avatarId":"`+spam+`","reason":"again"}`); w.Code != 200 || decode(t, w).(map[string]any)["removed"] != false {
+		t.Errorf("second removal: %d %s", w.Code, w.Body)
+	}
+	var rows, blocked int
+	writer.QueryRow("SELECT count(*) FROM catalog WHERE id IN (?, ?)", spam, requested).Scan(&rows)
+	h.srv.accounts.QueryRow("SELECT count(*) FROM avatar_blacklist WHERE avatar_id IN (?, ?)", spam, requested).Scan(&blocked)
+	if rows != 0 || blocked != 2 {
+		t.Errorf("catalog rows %d, blocked %d", rows, blocked)
+	}
+	var status, note string
+	h.srv.accounts.QueryRow("SELECT status, note FROM blacklist_requests WHERE avatar_id = ?", requested).Scan(&status, &note)
+	if status != "approved" || note != "Advertises a website" {
+		t.Errorf("open request = %s %q", status, note)
+	}
+	var action string
+	h.srv.accounts.QueryRow("SELECT action FROM moderation_log WHERE target = ? ORDER BY id LIMIT 1", spam).Scan(&action)
+	if action != "removed avatar (Advertises a website)" {
+		t.Errorf("log action = %q", action)
+	}
+	if w := loggerPost(h, "/logger/avatars", key, spam); !strings.Contains(w.Body.String(), `"rejected"`) {
+		t.Errorf("removed avatar re-added: %s", w.Body)
+	}
+}

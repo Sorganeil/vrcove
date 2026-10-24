@@ -37,6 +37,9 @@ func OpenCatalogWriter(path string) (*sql.DB, error) {
 	return db, nil
 }
 
+// catalogReaders bounds concurrent catalog queries.
+const catalogReaders = 8
+
 // OpenCatalog ensures the schema exists, then returns a read-only pool.
 func OpenCatalog(path string) (*sql.DB, error) {
 	file := "file:" + (&url.URL{Path: path}).EscapedPath()
@@ -53,6 +56,10 @@ func OpenCatalog(path string) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+	// A flood of broad searches queues here instead of taking every CPU on
+	// the shared server.
+	db.SetMaxOpenConns(catalogReaders)
+	db.SetMaxIdleConns(catalogReaders)
 	if err := db.Ping(); err != nil {
 		db.Close()
 		return nil, err

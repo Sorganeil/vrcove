@@ -2,12 +2,15 @@ package server
 
 import (
 	"bytes"
+	"compress/gzip"
 	"fmt"
 	"html"
+	"io"
 	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -96,9 +99,76 @@ func (s *Server) robots(w http.ResponseWriter) {
 
 var avatarSitemap = regexp.MustCompile(`^sitemaps/avatars-([1-9][0-9]{0,3})\.xml$`)
 
+// sitemapStore keeps each generated sitemap gzip-compressed for a few hours.
+// An avatar sitemap is about 6 MB of XML, which Cloudflare doesn't cache, so
+// rebuilding it for every request would be slow for search engines and cheap
+// to abuse. Builds run one at a time.
+type sitemapStore struct {
+	sync.Mutex
+	files map[string]sitemapFile
+}
+
+type sitemapFile struct {
+	gz    []byte // nil: no such sitemap
+	until time.Time
+}
+
+const sitemapTTL = 6 * time.Hour
+
 // sitemap serves a sitemap index, the public pages, and the avatar catalog in
 // fixed rowid ranges so each file is a cheap range scan.
 func (s *Server) sitemap(w http.ResponseWriter, r *http.Request, name string) bool {
+	if name != "sitemap.xml" && name != "sitemaps/pages.xml" && !avatarSitemap.MatchString(name) {
+		return false
+	}
+	s.sitemaps.Lock()
+	file, ok := s.sitemaps.files[name]
+	if !ok || !s.now().Before(file.until) {
+		body, found, err := s.buildSitemap(r, name)
+		if err != nil {
+			s.sitemaps.Unlock()
+			http.Error(w, "Sitemap unavailable", http.StatusServiceUnavailable)
+			return true
+		}
+		file = sitemapFile{until: s.now().Add(sitemapTTL)}
+		if found {
+			var buf bytes.Buffer
+			zw := gzip.NewWriter(&buf)
+			zw.Write(body)
+			zw.Close()
+			file.gz = buf.Bytes()
+		}
+		if s.sitemaps.files == nil {
+			s.sitemaps.files = map[string]sitemapFile{}
+		}
+		s.sitemaps.files[name] = file
+	}
+	s.sitemaps.Unlock()
+	if file.gz == nil {
+		http.NotFound(w, r)
+		return true
+	}
+	h := w.Header()
+	h.Set("Content-Type", "application/xml; charset=utf-8")
+	h.Set("Cache-Control", "public, max-age=86400")
+	h.Set("Vary", "Accept-Encoding")
+	if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+		h.Set("Content-Encoding", "gzip")
+		h.Set("Content-Length", strconv.Itoa(len(file.gz)))
+		w.Write(file.gz)
+		return true
+	}
+	zr, err := gzip.NewReader(bytes.NewReader(file.gz))
+	if err != nil {
+		http.Error(w, "Sitemap unavailable", http.StatusServiceUnavailable)
+		return true
+	}
+	io.Copy(w, zr)
+	return true
+}
+
+// buildSitemap renders one sitemap; found is false when it has no entries.
+func (s *Server) buildSitemap(r *http.Request, name string) (body []byte, found bool, err error) {
 	var buf bytes.Buffer
 	buf.WriteString(`<?xml version="1.0" encoding="UTF-8"?>` + "\n")
 	origin := html.EscapeString(s.cfg.PublicOrigin)
@@ -106,8 +176,7 @@ func (s *Server) sitemap(w http.ResponseWriter, r *http.Request, name string) bo
 	case name == "sitemap.xml":
 		var last int
 		if err := s.db.QueryRowContext(r.Context(), "SELECT coalesce(max(rowid), 0) FROM catalog").Scan(&last); err != nil {
-			http.Error(w, "Sitemap unavailable", http.StatusServiceUnavailable)
-			return true
+			return nil, false, err
 		}
 		buf.WriteString(`<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`)
 		buf.WriteString(`<sitemap><loc>` + origin + `/sitemaps/pages.xml</loc></sitemap>`)
@@ -123,16 +192,11 @@ func (s *Server) sitemap(w http.ResponseWriter, r *http.Request, name string) bo
 		}
 		buf.WriteString(`</urlset>`)
 	default:
-		m := avatarSitemap.FindStringSubmatch(name)
-		if m == nil {
-			return false
-		}
-		n, _ := strconv.Atoi(m[1])
+		n, _ := strconv.Atoi(avatarSitemap.FindStringSubmatch(name)[1])
 		rows, err := s.db.QueryContext(r.Context(), "SELECT id, coalesce(updated, '') FROM catalog WHERE rowid > ? AND rowid <= ? ORDER BY rowid",
 			(n-1)*sitemapSize, n*sitemapSize)
 		if err != nil {
-			http.Error(w, "Sitemap unavailable", http.StatusServiceUnavailable)
-			return true
+			return nil, false, err
 		}
 		defer rows.Close()
 		buf.WriteString(`<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`)
@@ -149,14 +213,13 @@ func (s *Server) sitemap(w http.ResponseWriter, r *http.Request, name string) bo
 			}
 			buf.WriteString(`</url>`)
 		}
-		if rows.Err() != nil || count == 0 {
-			http.NotFound(w, r)
-			return true
+		if err := rows.Err(); err != nil {
+			return nil, false, err
+		}
+		if count == 0 {
+			return nil, false, nil
 		}
 		buf.WriteString(`</urlset>`)
 	}
-	w.Header().Set("Content-Type", "application/xml; charset=utf-8")
-	w.Header().Set("Cache-Control", "public, max-age=86400")
-	http.ServeContent(w, r, name, time.Time{}, bytes.NewReader(buf.Bytes()))
-	return true
+	return buf.Bytes(), true, nil
 }

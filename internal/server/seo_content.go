@@ -6,6 +6,7 @@ import (
 	"html"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -56,6 +57,14 @@ func (a catalogAvatar) platforms() string {
 		return "PC"
 	}
 	return ""
+}
+
+// linkText spots web addresses, which spam avatars put in their name or
+// description to borrow VRCove's search ranking.
+var linkText = regexp.MustCompile(`(?i)https?://|www\.|discord\.gg/|\b[a-z0-9-]+\.(com|net|org|gg|io|xyz|ru|shop|me|co|tv|link|site|online|store|app|live|fun)\b`)
+
+func (a catalogAvatar) hasLinks() bool {
+	return linkText.MatchString(a.Name) || linkText.MatchString(a.Description)
 }
 
 func (a catalogAvatar) adult() bool {
@@ -170,12 +179,19 @@ func (s *Server) recentAvatars(ctx context.Context, n int) []catalogAvatar {
 	}
 	s.recent.list = s.recent.list[:0]
 	for _, a := range list {
-		if !a.adult() && !hasAny(a.Tags, "content_gore", "content_violence", "content_horror") && len(s.recent.list) < 48 {
+		if !a.adult() && !a.hasLinks() && !hasAny(a.Tags, "content_gore", "content_violence", "content_horror") && len(s.recent.list) < 48 {
 			s.recent.list = append(s.recent.list, a)
 		}
 	}
 	s.recent.until = s.now().Add(10 * time.Minute)
 	return s.recent.list[:min(n, len(s.recent.list))]
+}
+
+// forgetRecent drops the cached list after a moderator removes an avatar.
+func (s *Server) forgetRecent() {
+	s.recent.Lock()
+	s.recent.until = time.Time{}
+	s.recent.Unlock()
 }
 
 func hasAny(tags []string, want ...string) bool {
@@ -271,7 +287,9 @@ func (s *Server) avatarPage(ctx context.Context, page seoPage, id string, websit
 	if description == "" {
 		page.Meta.Description = summary + " See its details and more avatars by " + author + " on VRCove."
 	}
-	page.Meta.Index = !a.adult()
+	// Pages still work for adult avatars and ones that advertise a site, but
+	// search engines are asked to leave them out.
+	page.Meta.Index = !a.adult() && !a.hasLinks()
 
 	esc := html.EscapeString
 	var b strings.Builder

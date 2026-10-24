@@ -241,3 +241,22 @@ test('avatar creators can request removal and admins see it in the backlog', asy
   await expect(admin.getByRole('button', { name: 'Make admin' })).toHaveCount(0);
   await adminContext.close();
 });
+
+test('staff can remove an avatar directly from the removal tab', async ({ page }) => {
+  const adminName = await signup(page);
+  setRole(adminName, 'admin');
+  await page.goto('/admin');
+  await page.getByRole('tab', { name: /Removal requests/ }).click();
+  const form = page.getByRole('form', { name: 'Remove an avatar' });
+  const button = form.getByRole('button', { name: 'Remove avatar' });
+  await form.getByLabel('Avatar ID or link').fill('not an avatar');
+  await expect(form.getByText('That isn’t an avatar ID or link.')).toBeVisible();
+  await expect(button).toBeDisabled();
+  await form.getByLabel('Avatar ID or link').fill(`${origin}/avatar/avtr_${randomUUID()}`);
+  await form.getByLabel('Reason').fill('Advertises a website');
+  await expect(button).toBeEnabled();
+  page.once('dialog', (d) => d.accept());
+  await button.click();
+  // The test server has no catalog writer, so the request reaches the server and is refused there.
+  await expect(page.getByText('Catalog changes are not enabled on this deployment.')).toBeVisible();
+});

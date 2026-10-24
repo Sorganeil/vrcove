@@ -262,6 +262,8 @@ func (s *Server) admin(w http.ResponseWriter, r *http.Request, p string, a *acco
 		return s.adminReport(w, r, a)
 	case p == "request" && post:
 		return s.adminRequest(w, r, a)
+	case p == "avatar/remove" && post:
+		return s.adminRemoveAvatar(w, r, a)
 	}
 	writeError(w, http.StatusNotFound, "Not found")
 	return nil
@@ -564,6 +566,7 @@ func (s *Server) adminRequest(w http.ResponseWriter, r *http.Request, a *account
 		if _, err := writer.ExecContext(ctx, "DELETE FROM catalog WHERE id = ?", avatar); err != nil {
 			return err
 		}
+		s.forgetRecent()
 	}
 	tx, err := s.accounts.BeginTx(ctx, nil)
 	if err != nil {
@@ -591,5 +594,56 @@ func (s *Server) adminRequest(w http.ResponseWriter, r *http.Request, a *account
 		return err
 	}
 	writeJSON(w, http.StatusOK, map[string]bool{"ok": true})
+	return nil
+}
+
+// adminRemoveAvatar lets staff take any avatar out of the catalog directly,
+// such as spam, and block it from being added again. An open removal request
+// for the same avatar is closed as approved.
+func (s *Server) adminRemoveAvatar(w http.ResponseWriter, r *http.Request, a *account) error {
+	body, err := requestJSON(r)
+	if err != nil {
+		return err
+	}
+	avatar, _ := str(body, "avatarId")
+	reason, _ := str(body, "reason")
+	reason, ok := multiLine(reason, 200)
+	if !avatarID.MatchString(avatar) {
+		return errStatus(http.StatusBadRequest, "Enter an avatar ID (avtr_…).")
+	}
+	if !ok || jsLength(reason) < 3 {
+		return errStatus(http.StatusBadRequest, "Give a short reason, up to 200 characters.")
+	}
+	if s.cfg.Logger == nil {
+		return errStatus(http.StatusServiceUnavailable, "Catalog changes are not enabled on this deployment.")
+	}
+	ctx := r.Context()
+	// As with requests, remove the row first so a failure can simply be retried.
+	res, err := s.cfg.Logger.Catalog.ExecContext(ctx, "DELETE FROM catalog WHERE id = ?", avatar)
+	if err != nil {
+		return err
+	}
+	removed, _ := res.RowsAffected()
+	tx, err := s.accounts.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	if _, err := tx.ExecContext(ctx, "INSERT INTO avatar_blacklist (avatar_id, request_id, added) VALUES (?, NULL, ?) ON CONFLICT(avatar_id) DO NOTHING",
+		avatar, s.now().Unix()); err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx, "UPDATE blacklist_requests SET status = 'approved', note = ?, handled_by = ?, handled = ? WHERE avatar_id = ? AND status = 'open'",
+		reason, a.ID, s.now().Unix(), avatar); err != nil {
+		return err
+	}
+	if err := s.logAction(ctx, tx, a, "removed avatar ("+reason+")", avatar); err != nil {
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+	s.forgetRecent()
+	writeJSON(w, http.StatusOK, map[string]bool{"ok": true, "removed": removed > 0})
 	return nil
 }

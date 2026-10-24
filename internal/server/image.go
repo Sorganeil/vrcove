@@ -88,7 +88,15 @@ func (s *Server) image(w http.ResponseWriter, r *http.Request) error {
 		return writeImage(w, img)
 	}
 	img, err := s.images.do(r.Context(), user+"\x00"+raw, func() (imageResult, error) {
-		img, err := s.fetchImage(context.WithoutCancel(r.Context()), target, session)
+		// Cache misses wait for one of a few upstream slots, so a flood of
+		// unknown images can't open unlimited connections to VRChat.
+		var img imageResult
+		var err error
+		if slotErr := runIn(r.Context(), s.imageSlots, func() {
+			img, err = s.fetchImage(context.WithoutCancel(r.Context()), target, session)
+		}); slotErr != nil {
+			return imageResult{status: http.StatusServiceUnavailable}, nil
+		}
 		if err == nil && img.status == http.StatusOK {
 			s.images.put(raw, user, img, s.now())
 		}

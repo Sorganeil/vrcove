@@ -248,6 +248,68 @@ function Reports({ notify, changed }: { notify: (s: string) => void; changed: ()
   );
 }
 
+/* Lets staff take any avatar out of the catalog, such as spam, without waiting for a request. */
+function RemoveAvatar({ notify, changed }: { notify: (s: string) => void; changed: () => void }) {
+  useLocale();
+  const [target, setTarget] = useState(''),
+    [reason, setReason] = useState(''),
+    [busy, setBusy] = useState(false);
+  // Accept a pasted avatar link as well as a bare ID.
+  const id =
+    target.match(/avtr_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i)?.[0].toLowerCase() ||
+    '';
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!id || !confirm(tr('Remove this avatar from VRCove and block it from being added again?'))) return;
+    setBusy(true);
+    try {
+      const result = await api('/cove/admin/avatar/remove', { avatarId: id, reason: reason.trim() });
+      notify(tr(result.removed ? 'Avatar removed' : 'This avatar wasn’t in the catalog. It is now blocked.'));
+      setTarget('');
+      setReason('');
+      changed();
+    } catch (e) {
+      notify((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <form className="admin-card admin-remove" onSubmit={submit} aria-labelledby="admin-remove-title">
+      <header>
+        <Trash2 size={14} />
+        <strong id="admin-remove-title">{tr('Remove an avatar')}</strong>
+      </header>
+      <p className="fineprint">
+        {tr(
+          'Removes it from search and blocks the desktop companion from adding it again. Use it for spam or abuse.',
+        )}
+      </p>
+      <label className="notes-panel">
+        <span>{tr('Avatar ID or link')}</span>
+        <input value={target} onChange={(e) => setTarget(e.target.value)} placeholder="avtr_…" required />
+      </label>
+      {target.trim() && !id && <p className="form-error">{tr('That isn’t an avatar ID or link.')}</p>}
+      <label className="notes-panel">
+        <span>{tr('Reason')}</span>
+        <input
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          maxLength={200}
+          minLength={3}
+          required
+        />
+      </label>
+      <div className="result-actions">
+        <button className="primary" type="submit" disabled={busy || !id || reason.trim().length < 3}>
+          {busy ? <LoaderCircle size={13} className="spin" /> : <Trash2 size={13} />}
+          {tr('Remove avatar')}
+        </button>
+      </div>
+    </form>
+  );
+}
+
 function Requests({ notify, changed }: { notify: (s: string) => void; changed: () => void }) {
   useLocale();
   const [closed, setClosed] = useState(false),
@@ -259,6 +321,13 @@ function Requests({ notify, changed }: { notify: (s: string) => void; changed: (
   });
   return (
     <>
+      <RemoveAvatar
+        notify={notify}
+        changed={() => {
+          list.reload();
+          changed();
+        }}
+      />
       <StatusToggle closed={closed} setClosed={setClosed} />
       {!list.data ? (
         <p className="fineprint">{list.error || tr('Loading…')}</p>

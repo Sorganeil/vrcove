@@ -69,6 +69,9 @@ type Server struct {
 	// pictureSlots bounds concurrent avatar picture decodes.
 	pictureSlots chan struct{}
 	loggerSlot   chan struct{}
+	sitemaps     sitemapStore
+	// imageSlots bounds concurrent image fetches from VRChat.
+	imageSlots chan struct{}
 	// Client sends every upstream request. Redirects are never followed
 	// automatically; the image proxy re-validates each hop itself.
 	Client *http.Client
@@ -102,7 +105,7 @@ func New(cfg Config, db *sql.DB, static fs.FS) (*Server, error) {
 	}
 	return &Server{
 		cfg: cfg, secure: u.Scheme == "https", host: strings.ToLower(u.Host), db: db, static: static, limiter: newLimiter(),
-		accounts: cfg.Accounts, keys: keys, hashSlots: make(chan struct{}, hashSlots), pictureSlots: make(chan struct{}, pictureSlots), loggerSlot: make(chan struct{}, 1),
+		accounts: cfg.Accounts, keys: keys, hashSlots: make(chan struct{}, hashSlots), pictureSlots: make(chan struct{}, pictureSlots), loggerSlot: make(chan struct{}, 1), imageSlots: make(chan struct{}, 16),
 		Client: &http.Client{CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }},
 		now:    time.Now,
 	}, nil

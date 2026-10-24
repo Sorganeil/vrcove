@@ -253,3 +253,9 @@
 .moderation-dialog .notes-panel textarea {
   min-height: 96px;
 }
+.admin-remove {
+  margin-bottom: 16px;
+}
+.admin-remove .form-error {
+  margin: 0;
+}
