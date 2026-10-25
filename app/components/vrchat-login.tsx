@@ -1,3 +1,4 @@
+import { desktop } from '../lib/platform';
 import { useState } from 'react';
 import { Compass, ArrowUpRight, ArrowRight, LoaderCircle, ShieldCheck, ExternalLink } from 'lucide-react';
 import { api } from '../lib/api';
@@ -62,7 +63,9 @@ export default function Login({
         <p>
           {pending
             ? 'Enter your VRChat verification code.'
-            : 'Link your VRChat account to your VRCove account to switch avatars, manage favorites, and find your friends.'}
+            : desktop
+              ? 'Sign in to VRChat to switch avatars, manage favorites, and find your friends.'
+              : 'Link your VRChat account to your VRCove account to switch avatars, manage favorites, and find your friends.'}
         </p>
         <form onSubmit={submit}>
           {pending ? (
@@ -137,7 +140,9 @@ export default function Login({
           <ShieldCheck size={20} />
           <p>
             {tr(
-              'Your password is processed briefly, then discarded. Your session stays in an encrypted browser cookie. No credentials saved on our server.',
+              desktop
+                ? 'Your password goes straight from this device to VRChat, never through VRCove. Your session stays on this device, encrypted with a key kept in your system keyring.'
+                : 'Your password is processed briefly, then discarded. Your session stays in an encrypted browser cookie. No credentials saved on our server.',
             )}
           </p>
         </div>

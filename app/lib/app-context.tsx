@@ -12,6 +12,11 @@ export type AppContextValue = {
   /** The signed-in VRCove account, or null. */
   coveAccount: CoveAccount | null;
   setCoveAccount: (account: CoveAccount | null) => void;
+  /**
+   * Who VRChat is linked to: the VRCove account on the website, or this device
+   * in the desktop app, where a VRCove account is optional.
+   */
+  linkAccount: Pick<CoveAccount, 'links'> | null;
   /** Applies a VRCove sign-in, sign-out or account change everywhere. */
   accountChanged: (account: CoveAccount | null) => void;
   stats: Stats | null;

@@ -4,6 +4,7 @@ import { useApp } from '../lib/app-context';
 import { navigationGroups, primaryNavigation, accountNavigation } from '../lib/navigation';
 import { ShieldCheck } from 'lucide-react';
 import InstallApp from './install-app';
+import { desktop } from '../lib/platform';
 
 type NavItem = { name: string; label: string; icon: ComponentType<{ size?: number }> };
 
@@ -24,7 +25,7 @@ export default function Sidebar({ open }: { open: boolean }) {
         {...sectionLink(entry.name)}
       >
         <entry.icon size={18} />
-        <span>{tr(entry.label)}</span>
+        <span>{tr(desktop && entry.name === 'Companion' ? 'Avatar logger' : entry.label)}</span>
         {entry.name === 'Bookmarks' && saved.length > 0 && <small>{saved.length}</small>}
       </a>
     );
@@ -44,7 +45,7 @@ export default function Sidebar({ open }: { open: boolean }) {
         ))}
       </nav>
       <div className="sidebar-bottom">
-        <InstallApp />
+        {!desktop && <InstallApp />}
         <nav aria-label={tr('Account')}>
           {accountNavigation.map(item)}
           {staff && item({ name: 'Admin', label: 'Moderation', icon: ShieldCheck })}

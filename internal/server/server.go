@@ -50,6 +50,12 @@ type Config struct {
 	// Logger is an optional, separately authenticated ingestion service. The
 	// desktop receives only its API key, never VRChat credentials.
 	Logger *LoggerConfig
+	// Local runs the VRChat routes for one person on their own device, as the
+	// desktop app does: no VRCove account is needed and VRChat requests go
+	// straight from the device. Remote then serves every other API route,
+	// normally by forwarding it to the VRCove website.
+	Local  bool
+	Remote http.Handler
 }
 
 type Server struct {
@@ -92,6 +98,9 @@ func New(cfg Config, db *sql.DB, static fs.FS) (*Server, error) {
 	cfg.Contact = strings.TrimSpace(cfg.Contact)
 	if cfg.Contact != "" && !validContact(cfg.Contact) {
 		return nil, errors.New("VRC_CONTACT must be an email address or http(s) URL in printable ASCII, without parentheses")
+	}
+	if cfg.Local && (cfg.Accounts != nil || cfg.Logger != nil || cfg.Remote == nil) {
+		return nil, errors.New("local mode keeps no VRCove accounts and needs a remote handler")
 	}
 	if cfg.SessionKey != nil && len(cfg.SessionKey) != 32 {
 		return nil, errors.New("SESSION_KEY must be a base64-encoded 32-byte key")

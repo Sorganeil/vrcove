@@ -10,7 +10,7 @@ export default function DetailHost({
   onLogin,
   notify,
 }: {
-  coveAccount: CoveAccount | null;
+  coveAccount: Pick<CoveAccount, 'links'> | null;
   user: VRChatUser | null;
   onLogin: () => void;
   notify: (message: string) => void;

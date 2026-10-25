@@ -23,5 +23,14 @@ case "${1:-linux}" in
     export GOOS=windows GOARCH=amd64 CGO_ENABLED=0
     go build -trimpath -buildvcs=false -tags 'noopengl netgo osusergo' -ldflags="$ldflags -H=windowsgui" -o dist/vrcove-logger.exe ./cmd/vrcove-logger
     ;;
-  *) echo 'Usage: bash build.sh [linux|windows]' >&2; exit 2 ;;
+  desktop-linux|desktop-windows)
+    # The experimental desktop app embeds the website frontend built in desktop mode.
+    (cd .. && npm run build:desktop)
+    if [[ "$1" == desktop-linux ]]; then
+      go build -trimpath -buildvcs=false -ldflags="$ldflags" -o dist/vrcove-desktop ./cmd/vrcove-desktop
+    else
+      GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -buildvcs=false -ldflags="$ldflags -H=windowsgui" -o dist/vrcove-desktop.exe ./cmd/vrcove-desktop
+    fi
+    ;;
+  *) echo 'Usage: bash build.sh [linux|windows|desktop-linux|desktop-windows]' >&2; exit 2 ;;
 esac

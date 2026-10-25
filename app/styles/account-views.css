@@ -254,6 +254,40 @@
   color: #a4b9cb;
   font-weight: 600;
 }
+.logger-counts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.logger-counts dt {
+  font-size: 12px;
+}
+.logger-counts dd {
+  color: #edf2f9;
+  font-size: 22px;
+  font-weight: 700;
+}
+.logger-events {
+  list-style: none;
+  padding: 0;
+  font-size: 12px;
+}
+.logger-events code {
+  color: #8fdcf5;
+}
+.logger-key {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 9px;
+  margin-bottom: 14px;
+}
+.logger-key label {
+  display: grid;
+  flex: 1 1 220px;
+  gap: 5px;
+}
 .notification-kinds:disabled {
   opacity: 0.5;
 }

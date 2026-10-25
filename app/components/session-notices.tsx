@@ -1,3 +1,4 @@
+import { desktop } from '../lib/platform';
 import { useState } from 'react';
 import { ArrowRight, ShieldCheck, X } from 'lucide-react';
 import { api, useSessionTime, useVRChatSession, vrchatAccountState } from '../lib/api';
@@ -18,13 +19,13 @@ export default function SessionNotices({
   connecting: boolean;
 }) {
   useLocale();
-  const { user, coveAccount, setCoveAccount, requestConnection, navigate, notify } = useApp();
+  const { user, coveAccount, linkAccount, setCoveAccount, requestConnection, navigate, notify } = useApp();
   const connection = useVRChatSession();
   const now = useSessionTime();
   const [hiddenNotice, setHiddenNotice] = useState<object | null>(null);
   return (
     <>
-      {coveAccount?.showLinkReminder && !coveAccount?.links?.length && (
+      {!desktop && coveAccount?.showLinkReminder && !coveAccount?.links?.length && (
         <div className="vrchat-session-notice" role="status">
           <ShieldCheck size={22} />
           <div>
@@ -52,7 +53,7 @@ export default function SessionNotices({
           </button>
         </div>
       )}
-      {coveAccount && coveAccount.links.length > 0 && (
+      {!desktop && coveAccount && coveAccount.links.length > 0 && (
         <div className="vrchat-account-switcher">
           <label>
             {tr('Active VRChat account')}
@@ -85,7 +86,7 @@ export default function SessionNotices({
           </button>
         </div>
       )}
-      {coveAccount && connection.issue && hiddenNotice !== connection && (
+      {linkAccount && connection.issue && hiddenNotice !== connection && (
         <div className="vrchat-session-notice" role="alert">
           <ShieldCheck size={22} />
           <div>

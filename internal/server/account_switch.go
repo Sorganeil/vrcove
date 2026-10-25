@@ -40,6 +40,11 @@ func (s *Server) clearActiveSession(w http.ResponseWriter, r *http.Request) {
 // Invalidate only the session used by this request. A delayed failure from
 // another account must never clear a newly selected active account.
 func (s *Server) invalidateRequestSession(w http.ResponseWriter, r *http.Request) {
+	if s.cfg.Local {
+		// One device, one account: a rejected session is simply signed out.
+		s.clearNamedSession(w, s.cookieName())
+		return
+	}
 	if c, err := r.Cookie(s.cookieName()); err == nil {
 		if old := unseal(c.Value, s.cfg.SessionKey, time.UnixMilli(0)); old != nil && old.UserID != "" && s.accounts != nil {
 			w.Header().Set("X-VRChat-Session-User", old.UserID)

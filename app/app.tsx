@@ -3,11 +3,12 @@ import { X } from 'lucide-react';
 import { api, expireVRChatSession, resetVRChatSession, useVRChatSession } from './lib/api';
 import { t as tr, useLocale } from './lib/i18n';
 import { useDesktopNotifications } from './lib/desktop-notifications';
+import { desktop } from './lib/platform';
 import { entityPath } from './lib/routes';
 import { sectionPath, useRoute } from './lib/router';
 import { AppContext, type AppContextValue, type AvatarBrowse } from './lib/app-context';
 import { normalize, type Avatar } from './lib/avatar';
-import type { CoveAccount, RawAvatar, Stats, VRChatUser } from './lib/types';
+import type { CoveAccount, LinkedAccount, RawAvatar, Stats, VRChatUser } from './lib/types';
 import { AvatarActionsProvider } from './components/avatar-actions';
 import AvatarView from './components/avatar-view';
 import Modal from './components/modal';
@@ -22,6 +23,7 @@ import DetailHost from './components/detail-host';
 import { DetailView } from './components/detail-view';
 import About from './pages/about';
 import Companion from './pages/companion';
+import DesktopLogger from './pages/desktop-logger';
 import Admin from './pages/admin';
 import AccountPage from './pages/account';
 import AvatarPage from './pages/avatar-page';
@@ -45,6 +47,17 @@ export default function App() {
   useLocale();
   const [user, setUser] = useState<VRChatUser | null>(null);
   const [coveAccount, setCoveAccount] = useState<CoveAccount | null>(null);
+  // In the desktop app VRChat is signed in on the device itself.
+  const [deviceLinks, setDeviceLinks] = useState<LinkedAccount[]>([]);
+  const linkAccount = desktop ? { links: deviceLinks } : coveAccount;
+  const refreshLinks = () =>
+    desktop
+      ? api('/account/device')
+          .then((d) => setDeviceLinks(d.links))
+          .catch(() => {})
+      : api('/cove/me')
+          .then(setCoveAccount)
+          .catch(() => {});
   const [stats, setStats] = useState<Stats | null>(null);
   const [saved, setSaved] = useState<Avatar[]>([]);
   const [toast, setToast] = useState('');
@@ -88,22 +101,23 @@ export default function App() {
   }
   function accountChanged(me: CoveAccount | null) {
     setCoveAccount(me);
+    if (desktop) return;
     if (!me || (user && !me.links.some((l) => l.vrchatId === user.id))) {
       resetVRChatSession();
       setUser(null);
     }
   }
   function requestConnection(expectedUserId?: string, username?: string) {
-    navigate('Account');
-    if (!coveAccount) return;
+    if (!desktop) navigate('Account');
+    if (!linkAccount) return;
     const target =
       expectedUserId === undefined
         ? connection.userId ||
           user?.id ||
-          (coveAccount.links.length === 1 ? coveAccount.links[0].vrchatId : undefined)
+          (linkAccount.links.length === 1 ? linkAccount.links[0].vrchatId : undefined)
         : expectedUserId;
     setLoginTarget(target);
-    setLoginUsername(username || coveAccount.links.find((l) => l.vrchatId === target)?.username || '');
+    setLoginUsername(username || linkAccount.links.find((l) => l.vrchatId === target)?.username || '');
     setLogin(true);
   }
   function bookmark(a: Avatar) {
@@ -159,11 +173,12 @@ export default function App() {
     api('/cove/me')
       .then(setCoveAccount)
       .catch(() => {});
+    if (desktop) void refreshLinks();
   }, []);
 
   // Verify the VRChat session on entry, periodically while visible, and when returning to the tab.
   useEffect(() => {
-    if (!coveAccount?.links?.length || login) return;
+    if (!linkAccount?.links?.length || login) return;
     let alive = true,
       checking = false,
       lastCheck = 0;
@@ -197,7 +212,7 @@ export default function App() {
       window.removeEventListener('focus', focus);
       document.removeEventListener('visibilitychange', focus);
     };
-  }, [coveAccount?.username, coveAccount?.links?.length, login]);
+  }, [coveAccount?.username, linkAccount?.links?.length, login]);
 
   // Announce expiry when the session's lifetime runs out, even without an action.
   useEffect(() => {
@@ -270,6 +285,7 @@ export default function App() {
     setUser,
     coveAccount,
     setCoveAccount,
+    linkAccount,
     accountChanged,
     stats,
     section,
@@ -304,7 +320,7 @@ export default function App() {
               {section === 'Home' && (
                 <Dashboard
                   key={vrchatKey}
-                  coveAccount={coveAccount}
+                  coveAccount={linkAccount}
                   user={user}
                   onLogin={connect}
                   navigate={navigate}
@@ -325,7 +341,7 @@ export default function App() {
               {section === 'About' && (
                 <About onPrivacy={() => setPrivacy(true)} onDonate={() => navigate('Donations')} />
               )}
-              {section === 'Companion' && <Companion />}
+              {section === 'Companion' && (desktop ? <DesktopLogger /> : <Companion />)}
               {section === 'Admin' && <Admin key={route.version} notify={notify} />}
               {section === 'Collections' && <CollectionsPage notify={notify} />}
               {section === 'CoveProfile' && (
@@ -351,7 +367,7 @@ export default function App() {
               {section === 'Uploads' && (
                 <MyUploads
                   key={vrchatKey}
-                  coveAccount={coveAccount}
+                  coveAccount={linkAccount}
                   user={user}
                   onLogin={connect}
                   onAvatar={(a: RawAvatar) => setSelected(normalize(a))}
@@ -361,7 +377,7 @@ export default function App() {
               {route.detail && (
                 <DetailView
                   key={route.detail.kind + route.detail.id + vrchatKey}
-                  coveAccount={coveAccount}
+                  coveAccount={linkAccount}
                   kind={route.detail.kind}
                   id={route.detail.id}
                   user={user}
@@ -379,7 +395,7 @@ export default function App() {
               <AvatarView avatar={selected} page={false} />
             </Modal>
           )}
-          {login && coveAccount && (
+          {login && linkAccount && (
             <Login
               initialUsername={loginUsername}
               expectedUserId={loginTarget}
@@ -388,13 +404,13 @@ export default function App() {
               connected={(u: VRChatUser, similar: boolean) => {
                 setUser(u);
                 setLogin(false);
-                api('/cove/me')
-                  .then(setCoveAccount)
-                  .catch(() => {});
+                void refreshLinks();
                 notify(
-                  similar
-                    ? 'VRChat account linked. Your VRCove name resembles your VRChat name; use an unrelated name to reduce correlation.'
-                    : 'VRChat account linked',
+                  desktop
+                    ? 'Signed in to VRChat on this device'
+                    : similar
+                      ? 'VRChat account linked. Your VRCove name resembles your VRChat name; use an unrelated name to reduce correlation.'
+                      : 'VRChat account linked',
                 );
               }}
             />
@@ -402,7 +418,7 @@ export default function App() {
           {privacy && <PrivacyDialog close={() => setPrivacy(false)} />}
           {palette && (
             <SearchPalette
-              coveAccount={coveAccount}
+              coveAccount={linkAccount}
               close={() => setPalette(false)}
               user={user}
               onLogin={connect}
@@ -410,7 +426,7 @@ export default function App() {
             />
           )}
           <DetailHost
-            coveAccount={coveAccount}
+            coveAccount={linkAccount}
             key={(connection.issue || 'connected') + (user?.id || '')}
             user={user}
             onLogin={connect}

@@ -31,8 +31,10 @@ if "$publish"; then
   command -v gh >/dev/null || { echo 'Publishing requires the GitHub CLI (gh).' >&2; exit 1; }
 fi
 
-go test -race -tags novulkan ./...
-go vet -tags novulkan ./...
+# The experimental desktop app needs GTK 4 and WebKitGTK and isn't released yet.
+packages=$(go list ./... | grep -v '/cmd/vrcove-desktop$' || true)
+go test -race -tags novulkan $packages
+go vet -tags novulkan $packages
 bash build.sh linux
 bash build.sh windows
 # This path must work headlessly; metadata is checked before packaging.

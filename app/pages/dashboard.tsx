@@ -1,3 +1,4 @@
+import { desktop } from '../lib/platform';
 import { gateTitle } from '../components/vrchat-gate';
 import UserStatus, { notInGame, userPresence } from '../components/user-status';
 import CompanionDownload from '../components/companion-download';
@@ -123,7 +124,11 @@ export default function Dashboard({
         <div className="page-title">
           <div>
             <h1>{tr('Home')}</h1>
-            <p>{tr('Your VRChat account, from your browser.')}</p>
+            <p>
+              {tr(
+                desktop ? 'Your VRChat account, on your desktop.' : 'Your VRChat account, from your browser.',
+              )}
+            </p>
           </div>
         </div>
         <div className="privacy-at-a-glance">
@@ -142,13 +147,19 @@ export default function Dashboard({
             <ShieldCheck size={28} />
           </div>
           <div className="guest-copy">
-            <h2>{tr('Sign in to VRCove')}</h2>
+            <h2>{tr(desktop ? 'Sign in to VRChat' : 'Sign in to VRCove')}</h2>
             <p>{tr('Catch up with friends, find a world, or change your avatar.')}</p>
-            <span>{tr('Link VRChat after signing in to VRCove.')}</span>
+            <span>
+              {tr(
+                desktop
+                  ? 'This app talks to VRChat directly. Your password and session never pass through VRCove.'
+                  : 'Link VRChat after signing in to VRCove.',
+              )}
+            </span>
           </div>
           <div className="guest-actions">
             <button className="primary" onClick={onLogin}>
-              {tr('Connect account')}
+              {tr(desktop ? 'Sign in to VRChat' : 'Connect account')}
               <ArrowRight size={16} />
             </button>
             <button className="text-link" onClick={() => navigate('Settings')}>
@@ -206,7 +217,13 @@ export default function Dashboard({
           <aside className="guest-side-notes">
             <section>
               <h2>{tr('Your account')}</h2>
-              <p>{tr('Create a VRCove account, then link VRChat to use account actions.')}</p>
+              <p>
+                {tr(
+                  desktop
+                    ? 'Sign in to VRChat to use account actions. A VRCove account is optional.'
+                    : 'Create a VRCove account, then link VRChat to use account actions.',
+                )}
+              </p>
               {[
                 { name: 'Friends', icon: Users, detail: 'Online friends and profiles' },
                 { name: 'Worlds', icon: Globe2, detail: 'Live public world listings' },
@@ -241,7 +258,7 @@ export default function Dashboard({
             </section>
           </aside>
         </div>
-        <CompanionDownload />
+        {!desktop && <CompanionDownload />}
       </div>
     );
   return (

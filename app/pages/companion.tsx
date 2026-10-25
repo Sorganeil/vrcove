@@ -122,6 +122,17 @@ export default function Companion() {
           </article>
         ))}
       </div>
+      <article className="about-feature">
+        <h2>
+          <ShieldCheck size={18} />
+          {tr('Coming next: VRCove Desktop')}
+        </h2>
+        <p>
+          {tr(
+            'A full VRCove app for Windows and Linux is in testing. It looks and works like this website, with the logger built in, but it talks to VRChat directly from your computer. Your VRChat password and session never pass through VRCove’s server, so you don’t have to trust us with them. A VRCove account is optional; avatar search, reviews and collections still come from vrcove.st.',
+          )}
+        </p>
+      </article>
       <article className="about-feature about-open">
         <h2>
           <Code size={18} />
