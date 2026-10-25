@@ -198,3 +198,30 @@ func TestCatalogByCreatorIDAlone(t *testing.T) {
 		t.Errorf("invalid creator ID should be ignored, total = %v", total)
 	}
 }
+
+func TestCatalogByImageFile(t *testing.T) {
+	h, rw := contentHarness(t)
+	const creator = "usr_00000000-0000-0000-0000-0000000000c9"
+	// addAvatar gives every avatar the same picture, so change two of them.
+	addAvatar(t, rw, "avtr_00000000-0000-0000-0000-000000000b01", "Worn", "Maker", creator, "2026-01-01T00:00:00Z", nil)
+	addAvatar(t, rw, "avtr_00000000-0000-0000-0000-000000000b02", "Copy", "Copier", creator, "2026-01-02T00:00:00Z", nil)
+	addAvatar(t, rw, "avtr_00000000-0000-0000-0000-000000000b03", "Other", "Maker", creator, "2026-01-03T00:00:00Z", nil)
+	const file = "file_00000000-0000-0000-0000-0000000000f1"
+	for _, id := range []string{"avtr_00000000-0000-0000-0000-000000000b01", "avtr_00000000-0000-0000-0000-000000000b02"} {
+		if _, err := rw.Exec(`UPDATE catalog SET data = json_set(data, '$.image', ?) WHERE id = ?`,
+			"https://api.vrchat.cloud/api/1/file/"+file+"/3/file", id); err != nil {
+			t.Fatal(err)
+		}
+	}
+	body := decode(t, h.do(get("/catalog?imageFile="+file))).(map[string]any)
+	var names []string
+	for _, a := range body["avatars"].([]any) {
+		names = append(names, a.(map[string]any)["name"].(string))
+	}
+	if !slices.Equal(names, []string{"Copy", "Worn"}) {
+		t.Errorf("by picture = %v", names)
+	}
+	if total := decode(t, h.do(get("/catalog?imageFile=file_bogus"))).(map[string]any)["total"]; total != 3.0 {
+		t.Errorf("invalid file ID should be ignored, total = %v", total)
+	}
+}

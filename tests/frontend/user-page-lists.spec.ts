@@ -91,3 +91,57 @@ test('a profile lists the avatars that user uploaded', async ({ page }, testInfo
     `/avatars?author=Old+Name&authorId=${person}`,
   );
 });
+
+test('a profile shows the avatar that user is wearing when it is in the catalog', async ({
+  page,
+}, testInfo) => {
+  const file = 'file_00000000-0000-0000-0000-0000000000f1';
+  let wearing = true;
+  await page.route('**/api/cove/me', (r) =>
+    r.fulfill({ json: { username: 'tester', links: [{ vrchatId: me }] } }),
+  );
+  await page.route('**/api/account/me', (r) => r.fulfill({ json: { id: me, displayName: 'Tester' } }));
+  await page.route('**/api/account/user?*', (r) =>
+    r.fulfill({
+      json: {
+        id: person,
+        displayName: 'Wearer',
+        status: 'active',
+        location: 'offline',
+        currentAvatarImageUrl: `https://api.vrchat.cloud/api/1/file/${file}/2/file`,
+      },
+    }),
+  );
+  await page.route('**/api/account/user-worlds?*', (r) => r.fulfill({ json: [] }));
+  await page.route('**/api/account/user-groups?*', (r) => r.fulfill({ json: [] }));
+  await page.route('**/api/catalog?*', (r) => {
+    const q = new URL(r.request().url()).searchParams;
+    if (q.get('imageFile') === file && wearing)
+      return r.fulfill({
+        json: {
+          avatars: [
+            {
+              id: 'avtr_00000000-0000-0000-0000-000000000b01',
+              name: 'Moon Rabbit',
+              author: 'Maker',
+              thumbnail: '',
+              tags: [],
+            },
+          ],
+          total: 1,
+        },
+      });
+    return r.fulfill({ json: { avatars: [], total: 0 } });
+  });
+  await page.goto(`/user/${person}`);
+  const worn = page
+    .locator('.entity-section')
+    .filter({ has: page.getByRole('heading', { name: 'Wearing now' }) });
+  await expect(worn.locator('.entity-card')).toContainText('Moon Rabbit');
+  await expect(worn.locator('.entity-card')).toContainText('by Maker');
+  await worn.screenshot({ path: testInfo.outputPath('wearing-now.png') });
+  // Private or unknown avatars say so instead.
+  wearing = false;
+  await page.reload();
+  await expect(worn.getByText("This avatar isn't in VRCove's catalog. It may be private.")).toBeVisible();
+});

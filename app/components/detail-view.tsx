@@ -96,6 +96,16 @@ export function DetailView({
     user,
   );
   const userGroups = useLoad(page && kind === 'user' && data ? '/account/user-groups?id=' + id : null, user);
+  // The avatar they are wearing, found by its picture's file ID. Only public
+  // avatars in VRCove's catalog match; copies can share a picture.
+  const wornFile =
+    kind === 'user' && data
+      ? String(data.currentAvatarImageUrl || data.currentAvatarThumbnailImageUrl || '').match(
+          /file_[0-9a-f-]{36}/,
+        )?.[0]
+      : undefined;
+  const wornResult = useLoad(page && wornFile ? '/catalog?imageFile=' + wornFile : null, user);
+  const wearing = { ...wornResult, data: wornResult.data?.avatars };
   // Their public avatars from VRCove's catalog, newest first.
   const avatarResult = useLoad(page && kind === 'user' && data ? '/catalog?authorId=' + id : null, user);
   const userAvatars = { ...avatarResult, data: avatarResult.data?.avatars };
@@ -534,6 +544,33 @@ export function DetailView({
     );
     extras = (
       <>
+        {wornFile && (
+          <Section
+            title={tr('Wearing now')}
+            state={wearing}
+            empty="This avatar isn't in VRCove's catalog. It may be private."
+          >
+            <ShowMore
+              items={wearing.data || []}
+              more={tr('Show all {count} matches', { count: wearing.data?.length })}
+            >
+              {(a: any) => (
+                <button className="entity-card" key={a.id} onClick={() => openAvatar(a.id)}>
+                  <div className="entity-card-image wide">
+                    <Photo url={a.thumbnail} name={a.name} />
+                  </div>
+                  <strong>{a.name}</strong>
+                  <small>{tr('by {name}', { name: a.author })}</small>
+                </button>
+              )}
+            </ShowMore>
+            {wearing.data?.length > 1 && (
+              <p className="fineprint">
+                {tr('These avatars share the same picture, so any of them may be the one.')}
+              </p>
+            )}
+          </Section>
+        )}
         <Section title={tr('Avatars')} state={userAvatars} empty="No public avatars in VRCove's catalog.">
           <ShowMore
             items={userAvatars.data || []}

@@ -1,5 +1,10 @@
 {
   "es": {
+    "by {name}": "de {name}",
+    "Wearing now": "Lleva puesto",
+    "This avatar isn't in VRCove's catalog. It may be private.": "Este avatar no está en el catálogo de VRCove. Puede ser privado.",
+    "Show all {count} matches": "Mostrar las {count} coincidencias",
+    "These avatars share the same picture, so any of them may be the one.": "Estos avatares comparten la misma imagen, así que podría ser cualquiera.",
     "No public avatars in VRCove's catalog.": "No hay avatares públicos en el catálogo de VRCove.",
     "Show all {count} avatars": "Mostrar los {count} avatares",
     "See all {count} avatars": "Ver los {count} avatares",
@@ -635,6 +640,11 @@
     "Reports, removal requests and moderation actions are visible only to VRCove moderators. A report stores your username, the reason, your note and a copy of what you reported. A removal request stores your username, your proof and whether your connected VRChat account uploaded the avatar. Moderators can suspend, ban or delete accounts; a banned account\u2019s reviews, profile and collections are hidden.": "Las denuncias, las solicitudes de retirada y las acciones de moderación solo son visibles para los moderadores de VRCove. Una denuncia guarda tu nombre de usuario, el motivo, tu nota y una copia de lo denunciado. Una solicitud de retirada guarda tu nombre de usuario, tu prueba y si tu cuenta de VRChat conectada subió el avatar. Los moderadores pueden suspender, bloquear o eliminar cuentas; las reseñas, el perfil y las colecciones de una cuenta bloqueada se ocultan."
   },
   "fr": {
+    "by {name}": "par {name}",
+    "Wearing now": "Porte actuellement",
+    "This avatar isn't in VRCove's catalog. It may be private.": "Cet avatar n’est pas dans le catalogue de VRCove. Il est peut-être privé.",
+    "Show all {count} matches": "Afficher les {count} correspondances",
+    "These avatars share the same picture, so any of them may be the one.": "Ces avatars partagent la même image, il peut donc s’agir de n’importe lequel.",
     "No public avatars in VRCove's catalog.": "Aucun avatar public dans le catalogue de VRCove.",
     "Show all {count} avatars": "Afficher les {count} avatars",
     "See all {count} avatars": "Voir les {count} avatars",
@@ -1270,6 +1280,11 @@
     "Reports, removal requests and moderation actions are visible only to VRCove moderators. A report stores your username, the reason, your note and a copy of what you reported. A removal request stores your username, your proof and whether your connected VRChat account uploaded the avatar. Moderators can suspend, ban or delete accounts; a banned account\u2019s reviews, profile and collections are hidden.": "Les signalements, demandes de retrait et actions de modération ne sont visibles que par les modérateurs de VRCove. Un signalement enregistre votre nom d’utilisateur, le motif, votre note et une copie de ce que vous avez signalé. Une demande de retrait enregistre votre nom d’utilisateur, votre preuve et si votre compte VRChat connecté a mis en ligne l’avatar. Les modérateurs peuvent suspendre, bannir ou supprimer des comptes ; les avis, le profil et les collections d’un compte banni sont masqués."
   },
   "de": {
+    "by {name}": "von {name}",
+    "Wearing now": "Trägt gerade",
+    "This avatar isn't in VRCove's catalog. It may be private.": "Dieser Avatar ist nicht im VRCove-Katalog. Er ist vielleicht privat.",
+    "Show all {count} matches": "Alle {count} Treffer anzeigen",
+    "These avatars share the same picture, so any of them may be the one.": "Diese Avatare teilen dasselbe Bild, es kann also jeder davon sein.",
     "No public avatars in VRCove's catalog.": "Keine öffentlichen Avatare im VRCove-Katalog.",
     "Show all {count} avatars": "Alle {count} Avatare anzeigen",
     "See all {count} avatars": "Alle {count} Avatare ansehen",
@@ -1905,6 +1920,11 @@
     "Reports, removal requests and moderation actions are visible only to VRCove moderators. A report stores your username, the reason, your note and a copy of what you reported. A removal request stores your username, your proof and whether your connected VRChat account uploaded the avatar. Moderators can suspend, ban or delete accounts; a banned account\u2019s reviews, profile and collections are hidden.": "Meldungen, Entfernungsanträge und Moderationsmaßnahmen sehen nur VRCove-Moderatoren. Eine Meldung speichert deinen Benutzernamen, den Grund, deine Notiz und eine Kopie des Gemeldeten. Ein Entfernungsantrag speichert deinen Benutzernamen, deinen Nachweis und ob dein verbundenes VRChat-Konto den Avatar hochgeladen hat. Moderatoren können Konten sperren, bannen oder löschen; Bewertungen, Profil und Sammlungen eines gebannten Kontos werden ausgeblendet."
   },
   "ja": {
+    "by {name}": "{name} 作",
+    "Wearing now": "現在のアバター",
+    "This avatar isn't in VRCove's catalog. It may be private.": "このアバターはVRCoveのカタログにありません。非公開の可能性があります。",
+    "Show all {count} matches": "{count}件の一致をすべて表示",
+    "These avatars share the same picture, so any of them may be the one.": "これらのアバターは同じ画像を使っているため、どれが該当するかは分かりません。",
     "No public avatars in VRCove's catalog.": "VRCoveのカタログに公開アバターはありません。",
     "Show all {count} avatars": "{count}件のアバターをすべて表示",
     "See all {count} avatars": "{count}件のアバターをすべて見る",
@@ -2540,6 +2560,11 @@
     "Reports, removal requests and moderation actions are visible only to VRCove moderators. A report stores your username, the reason, your note and a copy of what you reported. A removal request stores your username, your proof and whether your connected VRChat account uploaded the avatar. Moderators can suspend, ban or delete accounts; a banned account\u2019s reviews, profile and collections are hidden.": "報告、削除申請、モデレーション操作はVRCoveのモデレーターのみが閲覧できます。報告には、あなたのユーザー名、理由、メモ、報告対象のコピーが保存されます。削除申請には、あなたのユーザー名、証明、接続中のVRChatアカウントがそのアバターをアップロードしたかどうかが保存されます。モデレーターはアカウントの一時停止、BAN、削除ができ、BANされたアカウントのレビュー、プロフィール、コレクションは非表示になります。"
   },
   "ru": {
+    "by {name}": "от {name}",
+    "Wearing now": "Сейчас носит",
+    "This avatar isn't in VRCove's catalog. It may be private.": "Этого аватара нет в каталоге VRCove. Возможно, он приватный.",
+    "Show all {count} matches": "Показать все совпадения ({count})",
+    "These avatars share the same picture, so any of them may be the one.": "У этих аватаров одинаковое изображение, поэтому это может быть любой из них.",
     "No public avatars in VRCove's catalog.": "В каталоге VRCove нет публичных аватаров.",
     "Show all {count} avatars": "Показать все аватары ({count})",
     "See all {count} avatars": "Смотреть все аватары ({count})",
@@ -3175,6 +3200,11 @@
     "Reports, removal requests and moderation actions are visible only to VRCove moderators. A report stores your username, the reason, your note and a copy of what you reported. A removal request stores your username, your proof and whether your connected VRChat account uploaded the avatar. Moderators can suspend, ban or delete accounts; a banned account\u2019s reviews, profile and collections are hidden.": "Жалобы, запросы на удаление и действия модераторов видны только модераторам VRCove. В жалобе сохраняются ваше имя пользователя, причина, ваш комментарий и копия того, на что вы пожаловались. В запросе на удаление сохраняются ваше имя пользователя, доказательство и то, загрузил ли аватар ваш подключённый аккаунт VRChat. Модераторы могут временно заблокировать, забанить или удалить аккаунт; отзывы, профиль и коллекции забаненного аккаунта скрываются."
   },
   "uk": {
+    "by {name}": "від {name}",
+    "Wearing now": "Зараз носить",
+    "This avatar isn't in VRCove's catalog. It may be private.": "Цього аватара немає в каталозі VRCove. Можливо, він приватний.",
+    "Show all {count} matches": "Показати всі збіги ({count})",
+    "These avatars share the same picture, so any of them may be the one.": "Ці аватари мають однакове зображення, тож це може бути будь-який із них.",
     "No public avatars in VRCove's catalog.": "У каталозі VRCove немає публічних аватарів.",
     "Show all {count} avatars": "Показати всі аватари ({count})",
     "See all {count} avatars": "Переглянути всі аватари ({count})",
@@ -3810,6 +3840,11 @@
     "Reports, removal requests and moderation actions are visible only to VRCove moderators. A report stores your username, the reason, your note and a copy of what you reported. A removal request stores your username, your proof and whether your connected VRChat account uploaded the avatar. Moderators can suspend, ban or delete accounts; a banned account\u2019s reviews, profile and collections are hidden.": "Скарги, запити на видалення й дії модераторів бачать лише модератори VRCove. Скарга зберігає ваше ім’я користувача, причину, вашу примітку й копію того, на що ви поскаржилися. Запит на видалення зберігає ваше ім’я користувача, доказ і те, чи завантажив аватар ваш підключений обліковий запис VRChat. Модератори можуть тимчасово заблокувати, забанити або видалити обліковий запис; відгуки, профіль і колекції забаненого облікового запису приховуються."
   },
   "zh-CN": {
+    "by {name}": "作者：{name}",
+    "Wearing now": "当前穿着",
+    "This avatar isn't in VRCove's catalog. It may be private.": "此虚拟形象不在 VRCove 目录中，可能是私有的。",
+    "Show all {count} matches": "显示全部 {count} 个匹配项",
+    "These avatars share the same picture, so any of them may be the one.": "这些虚拟形象使用同一张图片，可能是其中任意一个。",
     "No public avatars in VRCove's catalog.": "VRCove 目录中没有公开虚拟形象。",
     "Show all {count} avatars": "显示全部 {count} 个虚拟形象",
     "See all {count} avatars": "查看全部 {count} 个虚拟形象",
@@ -4445,6 +4480,11 @@
     "Reports, removal requests and moderation actions are visible only to VRCove moderators. A report stores your username, the reason, your note and a copy of what you reported. A removal request stores your username, your proof and whether your connected VRChat account uploaded the avatar. Moderators can suspend, ban or delete accounts; a banned account\u2019s reviews, profile and collections are hidden.": "举报、移除申请和管理操作仅对 VRCove 管理员可见。举报会保存你的用户名、原因、备注以及被举报内容的副本。移除申请会保存你的用户名、证明，以及你连接的 VRChat 账户是否上传了该头像。管理员可以暂停、封禁或删除账户；被封禁账户的评价、个人资料和收藏会被隐藏。"
   },
   "ko": {
+    "by {name}": "{name} 제작",
+    "Wearing now": "현재 착용 중",
+    "This avatar isn't in VRCove's catalog. It may be private.": "이 아바타는 VRCove 카탈로그에 없습니다. 비공개일 수 있습니다.",
+    "Show all {count} matches": "일치 항목 {count}개 모두 보기",
+    "These avatars share the same picture, so any of them may be the one.": "이 아바타들은 같은 이미지를 사용하므로 어느 것이든 해당될 수 있습니다.",
     "No public avatars in VRCove's catalog.": "VRCove 카탈로그에 공개 아바타가 없습니다.",
     "Show all {count} avatars": "아바타 {count}개 모두 보기",
     "See all {count} avatars": "아바타 {count}개 모두 보기",

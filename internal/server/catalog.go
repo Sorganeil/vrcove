@@ -21,7 +21,13 @@ CREATE VIRTUAL TABLE IF NOT EXISTS catalog_fts USING fts5(name,author,descriptio
 CREATE INDEX IF NOT EXISTS catalog_updated ON catalog(updated DESC);
 CREATE INDEX IF NOT EXISTS catalog_platform ON catalog(quest,pc,updated DESC);
 CREATE INDEX IF NOT EXISTS catalog_rating ON catalog(rating,updated DESC);
-CREATE INDEX IF NOT EXISTS catalog_author_id ON catalog(json_extract(data, '$.authorId'));`
+CREATE INDEX IF NOT EXISTS catalog_author_id ON catalog(json_extract(data, '$.authorId'));
+CREATE INDEX IF NOT EXISTS catalog_image_file ON catalog(` + imageFileExpr + `);`
+
+// imageFileExpr is the VRChat file ID of an avatar's picture, such as
+// file_<uuid>. A profile's current avatar picture shares it, which is how a
+// profile shows the public avatar someone is wearing.
+const imageFileExpr = "substr(json_extract(data, '$.image'), instr(json_extract(data, '$.image'), 'file_'), 41)"
 
 // OpenCatalogWriter is only used by explicitly enabled logger ingestion.
 func OpenCatalogWriter(path string) (*sql.DB, error) {
@@ -69,9 +75,10 @@ func OpenCatalog(path string) (*sql.DB, error) {
 }
 
 var (
-	avatarID   = regexp.MustCompile(`^avtr_[a-f0-9-]{36}$`)
-	searchTerm = regexp.MustCompile(`[\p{L}\p{N}_]+`)
-	ratings    = map[string]bool{"Excellent": true, "Good": true, "Medium": true, "Poor": true, "VeryPoor": true, "Unknown": true}
+	avatarID    = regexp.MustCompile(`^avtr_[a-f0-9-]{36}$`)
+	imageFileID = regexp.MustCompile(`^file_[a-f0-9-]{36}$`)
+	searchTerm  = regexp.MustCompile(`[\p{L}\p{N}_]+`)
+	ratings     = map[string]bool{"Excellent": true, "Good": true, "Medium": true, "Poor": true, "VeryPoor": true, "Unknown": true}
 )
 
 const catalogPageSize = 36
@@ -199,6 +206,9 @@ func (s *Server) catalog(w http.ResponseWriter, r *http.Request) error {
 	} else if id := query.Get("authorId"); userID.MatchString(id) {
 		// A VRChat profile lists that user's avatars by ID alone, whatever name they uploaded under.
 		where, args = append(where, "json_extract(data, '$.authorId') = ?"), append(args, id)
+	}
+	if file := query.Get("imageFile"); imageFileID.MatchString(file) {
+		where, args = append(where, imageFileExpr+" = ?"), append(args, file)
 	}
 	if tag := limit("tag", 60); tag != "" {
 		phrase := ftsPhrase(tag, true)
