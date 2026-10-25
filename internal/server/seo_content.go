@@ -27,7 +27,7 @@ var rankNames = map[string]string{"Excellent": "Excellent", "Good": "Good", "Med
 
 // Section pages: a heading and a paragraph in the words people search with.
 var sectionCopy = map[string][2]string{
-	"":          {"VRChat avatar search and web client", "Search public VRChat avatars by name, creator or avatar ID, for PC and Quest. Sign in with VRChat to see which friends are online, browse worlds and groups, manage favorites and change avatars from your phone or any browser. Handy if you play on Quest without a PC. Free and open source, with no ads, analytics or tracking."},
+	"":          {"VRChat avatar search and web client", "VRCove is a private VRChat frontend and web client for phone and PC. Search public VRChat avatars by name, creator or avatar ID, for PC and Quest. Sign in with VRChat to see which friends are online, browse worlds and groups, manage favorites and change avatars from your phone or any browser. Handy if you play on Quest without a PC. Free and open source, with no ads, analytics or tracking."},
 	"avatars":   {"VRChat avatar search", "Find public VRChat avatars by name, creator or tag, or paste an avatar ID (avtr_…) to open that avatar. Filter PC and Quest avatars by performance rank, find Quest fallbacks, and hide adult, gore or horror avatars. No account needed to search, and it works as a VRCX avatar search provider. Creators can ask to have their avatars removed."},
 	"worlds":    {"VRChat world search and reviews", "Browse VRChat worlds and read community reviews from your phone or PC. No ads or analytics."},
 	"groups":    {"VRChat group search and reviews", "Discover VRChat groups and read community reviews from your phone or PC. No ads or analytics."},

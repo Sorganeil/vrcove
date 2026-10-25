@@ -38,7 +38,7 @@ let locale: Locale = preferredLocale();
 function updateDocument() {
   document.documentElement.lang = locale;
   if (window.location.pathname === '/')
-    document.title = t('VRCove: VRChat Avatar Search & Web Client for Phone and PC');
+    document.title = t('VRCove: VRChat Avatar Search & Private Frontend, Phone & PC');
 }
 function updateLocale(next: Locale) {
   if (next === locale) return;

@@ -143,7 +143,7 @@ func TestSectionPagesHaveContent(t *testing.T) {
 	addAvatar(t, rw, "avtr_00000000-0000-0000-0000-000000000401", "Fresh Avatar", "New Maker", "usr_00000000-0000-0000-0000-0000000000c4", "2026-03-01T00:00:00Z", nil)
 	addAvatar(t, rw, "avtr_00000000-0000-0000-0000-000000000402", "Spicy Avatar", "New Maker", "usr_00000000-0000-0000-0000-0000000000c4", "2026-03-02T00:00:00Z", []string{"content_adult"})
 	home := h.do(httptest.NewRequest("GET", "/", nil)).Body.String()
-	if !strings.Contains(home, "<h1>VRChat avatar search and web client</h1>") || !strings.Contains(home, ">Fresh Avatar</a> by New Maker") {
+	if !strings.Contains(home, "<h1>VRChat avatar search and web client</h1><p>VRCove is a private VRChat frontend and web client for phone and PC. ") || !strings.Contains(home, ">Fresh Avatar</a> by New Maker") {
 		t.Errorf("home content missing: %s", home)
 	}
 	if strings.Contains(home, "Spicy Avatar") {

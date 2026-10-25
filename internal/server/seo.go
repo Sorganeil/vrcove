@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	homeTitle       = "VRCove: VRChat Avatar Search & Web Client for Phone and PC"
+	homeTitle       = "VRCove: VRChat Avatar Search & Private Frontend, Phone & PC"
 	homeDescription = "Search public VRChat avatars by name, creator or avatar ID for PC and Quest, and use VRChat friends, worlds and groups from any browser. Free, with no ads or tracking."
 	sitemapSize     = 50000
 )
