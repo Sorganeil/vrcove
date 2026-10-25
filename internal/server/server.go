@@ -7,6 +7,7 @@ package server
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"database/sql"
 	"encoding/base64"
@@ -76,6 +77,10 @@ type Server struct {
 	// automatically; the image proxy re-validates each hop itself.
 	Client *http.Client
 	now    func() time.Time
+	// live counts open live-notification relays; dialPipeline opens VRChat's
+	// pipeline and is replaced in tests.
+	live         liveStreams
+	dialPipeline func(ctx context.Context, auth string) (pipelineConn, error)
 }
 
 func New(cfg Config, db *sql.DB, static fs.FS) (*Server, error) {
@@ -103,12 +108,14 @@ func New(cfg Config, db *sql.DB, static fs.FS) (*Server, error) {
 			return nil, err
 		}
 	}
-	return &Server{
+	srv := &Server{
 		cfg: cfg, secure: u.Scheme == "https", host: strings.ToLower(u.Host), db: db, static: static, limiter: newLimiter(),
 		accounts: cfg.Accounts, keys: keys, hashSlots: make(chan struct{}, hashSlots), pictureSlots: make(chan struct{}, pictureSlots), loggerSlot: make(chan struct{}, 1), imageSlots: make(chan struct{}, 16),
 		Client: &http.Client{CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }},
 		now:    time.Now,
-	}, nil
+	}
+	srv.dialPipeline = srv.dialVRChatPipeline
+	return srv, nil
 }
 
 func (s *Server) Handler() http.Handler {

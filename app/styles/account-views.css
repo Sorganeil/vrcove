@@ -235,6 +235,28 @@
 .file-label {
   cursor: pointer;
 }
+.desktop-notifications {
+  margin-bottom: 20px;
+}
+.desktop-notifications .cove-switch {
+  display: flex;
+  margin-bottom: 8px;
+  color: #d6e4ef;
+  cursor: pointer;
+}
+.notification-kinds {
+  margin: 4px 0 17px;
+  padding: 0 0 0 4px;
+  border: 0;
+}
+.notification-kinds legend {
+  margin-bottom: 6px;
+  color: #a4b9cb;
+  font-weight: 600;
+}
+.notification-kinds:disabled {
+  opacity: 0.5;
+}
 .file-label input {
   display: none;
 }

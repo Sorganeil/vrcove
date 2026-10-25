@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { ShieldCheck, Download, Upload, Trash2, ExternalLink } from 'lucide-react';
+import DesktopNotificationSettings from '../components/desktop-notification-settings';
 import LanguagePicker from '../components/language-picker';
 import PrivacyApproach from '../components/privacy-approach';
 import { t as tr, useLocale } from '../lib/i18n';
 import type { Avatar } from '../lib/avatar';
 
-/** Privacy & settings: language, and the bookmarks and notes kept in this browser. */
+/** Privacy & settings: language, desktop notifications, and the bookmarks and notes kept in this browser. */
 export default function Settings({
   notify,
   saved,
@@ -81,6 +82,7 @@ export default function Settings({
       <section className="dashboard-panel language-settings">
         <LanguagePicker />
       </section>
+      <DesktopNotificationSettings notify={notify} />
       <PrivacyApproach />
       <div className="settings-grid">
         <section className="dashboard-panel">

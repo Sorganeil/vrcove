@@ -594,6 +594,8 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, sessi
 		endpoint = "/auth/user/friends?offline=" + offline + "&n=100&offset=" + offsetParam(r)
 	case p == "/account/notifications":
 		endpoint = "/auth/user/notifications?n=100"
+	case p == "/account/live" && !post:
+		return s.liveNotifications(w, r, session)
 	case p == "/account/worlds":
 		endpoint = "/worlds?sort=popularity&order=descending&n=48&releaseStatus=public"
 	case p == "/account/favorites" && !post:

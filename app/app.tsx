@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { X } from 'lucide-react';
 import { api, expireVRChatSession, resetVRChatSession, useVRChatSession } from './lib/api';
 import { t as tr, useLocale } from './lib/i18n';
+import { useDesktopNotifications } from './lib/desktop-notifications';
 import { entityPath } from './lib/routes';
 import { sectionPath, useRoute } from './lib/router';
 import { AppContext, type AppContextValue, type AvatarBrowse } from './lib/app-context';
@@ -286,6 +287,7 @@ export default function App() {
   };
   const connect = () => requestConnection();
   const vrchatKey = user?.id || 'guest';
+  useDesktopNotifications(user?.id);
 
   return (
     <AppContext.Provider value={app}>

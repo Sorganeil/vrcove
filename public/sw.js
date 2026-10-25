@@ -29,3 +29,14 @@ self.addEventListener('fetch', event => {
     })));
   }
 });
+
+// Desktop notifications shown through the worker open their page when clicked.
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const target = new URL(event.notification.data?.url || '/', self.location.origin);
+  if (target.origin !== self.location.origin) return;
+  event.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windows => {
+    const open = windows.find(client => new URL(client.url).origin === self.location.origin);
+    return open ? open.focus().then(client => client.navigate(target.href)) : self.clients.openWindow(target.href);
+  }));
+});
