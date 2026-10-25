@@ -1,6 +1,6 @@
 import VRChatGate from './vrchat-gate';
 import UserStatus from './user-status';
-import { copyEntityLink } from '../lib/routes';
+import { appLink, copyEntityLink, openAvatar } from '../lib/routes';
 import { api } from '../lib/api';
 import { t as tr, useLocale } from '../lib/i18n';
 import { useState, useEffect } from 'react';
@@ -96,6 +96,9 @@ export function DetailView({
     user,
   );
   const userGroups = useLoad(page && kind === 'user' && data ? '/account/user-groups?id=' + id : null, user);
+  // Their public avatars from VRCove's catalog, newest first.
+  const avatarResult = useLoad(page && kind === 'user' && data ? '/catalog?authorId=' + id : null, user);
+  const userAvatars = { ...avatarResult, data: avatarResult.data?.avatars };
   const posts = useLoad(page && kind === 'group' && data ? '/account/group-posts?id=' + id : null, user);
   const members = useLoad(page && kind === 'group' && data ? '/account/group-members?id=' + id : null, user);
   const groupInstances = useLoad(
@@ -531,6 +534,32 @@ export function DetailView({
     );
     extras = (
       <>
+        <Section title={tr('Avatars')} state={userAvatars} empty="No public avatars in VRCove's catalog.">
+          <ShowMore
+            items={userAvatars.data || []}
+            more={tr('Show all {count} avatars', { count: userAvatars.data?.length })}
+          >
+            {(a: any) => (
+              <button className="entity-card" key={a.id} onClick={() => openAvatar(a.id)}>
+                <div className="entity-card-image wide">
+                  <Photo url={a.thumbnail} name={a.name} />
+                </div>
+                <strong>{a.name}</strong>
+                <small>{a.pc && a.quest ? 'PC + Quest' : a.quest ? 'Quest' : 'PC'}</small>
+              </button>
+            )}
+          </ShowMore>
+          {avatarResult.data?.total > (userAvatars.data?.length || 0) && (
+            <a
+              className="text-link"
+              {...appLink(
+                '/avatars?' + new URLSearchParams({ author: userAvatars.data[0].author, authorId: id }),
+              )}
+            >
+              {tr('See all {count} avatars', { count: avatarResult.data.total })}
+            </a>
+          )}
+        </Section>
         <Section title={tr('Worlds')} state={userWorlds}>
           <ShowMore
             items={userWorlds.data || []}

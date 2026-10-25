@@ -178,3 +178,23 @@ func TestCatalogRelevanceRatingAndAddedSorts(t *testing.T) {
 		t.Errorf("recently added = %v", got)
 	}
 }
+
+func TestCatalogByCreatorIDAlone(t *testing.T) {
+	h, rw := contentHarness(t)
+	const creator = "usr_00000000-0000-0000-0000-0000000000b7"
+	addAvatar(t, rw, "avtr_00000000-0000-0000-0000-000000000a01", "First", "Old Name", creator, "2026-01-01T00:00:00Z", nil)
+	addAvatar(t, rw, "avtr_00000000-0000-0000-0000-000000000a02", "Second", "New Name", creator, "2026-01-02T00:00:00Z", nil)
+	addAvatar(t, rw, "avtr_00000000-0000-0000-0000-000000000a03", "Other", "Old Name", "usr_00000000-0000-0000-0000-0000000000b8", "2026-01-03T00:00:00Z", nil)
+	body := decode(t, h.do(get("/catalog?authorId="+creator))).(map[string]any)
+	var names []string
+	for _, a := range body["avatars"].([]any) {
+		names = append(names, a.(map[string]any)["name"].(string))
+	}
+	// Both upload names count; another creator with the same name does not.
+	if !slices.Equal(names, []string{"Second", "First"}) || body["total"] != 2.0 {
+		t.Errorf("by creator ID = %v (%v)", names, body["total"])
+	}
+	if total := decode(t, h.do(get("/catalog?authorId=bogus"))).(map[string]any)["total"]; total != 3.0 {
+		t.Errorf("invalid creator ID should be ignored, total = %v", total)
+	}
+}

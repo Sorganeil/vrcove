@@ -196,6 +196,9 @@ func (s *Server) catalog(w http.ResponseWriter, r *http.Request) error {
 		if id := query.Get("authorId"); userID.MatchString(id) {
 			where, args = append(where, "json_extract(data, '$.authorId') = ?"), append(args, id)
 		}
+	} else if id := query.Get("authorId"); userID.MatchString(id) {
+		// A VRChat profile lists that user's avatars by ID alone, whatever name they uploaded under.
+		where, args = append(where, "json_extract(data, '$.authorId') = ?"), append(args, id)
 	}
 	if tag := limit("tag", 60); tag != "" {
 		phrase := ftsPhrase(tag, true)

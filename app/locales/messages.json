@@ -1,5 +1,8 @@
 {
   "es": {
+    "No public avatars in VRCove's catalog.": "No hay avatares públicos en el catálogo de VRCove.",
+    "Show all {count} avatars": "Mostrar los {count} avatares",
+    "See all {count} avatars": "Ver los {count} avatares",
     "Search for": "Buscar",
     "Find people": "Buscar personas",
     "Enter a name to search VRChat users.": "Escribe un nombre para buscar usuarios de VRChat.",
@@ -632,6 +635,9 @@
     "Reports, removal requests and moderation actions are visible only to VRCove moderators. A report stores your username, the reason, your note and a copy of what you reported. A removal request stores your username, your proof and whether your connected VRChat account uploaded the avatar. Moderators can suspend, ban or delete accounts; a banned account\u2019s reviews, profile and collections are hidden.": "Las denuncias, las solicitudes de retirada y las acciones de moderación solo son visibles para los moderadores de VRCove. Una denuncia guarda tu nombre de usuario, el motivo, tu nota y una copia de lo denunciado. Una solicitud de retirada guarda tu nombre de usuario, tu prueba y si tu cuenta de VRChat conectada subió el avatar. Los moderadores pueden suspender, bloquear o eliminar cuentas; las reseñas, el perfil y las colecciones de una cuenta bloqueada se ocultan."
   },
   "fr": {
+    "No public avatars in VRCove's catalog.": "Aucun avatar public dans le catalogue de VRCove.",
+    "Show all {count} avatars": "Afficher les {count} avatars",
+    "See all {count} avatars": "Voir les {count} avatars",
     "Search for": "Rechercher",
     "Find people": "Trouver des personnes",
     "Enter a name to search VRChat users.": "Saisissez un nom pour rechercher des utilisateurs VRChat.",
@@ -1264,6 +1270,9 @@
     "Reports, removal requests and moderation actions are visible only to VRCove moderators. A report stores your username, the reason, your note and a copy of what you reported. A removal request stores your username, your proof and whether your connected VRChat account uploaded the avatar. Moderators can suspend, ban or delete accounts; a banned account\u2019s reviews, profile and collections are hidden.": "Les signalements, demandes de retrait et actions de modération ne sont visibles que par les modérateurs de VRCove. Un signalement enregistre votre nom d’utilisateur, le motif, votre note et une copie de ce que vous avez signalé. Une demande de retrait enregistre votre nom d’utilisateur, votre preuve et si votre compte VRChat connecté a mis en ligne l’avatar. Les modérateurs peuvent suspendre, bannir ou supprimer des comptes ; les avis, le profil et les collections d’un compte banni sont masqués."
   },
   "de": {
+    "No public avatars in VRCove's catalog.": "Keine öffentlichen Avatare im VRCove-Katalog.",
+    "Show all {count} avatars": "Alle {count} Avatare anzeigen",
+    "See all {count} avatars": "Alle {count} Avatare ansehen",
     "Search for": "Suchen nach",
     "Find people": "Personen finden",
     "Enter a name to search VRChat users.": "Gib einen Namen ein, um VRChat-Nutzer zu suchen.",
@@ -1896,6 +1905,9 @@
     "Reports, removal requests and moderation actions are visible only to VRCove moderators. A report stores your username, the reason, your note and a copy of what you reported. A removal request stores your username, your proof and whether your connected VRChat account uploaded the avatar. Moderators can suspend, ban or delete accounts; a banned account\u2019s reviews, profile and collections are hidden.": "Meldungen, Entfernungsanträge und Moderationsmaßnahmen sehen nur VRCove-Moderatoren. Eine Meldung speichert deinen Benutzernamen, den Grund, deine Notiz und eine Kopie des Gemeldeten. Ein Entfernungsantrag speichert deinen Benutzernamen, deinen Nachweis und ob dein verbundenes VRChat-Konto den Avatar hochgeladen hat. Moderatoren können Konten sperren, bannen oder löschen; Bewertungen, Profil und Sammlungen eines gebannten Kontos werden ausgeblendet."
   },
   "ja": {
+    "No public avatars in VRCove's catalog.": "VRCoveのカタログに公開アバターはありません。",
+    "Show all {count} avatars": "{count}件のアバターをすべて表示",
+    "See all {count} avatars": "{count}件のアバターをすべて見る",
     "Search for": "検索対象",
     "Find people": "ユーザーを探す",
     "Enter a name to search VRChat users.": "名前を入力してVRChatユーザーを検索します。",
@@ -2528,6 +2540,9 @@
     "Reports, removal requests and moderation actions are visible only to VRCove moderators. A report stores your username, the reason, your note and a copy of what you reported. A removal request stores your username, your proof and whether your connected VRChat account uploaded the avatar. Moderators can suspend, ban or delete accounts; a banned account\u2019s reviews, profile and collections are hidden.": "報告、削除申請、モデレーション操作はVRCoveのモデレーターのみが閲覧できます。報告には、あなたのユーザー名、理由、メモ、報告対象のコピーが保存されます。削除申請には、あなたのユーザー名、証明、接続中のVRChatアカウントがそのアバターをアップロードしたかどうかが保存されます。モデレーターはアカウントの一時停止、BAN、削除ができ、BANされたアカウントのレビュー、プロフィール、コレクションは非表示になります。"
   },
   "ru": {
+    "No public avatars in VRCove's catalog.": "В каталоге VRCove нет публичных аватаров.",
+    "Show all {count} avatars": "Показать все аватары ({count})",
+    "See all {count} avatars": "Смотреть все аватары ({count})",
     "Search for": "Искать",
     "Find people": "Найти людей",
     "Enter a name to search VRChat users.": "Введите имя, чтобы найти пользователей VRChat.",
@@ -3160,6 +3175,9 @@
     "Reports, removal requests and moderation actions are visible only to VRCove moderators. A report stores your username, the reason, your note and a copy of what you reported. A removal request stores your username, your proof and whether your connected VRChat account uploaded the avatar. Moderators can suspend, ban or delete accounts; a banned account\u2019s reviews, profile and collections are hidden.": "Жалобы, запросы на удаление и действия модераторов видны только модераторам VRCove. В жалобе сохраняются ваше имя пользователя, причина, ваш комментарий и копия того, на что вы пожаловались. В запросе на удаление сохраняются ваше имя пользователя, доказательство и то, загрузил ли аватар ваш подключённый аккаунт VRChat. Модераторы могут временно заблокировать, забанить или удалить аккаунт; отзывы, профиль и коллекции забаненного аккаунта скрываются."
   },
   "uk": {
+    "No public avatars in VRCove's catalog.": "У каталозі VRCove немає публічних аватарів.",
+    "Show all {count} avatars": "Показати всі аватари ({count})",
+    "See all {count} avatars": "Переглянути всі аватари ({count})",
     "Search for": "Шукати",
     "Find people": "Знайти людей",
     "Enter a name to search VRChat users.": "Введіть ім’я, щоб знайти користувачів VRChat.",
@@ -3792,6 +3810,9 @@
     "Reports, removal requests and moderation actions are visible only to VRCove moderators. A report stores your username, the reason, your note and a copy of what you reported. A removal request stores your username, your proof and whether your connected VRChat account uploaded the avatar. Moderators can suspend, ban or delete accounts; a banned account\u2019s reviews, profile and collections are hidden.": "Скарги, запити на видалення й дії модераторів бачать лише модератори VRCove. Скарга зберігає ваше ім’я користувача, причину, вашу примітку й копію того, на що ви поскаржилися. Запит на видалення зберігає ваше ім’я користувача, доказ і те, чи завантажив аватар ваш підключений обліковий запис VRChat. Модератори можуть тимчасово заблокувати, забанити або видалити обліковий запис; відгуки, профіль і колекції забаненого облікового запису приховуються."
   },
   "zh-CN": {
+    "No public avatars in VRCove's catalog.": "VRCove 目录中没有公开虚拟形象。",
+    "Show all {count} avatars": "显示全部 {count} 个虚拟形象",
+    "See all {count} avatars": "查看全部 {count} 个虚拟形象",
     "Search for": "搜索类型",
     "Find people": "查找用户",
     "Enter a name to search VRChat users.": "输入名称以搜索 VRChat 用户。",
@@ -4424,6 +4445,9 @@
     "Reports, removal requests and moderation actions are visible only to VRCove moderators. A report stores your username, the reason, your note and a copy of what you reported. A removal request stores your username, your proof and whether your connected VRChat account uploaded the avatar. Moderators can suspend, ban or delete accounts; a banned account\u2019s reviews, profile and collections are hidden.": "举报、移除申请和管理操作仅对 VRCove 管理员可见。举报会保存你的用户名、原因、备注以及被举报内容的副本。移除申请会保存你的用户名、证明，以及你连接的 VRChat 账户是否上传了该头像。管理员可以暂停、封禁或删除账户；被封禁账户的评价、个人资料和收藏会被隐藏。"
   },
   "ko": {
+    "No public avatars in VRCove's catalog.": "VRCove 카탈로그에 공개 아바타가 없습니다.",
+    "Show all {count} avatars": "아바타 {count}개 모두 보기",
+    "See all {count} avatars": "아바타 {count}개 모두 보기",
     "Search for": "검색 대상",
     "Find people": "사용자 찾기",
     "Enter a name to search VRChat users.": "이름을 입력해 VRChat 사용자를 검색하세요.",

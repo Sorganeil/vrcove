@@ -408,6 +408,11 @@
   background: var(--panel);
   overflow: hidden;
 }
+/* Avatar cards open the quick view, so they are buttons. */
+button.entity-card {
+  text-align: left;
+  cursor: pointer;
+}
 .entity-card:hover {
   border-color: #477e95;
 }
