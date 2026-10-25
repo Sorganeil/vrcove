@@ -3,6 +3,7 @@ package server
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -77,6 +78,45 @@ const catalogPageSize = 36
 
 // ratingOrder ranks PC performance from best to worst, for "or better" filters.
 var ratingOrder = []string{"Excellent", "Good", "Medium", "Poor", "VeryPoor"}
+
+// ratingRank orders avatars from Excellent to Very Poor, then unrated ones.
+var ratingRank = func() string {
+	var b strings.Builder
+	b.WriteString("CASE rating")
+	for i, r := range ratingOrder {
+		fmt.Fprintf(&b, " WHEN '%s' THEN %d", r, i)
+	}
+	fmt.Fprintf(&b, " ELSE %d END", len(ratingOrder))
+	return b.String()
+}()
+
+// relevanceOrder ranks avatars whose name matches the search above ones found
+// only through their creator, description or tags: the exact name first, then
+// names starting with the search, containing it as a word or anywhere, names
+// with every word, and the creator's name. Newer avatars come first within each
+// group. Word-frequency scores were slower and put names like "cat cat cat" on top.
+func relevanceOrder(term string) (string, []any) {
+	phrase := strings.Join(strings.Fields(term), " ")
+	like := likeEscape(phrase)
+	args := []any{phrase, like + "%", "% " + like + "%", "%" + like + "%"}
+	var every []string
+	for _, word := range searchTerm.FindAllString(term, -1) {
+		every, args = append(every, `name LIKE ? ESCAPE '\'`), append(args, "%"+likeEscape(word)+"%")
+	}
+	args = append(args, phrase)
+	return `CASE WHEN name = ? COLLATE NOCASE THEN 0
+		WHEN name LIKE ? ESCAPE '\' THEN 1
+		WHEN name LIKE ? ESCAPE '\' THEN 2
+		WHEN name LIKE ? ESCAPE '\' THEN 3
+		WHEN ` + strings.Join(every, " AND ") + ` THEN 4
+		WHEN author = ? COLLATE NOCASE THEN 5
+		ELSE 6 END, updated DESC, id ASC`, args
+}
+
+// likeEscape makes a search literal inside a LIKE pattern.
+func likeEscape(s string) string {
+	return strings.NewReplacer(`\`, `\\`, "%", `\%`, "_", `\_`).Replace(s)
+}
 
 // contentWarnings maps the content filters to the VRChat content tags they
 // hide. Tags are tokenized in the search index, so content_sex is "content sex".
@@ -203,8 +243,17 @@ func (s *Server) catalog(w http.ResponseWriter, r *http.Request) error {
 	if len(where) > 0 {
 		clause = " WHERE " + strings.Join(where, " AND ")
 	}
-	order := "updated DESC, id ASC"
+	order, orderArgs := "updated DESC, id ASC", []any(nil)
 	switch query.Get("sort") {
+	case "relevance":
+		// Best match needs a typed search; without one it is the newest first.
+		if term != "" && !avatarID.MatchString(term) {
+			order, orderArgs = relevanceOrder(term)
+		}
+	case "added":
+		order = "rowid DESC"
+	case "rating":
+		order = ratingRank + ", updated DESC, id ASC"
 	case "name":
 		order = "name COLLATE NOCASE ASC, id ASC"
 	case "name-desc":
@@ -215,8 +264,8 @@ func (s *Server) catalog(w http.ResponseWriter, r *http.Request) error {
 		order = "updated ASC, id ASC"
 	}
 	ctx := r.Context()
-	rows, err := s.db.QueryContext(ctx, "SELECT data FROM catalog"+clause+" ORDER BY "+order+" LIMIT ? OFFSET ?",
-		append(args, catalogPageSize, page*catalogPageSize)...)
+	listArgs := append(append(append([]any{}, args...), orderArgs...), catalogPageSize, page*catalogPageSize)
+	rows, err := s.db.QueryContext(ctx, "SELECT data FROM catalog"+clause+" ORDER BY "+order+" LIMIT ? OFFSET ?", listArgs...)
 	if err != nil {
 		return err
 	}

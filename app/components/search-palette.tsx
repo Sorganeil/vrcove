@@ -3,6 +3,7 @@ import { t as tr, useLocale } from '../lib/i18n';
 import { useState, useEffect, useRef } from 'react';
 import { Search, X, LoaderCircle, UserRound, ArrowUpRight, ShieldCheck } from 'lucide-react';
 import { openDetail, type Kind } from './detail-links';
+import { appLink } from '../lib/routes';
 function Thumb({ src }: { src?: string }) {
   useLocale();
   const [failed, setFailed] = useState(false);
@@ -21,11 +22,18 @@ function Thumb({ src }: { src?: string }) {
 }
 const types = [
   ['avatars', 'Avatars'],
-  ['users', 'People'],
+  ['users', 'Users'],
   ['worlds', 'Worlds'],
   ['groups', 'Groups'],
 ] as const;
 type Type = (typeof types)[number][0];
+// The full search page for each type, with sorting and filters.
+const searchPages: Record<Type, string> = {
+  avatars: '/avatars',
+  users: '/users',
+  worlds: '/worlds',
+  groups: '/groups',
+};
 type Row = { key: string; name: string; sub: string; image?: string; wide?: boolean; open: () => void };
 /* Pop-up search over the whole app: avatars come from the public catalog, everything else from the VRChat session. */
 export default function SearchPalette({
@@ -287,6 +295,15 @@ export default function SearchPalette({
             ))
           )}
         </div>
+        {q.trim() && !needsLogin && (
+          <a
+            className="palette-all"
+            {...appLink(searchPages[type] + '?' + new URLSearchParams({ q: q.trim() }), close)}
+          >
+            {tr('See all results')}
+            <ArrowUpRight size={14} />
+          </a>
+        )}
       </div>
     </div>
   );

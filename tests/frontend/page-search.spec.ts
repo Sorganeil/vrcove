@@ -35,13 +35,18 @@ test('friends search includes later pages and follows online/offline tabs', asyn
   await expect(page.locator('.friend-card')).toContainText('Offline Match');
 });
 
-test('world search queries VRChat, paginates and restores popular worlds on clear', async ({ page }) => {
-  await page.route('**/api/account/worlds', (r) =>
-    r.fulfill({ json: [{ id: world, name: 'Popular world' }] }),
-  );
+test('world search queries VRChat, sorts, filters, paginates and restores popular worlds on clear', async ({
+  page,
+}) => {
+  let last = new URLSearchParams();
   await page.route('**/api/account/search?*', (r) => {
     const q = new URL(r.request().url()).searchParams;
+    last = q;
     expect(q.get('type')).toBe('worlds');
+    if (!q.get('q'))
+      return r.fulfill({
+        json: [{ id: world, name: q.get('sort') === 'trending' ? 'Trending world' : 'Popular world' }],
+      });
     expect(q.get('q')).toBe('Forest');
     return r.fulfill({
       json:
@@ -52,8 +57,27 @@ test('world search queries VRChat, paginates and restores popular worlds on clea
   });
   await page.goto('/#worlds');
   await expect(page.locator('.world-card')).toContainText('Popular world');
+  expect(last.get('sort')).toBe('popular');
+  await page.getByLabel('Sort worlds').selectOption('trending');
+  await page
+    .getByRole('group', { name: 'Platform' })
+    .getByRole('button', { name: 'Quest', exact: true })
+    .click();
+  await expect(page.locator('.world-card')).toContainText('Trending world');
+  expect(last.get('sort')).toBe('trending');
+  expect(last.get('platform')).toBe('quest');
+  await page.getByLabel('Sort worlds').selectOption('popular');
+  await page
+    .getByRole('group', { name: 'Platform' })
+    .getByRole('button', { name: 'All worlds', exact: true })
+    .click();
+  // Typing switches to VRChat's best match, which sends no sort.
   await page.getByRole('searchbox', { name: 'Search worlds', exact: true }).fill('Forest');
   await expect(page.locator('.world-card')).toHaveCount(50);
+  await expect(page.getByLabel('Sort worlds')).toHaveValue('popular');
+  await page.getByLabel('Sort worlds').selectOption('relevance');
+  await expect(page.locator('.world-card')).toHaveCount(50);
+  expect(last.get('sort')).toBeNull();
   await page.getByRole('button', { name: 'Next', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'No worlds found' })).toBeVisible();
   await page.getByRole('button', { name: 'Previous', exact: true }).click();
@@ -82,7 +106,6 @@ test('groups search defaults to discovery and can switch to memberships', async 
   const search = page.getByRole('searchbox', { name: 'Search groups', exact: true });
   await expect(search).toHaveAttribute('placeholder', 'Search all groups…');
   await search.fill('community');
-  await page.locator('form').getByRole('button', { name: 'Search', exact: true }).click();
   await expect(page.locator('.search-result')).toContainText('Found community');
   await expect(page.locator('.search-result-name')).toHaveAttribute('href', '/group/' + group);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
@@ -159,10 +182,9 @@ test('users and avatars keep their own search routes and show results', async ({
   });
   await page.goto('/#users');
   await page.getByRole('searchbox', { name: 'Search users', exact: true }).fill('Alice');
-  await page.locator('form').getByRole('button', { name: 'Search', exact: true }).click();
   await expect(page.locator('.search-result')).toContainText('Alice');
   await page.goto('/#avatars');
-  await page.getByRole('textbox', { name: 'Search avatars', exact: true }).fill('Robot');
+  await page.getByRole('searchbox', { name: 'Search avatars', exact: true }).fill('Robot');
   await expect(page.locator('.avatar-card')).toContainText('Robot');
 });
 

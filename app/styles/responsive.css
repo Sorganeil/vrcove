@@ -259,6 +259,7 @@
     gap: 12px;
   }
   .page-title h1,
+  .section-heading h1,
   .section-heading h2 {
     font-size: 25px;
   }

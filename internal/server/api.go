@@ -29,6 +29,13 @@ const (
 )
 
 // jsLength counts UTF-16 code units, matching the frontend's length limits.
+// worldSorts maps VRCove's world sort names to VRChat's. Without one, a search
+// keeps VRChat's own best-match order.
+var worldSorts = map[string]string{"popular": "popularity", "trending": "heat", "favorites": "favorites", "newest": "publicationDate", "updated": "updated"}
+
+// worldPlatforms maps the platform filter to VRChat's platform names.
+var worldPlatforms = map[string]string{"pc": "standalonewindows", "quest": "android"}
+
 func jsLength(s string) int { return len(utf16.Encode([]rune(s))) }
 
 // str returns body[key] if it is a string.
@@ -385,16 +392,29 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, sessi
 		}
 		params := url.Values{"n": {"50"}, "offset": {offsetParam(r)}}
 		switch kind {
-		case "users", "worlds":
+		case "users":
 			params.Set("search", string(search))
+		case "worlds":
+			// Worlds can also be browsed without a search, sorted and by platform.
+			params.Set("releaseStatus", "public")
+			if len(search) > 0 {
+				params.Set("search", string(search))
+			}
+			if sort, ok := worldSorts[query.Get("sort")]; ok {
+				params.Set("sort", sort)
+				params.Set("order", "descending")
+			} else if len(search) == 0 {
+				params.Set("sort", "popularity")
+				params.Set("order", "descending")
+			}
+			if platform, ok := worldPlatforms[query.Get("platform")]; ok {
+				params.Set("platform", platform)
+			}
 		case "groups":
 			params.Set("query", string(search))
 		default:
 			writeError(w, http.StatusBadRequest, "Invalid search type")
 			return nil
-		}
-		if kind == "worlds" {
-			params.Set("releaseStatus", "public")
 		}
 		result, updates, err := s.vrc(r.Context(), "/"+kind+"?"+params.Encode(), session, req)
 		if err != nil {

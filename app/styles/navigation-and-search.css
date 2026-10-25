@@ -121,6 +121,20 @@
 .palette-results .error-banner {
   margin: 10px;
 }
+.palette-all {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 11px;
+  border-top: 1px solid var(--line);
+  color: #9fd8ea;
+  font-size: 13px;
+}
+.palette-all:hover {
+  background: #142433;
+  color: var(--text);
+}
 .palette-row {
   display: flex;
   width: 100%;

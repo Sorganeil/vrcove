@@ -4,33 +4,45 @@ import { api } from '../lib/api';
 import { t as tr, useLocale } from '../lib/i18n';
 import type { Avatar } from '../lib/avatar';
 import AvatarGrid from '../components/avatar-grid';
-import { ErrorBanner, SectionPage } from '../components/section-page';
+import { ErrorBanner } from '../components/section-page';
 import CompanionDownload from '../components/companion-download';
+import SearchBar, { SortMenu, type SearchInput } from '../components/search-bar';
+import { replaceSearchParams } from '../lib/search-params';
 
 const PAGE_SIZE = 36;
 
 type Filters = {
-  query: string;
   platform: string;
   rating: string;
-  sort: string;
+  /** null follows the search: Best match while searching, else Recently updated. */
+  sort: string | null;
   author: { name: string; id?: string } | null;
   tag: string;
   hide: string[];
   fallbackOnly: boolean;
 };
 const defaults: Filters = {
-  query: '',
   platform: 'all',
   rating: 'all',
-  sort: 'newest',
+  sort: null,
   author: null,
   tag: '',
   hide: [],
   fallbackOnly: false,
 };
 
-// The last search, restored when returning to this page during the visit.
+const sorts = [
+  ['relevance', 'Best match'],
+  ['newest', 'Recently updated'],
+  ['added', 'Recently added'],
+  ['oldest', 'Oldest updates'],
+  ['name', 'Name A–Z'],
+  ['name-desc', 'Name Z–A'],
+  ['author', 'Creator A–Z'],
+  ['rating', 'Best performance'],
+] as const;
+
+// The last filters, restored when returning to avatar search during the visit.
 let remembered: Filters = defaults;
 
 /** Filters linked from elsewhere (/avatars?author=…&tag=…) replace the remembered search. */
@@ -48,50 +60,54 @@ function initialFilters(): Filters {
 
 /** Keeps creator and tag filters in the address bar, so a filtered search can be shared. */
 function syncUrl(f: Filters) {
-  const params = new URLSearchParams();
-  if (f.author) {
-    params.set('author', f.author.name);
-    if (f.author.id) params.set('authorId', f.author.id);
-  }
-  if (f.tag) params.set('tag', f.tag);
-  const next = '/avatars' + (params.size ? '?' + params : '');
-  if (window.location.pathname + window.location.search !== next) window.history.replaceState(null, '', next);
+  replaceSearchParams({
+    author: f.author?.name || null,
+    authorId: f.author?.id || null,
+    tag: f.tag || null,
+  });
 }
 
-/** Search the public avatar catalog. */
-export default function AvatarSearch() {
+/** The Avatars tab: the public avatar catalog, browsed or searched. */
+export default function AvatarResults({ input, setInput, query, submit }: SearchInput) {
   useLocale();
   const [filters, setFilters] = useState(initialFilters);
-  const [q, setQ] = useState(filters.query);
   const [authorInput, setAuthorInput] = useState(filters.author?.name || '');
   const [tagInput, setTagInput] = useState(filters.tag);
-  const [page, setPage] = useState(0);
+  // The page belongs to one search, so a new search starts on page 1.
+  const [paging, setPaging] = useState({ query, page: 0 });
+  const page = paging.query === query ? paging.page : 0;
+  const setPage = (next: number) => setPaging({ query, page: next });
   const [panel, setPanel] = useState(false);
   const [avatars, setAvatars] = useState<Avatar[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
-  const { query, platform, rating, sort, author, tag, hide, fallbackOnly } = filters;
+  const { platform, rating, author, tag, hide, fallbackOnly } = filters;
+  // Best match needs a search; without one the newest come first.
+  const chosen = filters.sort ?? (query ? 'relevance' : 'newest');
+  const sort = chosen === 'relevance' && !query ? 'newest' : chosen;
 
   function update(patch: Partial<Filters>) {
     setFilters((f) => ({ ...f, ...patch }));
     setPage(0);
   }
 
-  // Typed search, creator and tag filters apply after a short pause.
+  // Creator and tag filters apply after a short pause.
   useEffect(() => {
     const t = setTimeout(() => {
       const name = authorInput.trim();
       setFilters((f) => {
         const nextAuthor = name ? (f.author && f.author.name === name ? f.author : { name }) : null;
-        if (f.query === q && f.author === nextAuthor && f.tag === tagInput.trim()) return f;
-        return { ...f, query: q, author: nextAuthor, tag: tagInput.trim() };
+        if (f.author === nextAuthor && f.tag === tagInput.trim()) return f;
+        return { ...f, author: nextAuthor, tag: tagInput.trim() };
       });
       setPage(0);
     }, 300);
     return () => clearTimeout(t);
-  }, [q, authorInput, tagInput]);
+    // setPage only depends on the current search, which is fine to read late.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authorInput, tagInput]);
 
   useEffect(() => {
     remembered = filters;
@@ -127,9 +143,14 @@ export default function AvatarSearch() {
   }, [query, platform, rating, sort, page, retry, author, tag, hide, fallbackOnly]);
 
   // Searching again shows the loading state until results arrive.
-  const [requested, setRequested] = useState({ filters, page, retry });
-  if (requested.filters !== filters || requested.page !== page || requested.retry !== retry) {
-    setRequested({ filters, page, retry });
+  const [requested, setRequested] = useState({ filters, query, page, retry });
+  if (
+    requested.filters !== filters ||
+    requested.query !== query ||
+    requested.page !== page ||
+    requested.retry !== retry
+  ) {
+    setRequested({ filters, query, page, retry });
     setLoading(true);
     setError('');
   }
@@ -148,29 +169,17 @@ export default function AvatarSearch() {
   }
 
   return (
-    <SectionPage
-      title={query ? 'Avatar search results' : 'Avatar search'}
-      subtitle="Public avatar catalog · search by name, creator, or avatar ID."
-    >
+    <>
       <CompanionDownload />
-      <div className="search-row">
-        <div className="search-input">
-          <Search size={19} />
-          <input
-            aria-label={tr('Search avatars')}
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder={tr('Search avatars, creators, or an avatar ID…')}
-          />
-          {q ? (
-            <button aria-label={tr('Clear search')} onClick={() => setQ('')}>
-              <X size={16} />
-            </button>
-          ) : (
-            <kbd>/</kbd>
-          )}
-        </div>
+      <SearchBar
+        label="Search avatars"
+        placeholder="Search avatars, creators, or an avatar ID…"
+        value={input}
+        onChange={setInput}
+        onSubmit={submit}
+      >
         <button
+          type="button"
           className={'filter-button ' + (panel ? 'chosen' : '')}
           onClick={() => setPanel(!panel)}
           aria-expanded={panel}
@@ -179,7 +188,7 @@ export default function AvatarSearch() {
           {tr('Filters')}
           {activeFilters > 0 && <small>{activeFilters}</small>}
         </button>
-      </div>
+      </SearchBar>
       <div className="browse-bar">
         <div className="chips">
           {[
@@ -198,20 +207,12 @@ export default function AvatarSearch() {
             </button>
           ))}
         </div>
-        <label className="sort-label">
-          {tr('Sort by')}
-          <select
-            aria-label={tr('Sort avatars')}
-            value={sort}
-            onChange={(e) => update({ sort: e.target.value })}
-          >
-            <option value="newest">{tr('Recently updated')}</option>
-            <option value="oldest">{tr('Oldest updates')}</option>
-            <option value="name">{tr('Name A–Z')}</option>
-            <option value="name-desc">{tr('Name Z–A')}</option>
-            <option value="author">{tr('Creator A–Z')}</option>
-          </select>
-        </label>
+        <SortMenu
+          label="Sort avatars"
+          value={sort}
+          options={sorts.map(([value, text]) => [value, text, value === 'relevance' && !query] as const)}
+          onChange={(value) => update({ sort: value })}
+        />
       </div>
       {panel && (
         <div className="filter-panel">
@@ -359,6 +360,6 @@ export default function AvatarSearch() {
           </div>
         </div>
       )}
-    </SectionPage>
+    </>
   );
 }

@@ -24,9 +24,9 @@ import Companion from './pages/companion';
 import Admin from './pages/admin';
 import AccountPage from './pages/account';
 import AvatarPage from './pages/avatar-page';
-import AvatarSearch from './pages/avatar-search';
 import Bookmarks from './pages/bookmarks';
-import BrowserTools from './pages/browser-tools';
+import Settings from './pages/settings';
+import SearchPage, { searchSections } from './pages/search';
 import { CollectionPage } from './pages/collection';
 import { CollectionsPage } from './pages/collections';
 import { ProfilePage } from './pages/cove-profile';
@@ -37,7 +37,6 @@ import Friends from './pages/friends';
 import MyProfile from './pages/my-profile';
 import MyUploads from './pages/my-uploads';
 import Notifications from './pages/notifications';
-import Worlds from './pages/worlds';
 
 const BOOKMARKS_KEY = 'atlas-bookmarks';
 
@@ -313,25 +312,11 @@ export default function App() {
                   onAvatar={setSelected}
                 />
               )}
-              {['Search', 'Users', 'Groups', 'MyGroups', 'Settings'].includes(section) && (
-                <BrowserTools
-                  key={section}
-                  coveAccount={coveAccount}
-                  section={section === 'MyGroups' ? 'Groups' : section}
-                  mine={section === 'MyGroups'}
-                  onAvatar={(a: Avatar) => setSelected(a)}
-                  user={user}
-                  onLogin={connect}
-                  notify={notify}
-                  saved={saved}
-                  setSaved={setSaved}
-                />
-              )}
-              {section === 'Explore' && <AvatarSearch key={route.version} />}
+              {searchSections.includes(section) && <SearchPage key={route.version} section={section} />}
+              {section === 'Settings' && <Settings notify={notify} saved={saved} setSaved={setSaved} />}
               {section === 'Bookmarks' && <Bookmarks />}
               {section === 'Favorites' && <Favorites key={vrchatKey} />}
               {section === 'Friends' && <Friends key={vrchatKey} />}
-              {section === 'Worlds' && <Worlds key={vrchatKey} />}
               {section === 'Notifications' && <Notifications key={vrchatKey} />}
               {section === 'Profile' && <MyProfile key={vrchatKey} />}
               {section === 'Donations' && <Donations />}

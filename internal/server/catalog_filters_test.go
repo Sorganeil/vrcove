@@ -125,3 +125,56 @@ func TestCatalogSorts(t *testing.T) {
 		t.Errorf("author = %v", got)
 	}
 }
+
+func TestCatalogRelevanceRatingAndAddedSorts(t *testing.T) {
+	h, rw := contentHarness(t)
+	const creator = "usr_00000000-0000-0000-0000-0000000000a9"
+	for _, a := range []struct{ id, name, author, updated string }{
+		{"avtr_00000000-0000-0000-0000-000000000901", "Fox", "Maker", "2026-01-01T00:00:00Z"},
+		{"avtr_00000000-0000-0000-0000-000000000902", "Arctic Fox", "Maker", "2026-01-05T00:00:00Z"},
+		{"avtr_00000000-0000-0000-0000-000000000903", "Foxglove Witch", "Maker", "2026-01-04T00:00:00Z"},
+		{"avtr_00000000-0000-0000-0000-000000000904", "Kit", "Fox", "2026-01-06T00:00:00Z"},
+		{"avtr_00000000-0000-0000-0000-000000000905", "Snow Fox Kit", "Maker", "2026-01-03T00:00:00Z"},
+		{"avtr_00000000-0000-0000-0000-000000000906", "Girl Protogen", "Maker", "2025-01-01T00:00:00Z"},
+	} {
+		addAvatar(t, rw, a.id, a.name, a.author, creator, a.updated, nil)
+	}
+	// Matches only through its tags, so it ranks below names with every word.
+	addAvatar(t, rw, "avtr_00000000-0000-0000-0000-000000000907", "Protogen", "Maker", creator, "2026-02-01T00:00:00Z", []string{"author_tag_girl"})
+	for id, rating := range map[string]string{"avtr_00000000-0000-0000-0000-000000000902": "Excellent", "avtr_00000000-0000-0000-0000-000000000905": "VeryPoor", "avtr_00000000-0000-0000-0000-000000000903": "Unknown"} {
+		if _, err := rw.Exec("UPDATE catalog SET rating = ? WHERE id = ?", rating, id); err != nil {
+			t.Fatal(err)
+		}
+	}
+	names := func(query string) []string {
+		body := decode(t, h.do(get("/catalog?"+query))).(map[string]any)
+		var out []string
+		for _, a := range body["avatars"].([]any) {
+			out = append(out, a.(map[string]any)["name"].(string))
+		}
+		return out
+	}
+	if got := names("q=fox&sort=relevance"); !slices.Equal(got, []string{"Fox", "Foxglove Witch", "Arctic Fox", "Snow Fox Kit", "Kit"}) {
+		t.Errorf("best match = %v", got)
+	}
+	if got := names("q=fox"); !slices.Equal(got, []string{"Kit", "Arctic Fox", "Foxglove Witch", "Snow Fox Kit", "Fox"}) {
+		t.Errorf("newest = %v", got)
+	}
+	if got := names("q=protogen+girl&sort=relevance"); !slices.Equal(got, []string{"Girl Protogen", "Protogen"}) {
+		t.Errorf("best match with two words = %v", got)
+	}
+	// LIKE wildcards in a search are literal text.
+	if got := names("q=fox%25&sort=relevance"); len(got) != 5 {
+		t.Errorf("search with %% = %v", got)
+	}
+	// Best match without a search falls back to the newest first.
+	if got := names("sort=relevance"); got[0] != "Protogen" {
+		t.Errorf("best match without search = %v", got)
+	}
+	if got := names("sort=rating"); got[0] != "Arctic Fox" || got[len(got)-2] != "Snow Fox Kit" || got[len(got)-1] != "Foxglove Witch" {
+		t.Errorf("best performance = %v", got)
+	}
+	if got := names("sort=added"); got[0] != "Protogen" || got[len(got)-1] != "Fox" {
+		t.Errorf("recently added = %v", got)
+	}
+}

@@ -267,3 +267,21 @@ func TestNewInstance(t *testing.T) {
 		t.Errorf("bad location = %d", w.Code)
 	}
 }
+
+func TestWorldSearchSortsAndPlatforms(t *testing.T) {
+	h := newConnectedHarness(t)
+	for path, want := range map[string]string{
+		"/account/search?type=worlds&q=":                               "/worlds?n=50&offset=0&order=descending&releaseStatus=public&sort=popularity",
+		"/account/search?type=worlds&q=&sort=trending&platform=quest":  "/worlds?n=50&offset=0&order=descending&platform=android&releaseStatus=public&sort=heat",
+		"/account/search?type=worlds&q=forest":                         "/worlds?n=50&offset=0&releaseStatus=public&search=forest",
+		"/account/search?type=worlds&q=forest&sort=newest&platform=pc": "/worlds?n=50&offset=0&order=descending&platform=standalonewindows&releaseStatus=public&search=forest&sort=publicationDate",
+		"/account/search?type=worlds&q=forest&sort=bogus&platform=mac": "/worlds?n=50&offset=0&releaseStatus=public&search=forest",
+		"/account/search?type=worlds&q=&sort=favorites&offset=50":      "/worlds?n=50&offset=50&order=descending&releaseStatus=public&sort=favorites",
+		"/account/search?type=users&q=alice&sort=trending&platform=pc": "/users?n=50&offset=0&search=alice",
+		"/account/search?type=groups&q=club&sort=trending&platform=pc": "/groups?n=50&offset=0&query=club",
+	} {
+		if w := h.signedIn(get(path), want, `[]`); w.Code != 200 {
+			t.Errorf("%s = %d %s", path, w.Code, w.Body)
+		}
+	}
+}
