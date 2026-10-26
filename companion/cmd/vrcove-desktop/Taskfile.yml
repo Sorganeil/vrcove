@@ -1,0 +1,22 @@
+# Wails build configuration for VRCove Desktop. `wails3 build` runs the
+# `build` task for the target OS (GOOS=windows cross-builds from Linux).
+# LDFLAGS adds version details; companion/build.sh passes them.
+version: '3'
+
+vars:
+  APP_NAME: vrcove-desktop
+  BIN_DIR: ../../dist
+  GOOS: '{{.GOOS | default OS}}'
+  VERSION:
+    sh: cat ../../../VERSION
+
+includes:
+  common: ./build/Taskfile.yml
+  linux: ./build/linux/Taskfile.yml
+  windows: ./build/windows/Taskfile.yml
+
+tasks:
+  build:
+    summary: Builds a release of VRCove Desktop
+    cmds:
+      - task: '{{.GOOS}}:build'

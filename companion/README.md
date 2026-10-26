@@ -33,8 +33,13 @@ and Unity package extractor). All of it is stored only on your computer.
 
 ## Build
 
-Go 1.26+ and Node.js. Linux also needs gcc, pkg-config and the GTK 4 and
-WebKitGTK 6 dev packages.
+Go 1.26+, Node.js and the Wails CLI at the version in `go.mod`
+(`go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-beta.34`). Linux
+also needs gcc, pkg-config and the GTK 4 and WebKitGTK 6 dev packages.
+
+Release builds go through `wails3 build` (see `cmd/vrcove-desktop/Taskfile.yml`):
+the `production` tag turns off developer tools, symbols are stripped and paths
+trimmed, and the Windows build embeds the icon and version details.
 
 ```sh
 bash build.sh linux     # dist/vrcove-desktop

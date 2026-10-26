@@ -1,0 +1,15 @@
+{
+	"fixed": {
+		"file_version": "{{VERSION}}"
+	},
+	"info": {
+		"0409": {
+			"ProductVersion": "{{VERSION}}",
+			"CompanyName": "VRCove",
+			"FileDescription": "VRCove Desktop",
+			"LegalCopyright": "VRCove contributors",
+			"ProductName": "VRCove Desktop",
+			"Comments": "VRChat avatar search and a private VRChat client"
+		}
+	}
+}

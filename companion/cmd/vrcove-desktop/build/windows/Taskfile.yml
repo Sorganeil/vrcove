@@ -1,0 +1,26 @@
+version: '3'
+
+includes:
+  common: ../Taskfile.yml
+
+tasks:
+  build:
+    summary: Cross-builds VRCove Desktop for Windows, as wails3 build does
+    deps:
+      - task: common:build:frontend
+    cmds:
+      - task: generate:syso
+      - go build -tags production -trimpath -buildvcs=false -ldflags="-w -s -H windowsgui {{.LDFLAGS}}" -o "{{.BIN_DIR}}/{{.APP_NAME}}.exe"
+      - rm -f *.syso build/windows/info.generated.json
+    env:
+      GOOS: windows
+      CGO_ENABLED: 0
+      GOARCH: '{{.ARCH | default "amd64"}}'
+
+  generate:syso:
+    summary: Embeds the icon, manifest and version details in the .exe
+    dir: build
+    cmds:
+      # Version details come from the repository's VERSION file.
+      - sed "s/{{"{{"}}VERSION{{"}}"}}/{{trimPrefix "v" .VERSION}}/g" windows/info.json > windows/info.generated.json
+      - wails3 generate syso -arch {{.ARCH | default "amd64"}} -icon windows/icon.ico -manifest windows/wails.exe.manifest -info windows/info.generated.json -out ../wails_windows_{{.ARCH | default "amd64"}}.syso

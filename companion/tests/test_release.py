@@ -45,6 +45,7 @@ esac
         bindir = self.root / "bin"
         bindir.mkdir()
         (bindir / "go").write_text("#!/bin/sh\nexit 0\n")
+        (bindir / "wails3").write_text("#!/bin/sh\nexit 0\n")
         (bindir / "gh").write_text('''#!/usr/bin/env python3
 import json, os, sys
 from pathlib import Path

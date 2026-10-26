@@ -1,0 +1,11 @@
+version: '3'
+
+tasks:
+  build:frontend:
+    summary: Builds the website frontend in desktop mode into ../frontend
+    run: once
+    dir: ../../..
+    status:
+      - test "$SKIP_FRONTEND_BUILD" = 1
+    cmds:
+      - npm run build:desktop

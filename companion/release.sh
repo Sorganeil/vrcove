@@ -44,6 +44,7 @@ fi
 packages=$(go list ./... || true)
 go test -race $packages
 go vet $packages
+command -v wails3 >/dev/null || { echo 'Release builds need the Wails CLI (wails3) matching go.mod.' >&2; exit 1; }
 bash build.sh linux
 SKIP_FRONTEND_BUILD=1 bash build.sh windows
 # This path must work headlessly; metadata is checked before packaging.

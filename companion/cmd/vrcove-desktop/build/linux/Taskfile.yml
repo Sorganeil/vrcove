@@ -1,0 +1,16 @@
+version: '3'
+
+includes:
+  common: ../Taskfile.yml
+
+tasks:
+  build:
+    summary: Builds VRCove Desktop for Linux, as wails3 build does
+    deps:
+      - task: common:build:frontend
+    cmds:
+      - go build -tags production -trimpath -buildvcs=false -ldflags="-w -s {{.LDFLAGS}}" -o "{{.BIN_DIR}}/{{.APP_NAME}}"
+    env:
+      GOOS: linux
+      CGO_ENABLED: 1
+      GOARCH: '{{.ARCH | default ARCH}}'
