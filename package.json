@@ -9,7 +9,6 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "build:desktop": "tsc --noEmit && vite build --mode desktop",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test:frontend": "playwright test",

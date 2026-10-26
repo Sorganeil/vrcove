@@ -1,4 +1,4 @@
-package collector
+package main
 
 import (
 	"context"
@@ -105,9 +105,9 @@ func collectWhileBlocked(t *testing.T, stage string) {
 	path := filepath.Join(t.TempDir(), "state.json")
 	ctx, cancel := context.WithCancel(context.Background())
 	done := make(chan struct{})
-	commands := make(chan Command, 1)
-	updates := make(chan Snapshot, 1)
-	go func() { defer close(done); Run(ctx, path, state, commands, updates, func() {}) }()
+	commands := make(chan command, 1)
+	updates := make(chan snapshot, 1)
+	go func() { defer close(done); worker(ctx, path, state, commands, updates, func() {}) }()
 	defer func() {
 		cancel()
 		select {
@@ -116,7 +116,7 @@ func collectWhileBlocked(t *testing.T, stage string) {
 			t.Error("collector did not stop")
 		}
 	}()
-	commands <- Command{Kind: "start"}
+	commands <- command{kind: "start"}
 	select {
 	case <-started:
 	case <-time.After(2 * time.Second):
@@ -171,11 +171,11 @@ func TestClearCacheSavesIDsBeforeClearing(t *testing.T) {
 			state.Config.Folder = folder
 			ctx, cancel := context.WithCancel(context.Background())
 			done := make(chan struct{})
-			commands := make(chan Command, 1)
-			updates, reply := make(chan Snapshot, 1), make(chan string, 1)
-			go func() { defer close(done); Run(ctx, path, state, commands, updates, func() {}) }()
+			commands := make(chan command, 1)
+			updates, reply := make(chan snapshot, 1), make(chan string, 1)
+			go func() { defer close(done); worker(ctx, path, state, commands, updates, func() {}) }()
 			defer func() { cancel(); <-done }()
-			commands <- Command{Kind: "clear-cache", Reply: reply}
+			commands <- command{kind: "clear-cache", reply: reply}
 			var message string
 			select {
 			case message = <-reply:
@@ -213,8 +213,8 @@ func TestAutoStartCollectsAsSoonAsTheWorkerStarts(t *testing.T) {
 			path := filepath.Join(t.TempDir(), "state.json")
 			ctx, cancel := context.WithCancel(context.Background())
 			done := make(chan struct{})
-			updates := make(chan Snapshot, 1)
-			go func() { defer close(done); Run(ctx, path, state, make(chan Command), updates, func() {}) }()
+			updates := make(chan snapshot, 1)
+			go func() { defer close(done); worker(ctx, path, state, make(chan command), updates, func() {}) }()
 			defer func() { cancel(); <-done }()
 			// Well before the three-second polling tick.
 			deadline := time.Now().Add(time.Second)
@@ -227,8 +227,8 @@ func TestAutoStartCollectsAsSoonAsTheWorkerStarts(t *testing.T) {
 			if collected != auto {
 				t.Fatalf("collected = %v", collected)
 			}
-			if snap := <-updates; snap.Paused == auto {
-				t.Fatalf("paused = %v", snap.Paused)
+			if snap := <-updates; snap.paused == auto {
+				t.Fatalf("paused = %v", snap.paused)
 			}
 		})
 	}
@@ -251,11 +251,11 @@ func TestOnlyServerOrKeyChangesResetRateLimitWait(t *testing.T) {
 			path := filepath.Join(t.TempDir(), "state.json")
 			ctx, cancel := context.WithCancel(context.Background())
 			done := make(chan struct{})
-			commands := make(chan Command)
-			go func() { defer close(done); Run(ctx, path, state, commands, make(chan Snapshot, 1), func() {}) }()
+			commands := make(chan command)
+			go func() { defer close(done); worker(ctx, path, state, commands, make(chan snapshot, 1), func() {}) }()
 			next := state.Config
 			tc.edit(&next)
-			commands <- Command{Kind: "config", Config: next}
+			commands <- command{kind: "config", config: next}
 			cancel()
 			<-done
 			saved, err := logger.Load(path)

@@ -31,11 +31,11 @@ export function SectionPage({
 
 /** Shows the VRChat connection prompt instead of `children` until VRChat is connected. */
 export function RequireVRChat({ section, children }: { section: string; children: ReactNode }) {
-  const { user, linkAccount, requestConnection } = useApp();
+  const { user, coveAccount, requestConnection } = useApp();
   if (!user)
     return (
       <VRChatGate
-        coveAccount={linkAccount}
+        coveAccount={coveAccount}
         section={tr(section)}
         onConnect={() => requestConnection()}
         size={34}

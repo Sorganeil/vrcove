@@ -33,20 +33,3 @@ go test -race -tags novulkan ./...
 network access. Add `--screen settings|login|code|signed-in` to open a screen.
 
 Releases are built by GitHub Actions when a `v*` tag is pushed.
-
-## VRCove Desktop (experimental)
-
-`cmd/vrcove-desktop` is a Wails v3 app that will replace the logger. It shows
-the website's own frontend, built with `npm run build:desktop`, and runs the
-website's VRChat API code (`internal/server` in local mode) inside the app, so
-VRChat requests go straight from your PC to VRChat. Avatar search, VRCove
-accounts, reviews and collections still come from vrcove.st. The avatar logger
-is built in and shares `internal/collector` with `vrcove-logger`.
-
-```sh
-bash build.sh desktop-linux     # dist/vrcove-desktop (needs GTK 4 and WebKitGTK 6 dev packages)
-bash build.sh desktop-windows   # dist/vrcove-desktop.exe, cross-built, no cgo
-```
-
-`VRCOVE_SITE=http://localhost:8080` points a development build at a local server.
-Sign-ins are kept in a file encrypted with a key in the system keyring.

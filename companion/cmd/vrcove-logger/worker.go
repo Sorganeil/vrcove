@@ -1,33 +1,29 @@
-// Package collector watches VRChat's analytics cache for avatar IDs and
-// uploads the public ones to VRCove. The logger and the desktop app share it.
-package collector
+package main
 
 import (
 	"context"
 	"net/http"
+	"os"
 	"path/filepath"
 	"reflect"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
 	"vrcove/companion/internal/logger"
 )
 
-// Command changes what Run is doing: "start", "pause", "config" with a new
-// Config, or "clear-cache", which answers on Reply.
-type Command struct {
-	Kind   string
-	Config logger.Config
-	Reply  chan string
+type command struct {
+	kind   string
+	config logger.Config
+	reply  chan string
 }
-
-// Snapshot is the collector's state for display.
-type Snapshot struct {
-	Status                                       string
-	Detected, Added, Existing, Rejected, Pending int
-	Events                                       []logger.Event
-	Paused                                       bool
+type snapshot struct {
+	status                                       string
+	detected, added, existing, rejected, pending int
+	events                                       []logger.Event
+	paused                                       bool
 }
 
 type uploadResult struct {
@@ -35,18 +31,16 @@ type uploadResult struct {
 	err   error
 }
 
-// Run collects into s, saved at path, until ctx ends. It sends the latest
-// Snapshot on updates (replacing an unread one) and then calls wake.
-func Run(ctx context.Context, path string, s *logger.State, commands <-chan Command, updates chan Snapshot, wake func()) {
+func worker(ctx context.Context, path string, s *logger.State, commands <-chan command, updates chan snapshot, wake func()) {
 	client := &http.Client{Timeout: 30 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
 	paused := !s.Config.AutoStart
 	s.Status = "Paused"
 	if !paused {
 		s.Status = "Watching VRChat analytics"
 	}
-	var previous *Snapshot
+	var previous *snapshot
 	publish := func() {
-		snap := Snapshot{s.Status, len(s.Seen), s.Added, s.Existing, s.Rejected, len(s.Pending), append([]logger.Event(nil), s.Events...), paused}
+		snap := snapshot{s.Status, len(s.Seen), s.Added, s.Existing, s.Rejected, len(s.Pending), append([]logger.Event(nil), s.Events...), paused}
 		if previous != nil && reflect.DeepEqual(*previous, snap) {
 			return
 		}
@@ -192,7 +186,7 @@ func Run(ctx context.Context, path string, s *logger.State, commands <-chan Comm
 				continue
 			}
 		case c := <-commands:
-			switch c.Kind {
+			switch c.kind {
 			case "clear-cache":
 				if err := s.Scan(); err != nil {
 					s.Status = "Cache not cleared · " + err.Error()
@@ -208,7 +202,7 @@ func Run(ctx context.Context, path string, s *logger.State, commands <-chan Comm
 					}
 				}
 				select {
-				case c.Reply <- s.Status:
+				case c.reply <- s.Status:
 				default:
 				}
 				publish()
@@ -221,14 +215,29 @@ func Run(ctx context.Context, path string, s *logger.State, commands <-chan Comm
 			case "config":
 				// A new server or key gets a fresh start; other settings keep
 				// any rate-limit wait.
-				if c.Config.Server != s.Config.Server || c.Config.Token != s.Config.Token {
+				if c.config.Server != s.Config.Server || c.config.Token != s.Config.Token {
 					s.RetryAt, s.Failures, s.RetryReason = time.Time{}, 0, ""
 				}
-				s.Config = c.Config
+				s.Config = c.config
 			}
 			persist()
 		case <-ticker.C:
 		}
 		cycle()
 	}
+}
+
+func displayFolder(path string) string {
+	if path == "" {
+		return "Choose your VRChat analytics folder"
+	}
+	home, _ := os.UserHomeDir()
+	if home != "" {
+		path = strings.Replace(path, home, "~", 1)
+	}
+	return path
+}
+
+func detectFolder() string {
+	return logger.DetectFolder()
 }

@@ -30,7 +30,6 @@ import (
 	"golang.org/x/image/font/gofont/gobold"
 	"golang.org/x/image/font/gofont/goregular"
 	"vrcove/companion/internal/buildinfo"
-	"vrcove/companion/internal/collector"
 	"vrcove/companion/internal/logger"
 	"vrcove/companion/internal/vrchat"
 )
@@ -48,10 +47,10 @@ var (
 type gui struct {
 	th                            *material.Theme
 	config                        logger.Config
-	snap                          collector.Snapshot
+	snap                          snapshot
 	preview, settings, login      bool
 	message                       string
-	commands                      chan collector.Command
+	commands                      chan command
 	toggle, connect, save, cancel widget.Clickable
 	quit                          widget.Clickable
 	clearCache                    widget.Clickable
@@ -115,7 +114,7 @@ func run(preview bool, path, screen string) error {
 		s.Config.Folder = detectFolder()
 	}
 	var slot windowSlot
-	g := &gui{th: newTheme(), config: s.Config, commands: make(chan collector.Command, 4), clearReply: make(chan string, 1), preview: preview, loginReply: make(chan string, 1), invalidate: slot.invalidate}
+	g := &gui{th: newTheme(), config: s.Config, commands: make(chan command, 4), clearReply: make(chan string, 1), preview: preview, loginReply: make(chan string, 1), invalidate: slot.invalidate}
 	if preview {
 		g.vrc = previewVRChat(slot.invalidate)
 		g.settings, g.login = screen == "settings" || screen == "login", screen == "login"
@@ -147,16 +146,16 @@ func run(preview bool, path, screen string) error {
 	g.server.SingleLine = true
 	g.token.SingleLine = true
 	g.token.Mask = '•'
-	g.snap = collector.Snapshot{Status: "Collection paused", Detected: len(s.Seen), Added: s.Added, Existing: s.Existing, Rejected: s.Rejected, Pending: len(s.Pending), Events: append([]logger.Event(nil), s.Events...), Paused: !s.Config.AutoStart}
-	if g.snap.Paused {
-		g.snap.Status = "Paused"
+	g.snap = snapshot{status: "Collection paused", detected: len(s.Seen), added: s.Added, existing: s.Existing, rejected: s.Rejected, pending: len(s.Pending), events: append([]logger.Event(nil), s.Events...), paused: !s.Config.AutoStart}
+	if g.snap.paused {
+		g.snap.status = "Paused"
 	} else {
-		g.snap.Status = "Watching VRChat analytics"
+		g.snap.status = "Watching VRChat analytics"
 	}
 	if preview {
 		g.snap = previewSnapshot()
 	}
-	updates := make(chan collector.Snapshot, 1)
+	updates := make(chan snapshot, 1)
 	// Stop cleanly on Ctrl+C or a service manager's TERM, saving the queue.
 	signals, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
@@ -178,7 +177,7 @@ func run(preview bool, path, screen string) error {
 	go func() { <-ctx.Done(); slot.invalidate() }()
 	done := make(chan struct{})
 	if !preview {
-		go func() { defer close(done); collector.Run(ctx, path, s, g.commands, updates, slot.invalidate) }()
+		go func() { defer close(done); worker(ctx, path, s, g.commands, updates, slot.invalidate) }()
 	}
 	defer func() {
 		cancel()
@@ -211,7 +210,7 @@ func run(preview bool, path, screen string) error {
 	}
 }
 
-func (g *gui) windowLoop(ctx context.Context, w *app.Window, updates <-chan collector.Snapshot, show chan struct{}, tray *trayController) error {
+func (g *gui) windowLoop(ctx context.Context, w *app.Window, updates <-chan snapshot, show chan struct{}, tray *trayController) error {
 	var ops op.Ops
 	controls := newWindowControls(w)
 	// Keep tray actions responsive even when a minimized window stops drawing.
@@ -323,7 +322,7 @@ func newTheme() *material.Theme {
 	return &material.Theme{Shaper: text.NewShaper(text.NoSystemFonts(), text.WithCollection(faces)), Palette: material.Palette{Bg: bg, Fg: fg, ContrastBg: accent, ContrastFg: bg}, TextSize: unit.Sp(14), FingerSize: unit.Dp(36)}
 }
 
-func (g *gui) send(c collector.Command) bool {
+func (g *gui) send(c command) bool {
 	select {
 	case g.commands <- c:
 		return true
@@ -344,26 +343,26 @@ func (g *gui) actions(gtx layout.Context) {
 			g.message = "Preview only · no cache file was changed."
 		} else if strings.TrimSpace(g.folder.Text()) != g.config.Folder {
 			g.message = "Save folder changes before clearing the cache."
-		} else if g.send(collector.Command{Kind: "clear-cache", Reply: g.clearReply}) {
+		} else if g.send(command{kind: "clear-cache", reply: g.clearReply}) {
 			g.message = "Saving avatar IDs and clearing the analytics cache…"
 		}
 	}
 	if g.toggle.Clicked(gtx) {
 		if g.preview {
-			g.snap.Paused = !g.snap.Paused
-			if g.snap.Paused {
-				g.snap.Status = "Paused"
+			g.snap.paused = !g.snap.paused
+			if g.snap.paused {
+				g.snap.status = "Paused"
 			} else {
-				g.snap.Status = "Watching VRChat analytics"
+				g.snap.status = "Watching VRChat analytics"
 			}
 		} else {
 			kind := "pause"
-			if g.snap.Paused {
+			if g.snap.paused {
 				kind = "start"
 			}
-			if g.send(collector.Command{Kind: kind}) {
-				g.snap.Paused = !g.snap.Paused
-				g.snap.Status = "Updating collection…"
+			if g.send(command{kind: kind}) {
+				g.snap.paused = !g.snap.paused
+				g.snap.status = "Updating collection…"
 			}
 		}
 	}
@@ -398,7 +397,7 @@ func (g *gui) actions(gtx layout.Context) {
 			}
 		}
 		candidate := logger.Config{Folder: folder, Server: origin, Token: strings.TrimSpace(g.token.Text()), AutoStart: g.auto}
-		if !g.preview && !g.send(collector.Command{Kind: "config", Config: candidate}) {
+		if !g.preview && !g.send(command{kind: "config", config: candidate}) {
 			return
 		}
 		g.config = candidate
@@ -493,9 +492,9 @@ func attention(status string) bool {
 
 func (g *gui) dashboard(gtx layout.Context) layout.Dimensions {
 	title, statusColor := "Pause", accent
-	if g.snap.Paused {
+	if g.snap.paused {
 		title, statusColor = "Start", muted
-	} else if attention(g.snap.Status) {
+	} else if attention(g.snap.status) {
 		statusColor = warn
 	}
 	version := buildinfo.Version
@@ -511,12 +510,12 @@ func (g *gui) dashboard(gtx layout.Context) layout.Dimensions {
 				layout.Rigid(g.button(&g.toggle, title, true)))
 		},
 		space(4),
-		g.text(g.snap.Status, 13, statusColor, false, 2),
+		g.text(g.snap.status, 13, statusColor, false, 2),
 		space(12),
 		func(gtx layout.Context) layout.Dimensions {
 			var cols []layout.FlexChild
 			for i, name := range []string{"Found", "Added", "Known", "Queued", "Rejected"} {
-				n := []int{g.snap.Detected, g.snap.Added, g.snap.Existing, g.snap.Pending, g.snap.Rejected}[i]
+				n := []int{g.snap.detected, g.snap.added, g.snap.existing, g.snap.pending, g.snap.rejected}[i]
 				cols = append(cols, layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 					return layout.Flex{Axis: layout.Vertical}.Layout(gtx, layout.Rigid(g.label(fmt.Sprint(n), 19, fg, true)), layout.Rigid(g.label(name, 12, muted, false)))
 				}))
@@ -526,10 +525,10 @@ func (g *gui) dashboard(gtx layout.Context) layout.Dimensions {
 		space(12), divider, space(8),
 		g.label("Recent", 12, muted, true), space(2),
 	}
-	if len(g.snap.Events) == 0 {
+	if len(g.snap.events) == 0 {
 		items = append(items, space(4), g.label("Nothing yet. Start collecting, then play VRChat.", 13, muted, false))
 	}
-	for _, e := range g.snap.Events[:min(6, len(g.snap.Events))] {
+	for _, e := range g.snap.events[:min(6, len(g.snap.events))] {
 		items = append(items, func(gtx layout.Context) layout.Dimensions {
 			c := map[string]color.NRGBA{"Added": accent, "Existing": muted, "Queued": color.NRGBA{R: 139, G: 187, B: 246, A: 255}, "Rejected": warn}[e.Result]
 			if c == (color.NRGBA{}) {
@@ -602,8 +601,8 @@ func (g *gui) settingsView(gtx layout.Context) layout.Dimensions {
 	return g.list.Layout(gtx, len(items), func(gtx layout.Context, i int) layout.Dimensions { return items[i](gtx) })
 }
 
-func previewSnapshot() collector.Snapshot {
-	return collector.Snapshot{Status: "Watching VRChat analytics", Detected: 128, Added: 86, Existing: 31, Rejected: 8, Pending: 3, Events: []logger.Event{
+func previewSnapshot() snapshot {
+	return snapshot{status: "Watching VRChat analytics", detected: 128, added: 86, existing: 31, rejected: 8, pending: 3, events: []logger.Event{
 		{Time: "14:32", ID: "avtr_8a4207d1-1284-4fe6-b087-804c8f2ac039", Result: "Added"},
 		{Time: "14:32", ID: "avtr_29f6b0ac-1845-4ad5-a894-1832ec10a185", Result: "Existing"},
 		{Time: "14:31", ID: "avtr_7462edc8-7845-48a3-9413-71c8100ad407", Result: "Added"},

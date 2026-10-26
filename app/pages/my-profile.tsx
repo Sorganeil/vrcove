@@ -20,7 +20,7 @@ export default function MyProfile() {
 
 function OwnProfile() {
   useLocale();
-  const { user, setUser, linkAccount, requestConnection, notify, navigate } = useApp();
+  const { user, setUser, coveAccount, requestConnection, notify, navigate } = useApp();
   const [editing, setEditing] = useState(false);
   const [revision, setRevision] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -56,7 +56,7 @@ function OwnProfile() {
       </div>
       <DetailView
         key={user.id + ':' + revision}
-        coveAccount={linkAccount}
+        coveAccount={coveAccount}
         kind="user"
         id={user.id}
         user={user}

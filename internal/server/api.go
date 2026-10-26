@@ -82,12 +82,6 @@ func (s *Server) handleAPI(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) route(w http.ResponseWriter, r *http.Request, p string) error {
 	post := r.Method == http.MethodPost
-	// On the device only VRChat routes and pictures run here; VRCove's own
-	// features, such as the catalog and accounts, stay on the website.
-	if s.cfg.Local && !strings.HasPrefix(p, "/account/") && p != "/image" {
-		s.cfg.Remote.ServeHTTP(w, r)
-		return nil
-	}
 	switch {
 	case p == "/logger/known":
 		return s.loggerKnown(w, r)
@@ -113,13 +107,6 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, p string) error {
 	if err != nil {
 		return err
 	}
-	if s.cfg.Local {
-		acct = &account{ID: localAccountID, Username: "local"}
-		if p == "/account/device" {
-			s.deviceLinks(w, r)
-			return nil
-		}
-	}
 	if acct == nil {
 		return errStatus(http.StatusUnauthorized, "Sign in to your VRCove account first, then link VRChat.")
 	}
@@ -133,8 +120,6 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, p string) error {
 	switch {
 	case p == "/account/login" && post:
 		return s.login(w, r, acct)
-	case p == "/account/switch" && post && s.cfg.Local:
-		return errStatus(http.StatusBadRequest, "Switching VRChat accounts isn't available in the desktop app yet. Sign out, then sign in to the other account.")
 	case p == "/account/switch" && post:
 		return s.switchVRChat(w, r, acct)
 	case p == "/account/2fa" && post:

@@ -208,10 +208,6 @@ func tokenHash(token []byte) []byte {
 
 // hasVRChatLink checks ownership without exposing private link records.
 func (s *Server) hasVRChatLink(r *http.Request, a *account, userID string) (bool, error) {
-	if s.cfg.Local {
-		// On the device, signing in to VRChat is the link.
-		return true, nil
-	}
 	var n int
 	query := "SELECT count(*) FROM vrchat_links WHERE account_id = ?"
 	args := []any{a.ID}
@@ -570,7 +566,7 @@ func (s *Server) rememberVRChatUsername(r *http.Request, session *Session, me an
 	if username == "" {
 		username = session.Username
 	}
-	if username == "" || s.accounts == nil {
+	if username == "" {
 		return nil
 	}
 	var sealed string
@@ -817,16 +813,6 @@ func (s *Server) storeVRChatLink(w http.ResponseWriter, r *http.Request, a *acco
 	username := field(me, "username")
 	if username == "" {
 		username = session.Username
-	}
-	if s.cfg.Local {
-		session.AccountID, session.UserID, session.Username = a.ID, vrcID, username
-		session.activate = true
-		result := map[string]any{"ok": true, "similarName": false}
-		if connected {
-			result["user"] = publicUser(me)
-		}
-		s.writeWithSession(w, result, session)
-		return nil
 	}
 	plain, _ := json.Marshal(linkRecord{VRChatID: vrcID, DisplayName: field(me, "displayName"), Username: username})
 	sealed, err := sealBytes(s.keys.linkSeal, plain, linkAAD)
