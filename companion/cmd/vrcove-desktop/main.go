@@ -13,9 +13,12 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/events"
+	"github.com/wailsapp/wails/v3/pkg/services/notifications"
+	"vrcove/companion/internal/history"
 )
 
 //go:embed all:frontend
@@ -60,12 +63,26 @@ func main() {
 	if handler.logger, err = startLogger(ctx, handler, filepath.Join(config, "VRCove Desktop"), site.Scheme+"://"+site.Host); err != nil {
 		log.Print("avatar logger unavailable: ", err)
 	}
+	if handler.history, err = history.Open(filepath.Join(config, "VRCove Desktop", "history.sqlite")); err != nil {
+		log.Print("history unavailable: ", err)
+	} else {
+		defer handler.history.Close()
+	}
+	go handler.readLogs(ctx)
+	go handler.runLive(ctx)
+	alerts := notifications.New()
 
+	// VRCOVE_START opens another page first, for development and screenshots.
+	start := "/"
+	if v := os.Getenv("VRCOVE_START"); strings.HasPrefix(v, "/") && !strings.HasPrefix(v, "//") {
+		start = v
+	}
 	var window *application.WebviewWindow
 	app := application.New(application.Options{
 		Name:        "VRCove",
 		Description: "VRChat avatar search and a private VRChat client",
 		Assets:      application.AssetOptions{Handler: handler, DisableLogging: true},
+		Services:    []application.Service{application.NewService(alerts)},
 		SingleInstance: &application.SingleInstanceOptions{
 			UniqueID: "st.vrcove.desktop",
 			OnSecondInstanceLaunch: func(application.SecondInstanceData) {
@@ -84,7 +101,17 @@ func main() {
 		MinWidth:         380,
 		MinHeight:        560,
 		BackgroundColour: application.NewRGB(14, 19, 26),
-		URL:              "/",
+		URL:              start,
+	})
+	handler.openURL = app.Browser.OpenURL
+	handler.notify = func(id, title, body string) {
+		alerts.SendNotification(notifications.NotificationOptions{ID: id, Title: title, Body: body})
+	}
+	// Clicking an alert opens the Notifications page.
+	alerts.OnNotificationResponse(func(notifications.NotificationResult) {
+		window.Show()
+		window.Focus()
+		window.ExecJS("history.pushState(null,'','/notifications');dispatchEvent(new PopStateEvent('popstate'))")
 	})
 	// Closing the window keeps VRCove running in the tray.
 	window.RegisterHook(events.Common.WindowClosing, func(e *application.WindowEvent) {

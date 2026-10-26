@@ -93,7 +93,31 @@
   padding: 0 2px 12px;
 }
 .nav-group {
-  margin-top: 18px;
+  margin-top: 14px;
+}
+.nav-label button {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  width: 100%;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+.nav-label button:hover {
+  color: #c9d6e2;
+}
+.nav-label svg {
+  transition: transform 0.15s;
+}
+.nav-label button[aria-expanded='false'] svg {
+  transform: rotate(-90deg);
 }
 .nav-primary {
   padding-bottom: 2px;
@@ -114,9 +138,22 @@
 }
 @media (min-width: 651px) and (max-height: 1000px) {
   .nav-item {
-    min-height: 32px;
-    padding-top: 5px;
-    padding-bottom: 5px;
+    min-height: 30px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+  .sidebar {
+    padding-top: 14px;
+  }
+  .sidebar .brand {
+    min-height: 0;
+    margin-bottom: 12px;
+  }
+  .sidebar .cove-wordmark {
+    width: 140px;
+  }
+  .nav-group {
+    margin-top: 10px;
   }
 }
 .sidebar-links > button,

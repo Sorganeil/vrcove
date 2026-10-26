@@ -6,9 +6,12 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"path/filepath"
 	"strings"
 	"testing"
 	"testing/fstest"
+
+	"vrcove/companion/internal/history"
 )
 
 type roundTrip func(*http.Request) (*http.Response, error)
@@ -105,5 +108,57 @@ func TestDesktopKeepsVRChatOnTheDevice(t *testing.T) {
 	do(d, "POST", "/api/account/logout", `{}`)
 	if len(d.store.cookies(false)) != 0 || (verifier{d}).Ready() {
 		t.Fatalf("after sign-out = %v", d.store.cookies(false))
+	}
+}
+
+func TestDesktopRoutes(t *testing.T) {
+	site, _ := url.Parse("https://vrcove.example")
+	d := newTestDesktop(t, site)
+	h, err := history.Open(filepath.Join(t.TempDir(), "history.sqlite"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer h.Close()
+	d.history = h
+	var opened []string
+	d.openURL = func(u string) error { opened = append(opened, u); return nil }
+	var alerts []string
+	d.notify = func(id, title, body string) { alerts = append(alerts, title+"|"+body) }
+
+	for _, path := range []string{"/api/desktop/history", "/api/desktop/feed", "/api/desktop/screenshots"} {
+		if w := do(d, "GET", path, ""); w.Code != 200 {
+			t.Errorf("%s = %d %s", path, w.Code, w.Body)
+		}
+	}
+	if w := do(d, "GET", "/api/desktop/screenshot?file=../../etc/passwd", ""); w.Code != 404 {
+		t.Errorf("screenshot outside the folder = %d", w.Code)
+	}
+
+	// Only https links leave the app, and they go to the system browser.
+	do(d, "POST", "/api/desktop/open", `{"url":"https://vrcove.st/account"}`)
+	for _, bad := range []string{"file:///etc/passwd", "http://example.com", "javascript:alert(1)", "https://user@example.com"} {
+		if w := do(d, "POST", "/api/desktop/open", `{"url":"`+bad+`"}`); w.Code != 400 {
+			t.Errorf("open %s = %d", bad, w.Code)
+		}
+	}
+	if len(opened) != 1 || opened[0] != "https://vrcove.st/account" {
+		t.Fatalf("opened = %v", opened)
+	}
+
+	// Notifications follow the settings, in the window's wording.
+	invite := &history.Note{ID: "not_0123456789abcdef", Type: "invite", SenderUsername: "Mia", WorldName: "Cozy Room"}
+	d.alert(invite)
+	if len(alerts) != 0 {
+		t.Fatal("alert shown while notifications are off")
+	}
+	do(d, "POST", "/api/desktop/notifications", `{"enabled":true,"kinds":["invite"],"text":{"invite":"{name} te invitó"}}`)
+	d.alert(invite)
+	d.alert(&history.Note{ID: "not_fedcba9876543210", Type: "friendRequest", SenderUsername: "Zoe"})
+	if len(alerts) != 1 || alerts[0] != "Mia te invitó|Cozy Room" {
+		t.Fatalf("alerts = %v", alerts)
+	}
+	do(d, "POST", "/api/desktop/notifications", `{"action":"test"}`)
+	if len(alerts) != 2 || alerts[1] != "Notifications are on|New VRChat notifications will show up like this." {
+		t.Fatalf("test alert = %v", alerts)
 	}
 }

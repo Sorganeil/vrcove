@@ -24,6 +24,7 @@ import { DetailView } from './components/detail-view';
 import About from './pages/about';
 import Companion from './pages/companion';
 import DesktopLogger from './pages/desktop-logger';
+import { FriendFeed, GameHistory, Screenshots } from './pages/desktop-history';
 import Admin from './pages/admin';
 import AccountPage from './pages/account';
 import AvatarPage from './pages/avatar-page';
@@ -342,6 +343,9 @@ export default function App() {
                 <About onPrivacy={() => setPrivacy(true)} onDonate={() => navigate('Donations')} />
               )}
               {section === 'Companion' && (desktop ? <DesktopLogger /> : <Companion />)}
+              {section === 'History' && <GameHistory key={route.version} />}
+              {section === 'Feed' && <FriendFeed />}
+              {section === 'Screenshots' && <Screenshots />}
               {section === 'Admin' && <Admin key={route.version} notify={notify} />}
               {section === 'Collections' && <CollectionsPage notify={notify} />}
               {section === 'CoveProfile' && (

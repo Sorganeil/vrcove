@@ -1,18 +1,39 @@
-import type { ComponentType } from 'react';
+import { useState, type ComponentType } from 'react';
 import { t as tr, useLocale } from '../lib/i18n';
 import { useApp } from '../lib/app-context';
 import { navigationGroups, primaryNavigation, accountNavigation } from '../lib/navigation';
-import { ShieldCheck } from 'lucide-react';
+import { ChevronDown, ShieldCheck } from 'lucide-react';
 import InstallApp from './install-app';
 import { desktop } from '../lib/platform';
 
 type NavItem = { name: string; label: string; icon: ComponentType<{ size?: number }> };
+
+const collapsedKey = 'vrcove-nav-collapsed';
+function loadCollapsed(): string[] {
+  try {
+    const saved = JSON.parse(localStorage.getItem(collapsedKey) || '[]');
+    return Array.isArray(saved) ? saved.filter((v) => typeof v === 'string') : [];
+  } catch {
+    return [];
+  }
+}
 
 /** Main navigation. On phones it slides in when `open`. */
 export default function Sidebar({ open }: { open: boolean }) {
   useLocale();
   const { section, sectionLink, saved, openPrivacy, coveAccount } = useApp();
   const staff = coveAccount?.role === 'admin' || coveAccount?.role === 'owner';
+  // Groups can be folded to keep the sidebar short; the choice stays on this device.
+  const [collapsed, setCollapsed] = useState(loadCollapsed);
+  function toggle(label: string) {
+    const next = collapsed.includes(label) ? collapsed.filter((l) => l !== label) : [...collapsed, label];
+    setCollapsed(next);
+    try {
+      localStorage.setItem(collapsedKey, JSON.stringify(next));
+    } catch {
+      /* Folding still works until the page reloads. */
+    }
+  }
   function item(entry: NavItem) {
     const active = section === entry.name;
     return (
@@ -37,12 +58,22 @@ export default function Sidebar({ open }: { open: boolean }) {
       </a>
       <nav className="sidebar-navigation" aria-label={tr('Main navigation')}>
         <div className="nav-primary">{primaryNavigation.map(item)}</div>
-        {navigationGroups.map((group) => (
-          <section className="nav-group" key={group.label} aria-label={tr(group.label)}>
-            <h2 className="nav-label">{tr(group.label)}</h2>
-            {group.items.map(item)}
-          </section>
-        ))}
+        {navigationGroups.map((group) => {
+          const open = !collapsed.includes(group.label);
+          // A folded group still shows the page you're on until you leave it.
+          const shown = open ? group.items : group.items.filter((i) => i.name === section);
+          return (
+            <section className="nav-group" key={group.label} aria-label={tr(group.label)}>
+              <h2 className="nav-label">
+                <button aria-expanded={open} onClick={() => toggle(group.label)}>
+                  {tr(group.label)}
+                  <ChevronDown size={13} aria-hidden="true" />
+                </button>
+              </h2>
+              {shown.map(item)}
+            </section>
+          );
+        })}
       </nav>
       <div className="sidebar-bottom">
         {!desktop && <InstallApp />}

@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"vrcove/companion/internal/buildinfo"
+	"vrcove/companion/internal/history"
 	"vrcove/internal/server"
 )
 
@@ -25,6 +26,10 @@ type desktop struct {
 	remote *httputil.ReverseProxy
 	assets fs.FS
 	logger *avatarLogger
+	// history is the local history database; notify shows a desktop alert.
+	history *history.Store
+	notify  func(id, title, body string)
+	openURL func(string) error
 }
 
 func newDesktop(st *store, site *url.URL, assets fs.FS) (*desktop, error) {
@@ -66,8 +71,8 @@ func newDesktop(st *store, site *url.URL, assets fs.FS) (*desktop, error) {
 func userAgent() string { return "VRCoveDesktop/" + buildinfo.Version }
 
 func (d *desktop) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path == "/api/desktop/logger" && d.logger != nil {
-		d.logger.serve(w, r)
+	if strings.HasPrefix(r.URL.Path, "/api/desktop/") {
+		d.serveDesktop(w, r)
 		return
 	}
 	if strings.HasPrefix(r.URL.Path, "/api/") {

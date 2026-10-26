@@ -1,4 +1,5 @@
-import { Library, Upload, KeyRound, MonitorDown } from 'lucide-react';
+import { Activity, History, Images, Library, Upload, KeyRound, MonitorDown } from 'lucide-react';
+import { desktop } from './platform';
 import {
   HomeIcon,
   AvatarIcon,
@@ -42,6 +43,19 @@ export const navigationGroups = [
       { name: 'Profile', label: 'My profile', icon: UserIcon },
     ],
   },
+  // The desktop app's own pages, kept on this computer.
+  ...(desktop
+    ? [
+        {
+          label: 'On this PC',
+          items: [
+            { name: 'History', label: 'History', icon: History },
+            { name: 'Feed', label: 'Feed', icon: Activity },
+            { name: 'Screenshots', label: 'Screenshots', icon: Images },
+          ],
+        },
+      ]
+    : []),
 ];
 export const sectionLabels: Record<string, string> = {
   Explore: 'Avatars',

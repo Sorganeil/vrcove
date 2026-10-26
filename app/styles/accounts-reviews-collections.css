@@ -17,6 +17,14 @@
 .cove-auth .login-content {
   padding: 28px;
 }
+.desktop-signup {
+  display: grid;
+  gap: 14px;
+  justify-items: start;
+}
+.cove-auth form + .standard-button {
+  margin-top: 14px;
+}
 .cove-auth .chips {
   margin-bottom: 22px;
 }

@@ -25,7 +25,9 @@ import {
   Tablet,
   X,
   Pencil,
+  ExternalLink,
 } from 'lucide-react';
+import { desktop, openExternal } from '../lib/platform';
 import { covePath, appLink } from '../lib/routes';
 import { CovePicture } from '../components/cove-picture';
 import PictureCropper from '../components/picture-cropper';
@@ -422,87 +424,89 @@ export default function AccountPage({
                 {tr('Reset your password with a saved recovery code. Each code can be used once.')}
               </p>
             )}
-            <form onSubmit={submit}>
-              <label>
-                {tr('VRCove username')}
-                <input
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  autoComplete="username"
-                  required
-                  minLength={3}
-                  maxLength={32}
-                  pattern="[A-Za-z0-9_.\-]+"
-                  title={tr('Letters, numbers, dots, dashes or underscores')}
-                />
-              </label>
-              {similar && (
-                <div className="form-error" role="alert">
-                  <TriangleAlert size={14} /> {tr('This looks like your VRChat name,')} {user.displayName}
-                  {tr('. Choose something unrelated.')}
-                </div>
-              )}
-              {mode === 'recover' && (
+            {!(desktop && mode === 'signup') && (
+              <form onSubmit={submit}>
                 <label>
-                  {tr('Recovery code')}
+                  {tr('VRCove username')}
                   <input
-                    value={recoveryCode}
-                    onChange={(e) => setRecoveryCode(e.target.value)}
-                    autoComplete="off"
-                    spellCheck={false}
-                    autoCapitalize="none"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    autoComplete="username"
                     required
-                    maxLength={128}
+                    minLength={3}
+                    maxLength={32}
+                    pattern="[A-Za-z0-9_.\-]+"
+                    title={tr('Letters, numbers, dots, dashes or underscores')}
                   />
                 </label>
-              )}
-              <label>
-                {tr(mode === 'recover' ? 'New password' : 'Password')}
-                <input
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  type="password"
-                  autoComplete={mode !== 'login' ? 'new-password' : 'current-password'}
-                  required
-                  minLength={mode !== 'login' ? 10 : 1}
-                  maxLength={1024}
-                />
-              </label>
-              {mode !== 'login' && (
+                {similar && (
+                  <div className="form-error" role="alert">
+                    <TriangleAlert size={14} /> {tr('This looks like your VRChat name,')} {user.displayName}
+                    {tr('. Choose something unrelated.')}
+                  </div>
+                )}
+                {mode === 'recover' && (
+                  <label>
+                    {tr('Recovery code')}
+                    <input
+                      value={recoveryCode}
+                      onChange={(e) => setRecoveryCode(e.target.value)}
+                      autoComplete="off"
+                      spellCheck={false}
+                      autoCapitalize="none"
+                      required
+                      maxLength={128}
+                    />
+                  </label>
+                )}
                 <label>
-                  {tr('Confirm password')}
+                  {tr(mode === 'recover' ? 'New password' : 'Password')}
                   <input
-                    value={confirm}
-                    onChange={(e) => setConfirm(e.target.value)}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     type="password"
-                    autoComplete="new-password"
+                    autoComplete={mode !== 'login' ? 'new-password' : 'current-password'}
                     required
+                    minLength={mode !== 'login' ? 10 : 1}
                     maxLength={1024}
                   />
                 </label>
-              )}
-              {mode === 'signup' && siteKey && (
-                <>
-                  <Turnstile siteKey={siteKey} onToken={setChallenge} resetKey={attempt} />
-                  <p className="fineprint">
-                    {tr('Cloudflare Turnstile checks for bots. It loads only on this form.')}
-                  </p>
-                </>
-              )}
-              {error && (
-                <div className="form-error" role="alert">
-                  {error}
-                </div>
-              )}
-              <button className="primary" type="submit" disabled={!!busy}>
-                {busy ? <LoaderCircle size={16} className="spin" /> : <ArrowRight size={16} />}
-                {mode === 'signup'
-                  ? tr('Create account')
-                  : mode === 'recover'
-                    ? tr('Reset password')
-                    : tr('Sign in')}
-              </button>
-            </form>
+                {mode !== 'login' && (
+                  <label>
+                    {tr('Confirm password')}
+                    <input
+                      value={confirm}
+                      onChange={(e) => setConfirm(e.target.value)}
+                      type="password"
+                      autoComplete="new-password"
+                      required
+                      maxLength={1024}
+                    />
+                  </label>
+                )}
+                {mode === 'signup' && siteKey && !desktop && (
+                  <>
+                    <Turnstile siteKey={siteKey} onToken={setChallenge} resetKey={attempt} />
+                    <p className="fineprint">
+                      {tr('Cloudflare Turnstile checks for bots. It loads only on this form.')}
+                    </p>
+                  </>
+                )}
+                {error && (
+                  <div className="form-error" role="alert">
+                    {error}
+                  </div>
+                )}
+                <button className="primary" type="submit" disabled={!!busy}>
+                  {busy ? <LoaderCircle size={16} className="spin" /> : <ArrowRight size={16} />}
+                  {mode === 'signup'
+                    ? tr('Create account')
+                    : mode === 'recover'
+                      ? tr('Reset password')
+                      : tr('Sign in')}
+                </button>
+              </form>
+            )}
             {mode === 'login' && (
               <button
                 className="standard-button"
@@ -517,7 +521,20 @@ export default function AccountPage({
                 {tr('Forgot password? Use a recovery code')}
               </button>
             )}
-            {mode === 'signup' && (
+            {mode === 'signup' && desktop && (
+              <div className="desktop-signup">
+                <p>
+                  {tr(
+                    'Creating an account needs a bot check that only works on the website. Create it on vrcove.st in your browser, then sign in here.',
+                  )}
+                </p>
+                <button className="primary" onClick={() => openExternal('https://vrcove.st/account')}>
+                  {tr('Create account on vrcove.st')}
+                  <ExternalLink size={16} />
+                </button>
+              </div>
+            )}
+            {mode === 'signup' && !desktop && (
               <>
                 <NameAdvice />
                 <p className="fineprint">

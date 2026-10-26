@@ -309,3 +309,133 @@
 .notes-panel textarea::placeholder {
   color: #6f8aa2;
 }
+
+/* Desktop app: history, feed and screenshots. */
+.desktop-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.desktop-search {
+  display: flex;
+  flex: 1 1 260px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid #2b3a4a;
+  border-radius: 6px;
+  background: #101820;
+  margin-bottom: 16px;
+}
+.desktop-filters .desktop-search {
+  margin-bottom: 0;
+}
+.desktop-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 10px 0;
+}
+.history-list,
+.feed-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.history-visit {
+  padding: 14px 18px;
+}
+.history-visit-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px 14px;
+  color: #a4b9cb;
+  font-size: 13px;
+}
+.history-visit-head strong {
+  color: #edf2f9;
+  font-size: 15px;
+}
+.history-people {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+  margin-top: 10px;
+}
+.history-people li {
+  display: grid;
+  padding: 4px 9px;
+  border-radius: 5px;
+  background: #16212c;
+  font-size: 13px;
+}
+.history-people small {
+  color: #7f95a8;
+  font-size: 11px;
+}
+.feed-list {
+  gap: 0;
+}
+.feed-list li {
+  display: flex;
+  gap: 14px;
+  padding: 9px 2px;
+  border-bottom: 1px solid #1d2935;
+  font-size: 14px;
+}
+.feed-list time {
+  flex: 0 0 120px;
+  color: #7f95a8;
+  font-size: 12px;
+}
+.load-more {
+  margin: 16px auto 0;
+}
+.screenshot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+.screenshot-card {
+  display: grid;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #22303d;
+  border-radius: 8px;
+  background: #121b24;
+  text-align: left;
+  cursor: pointer;
+}
+.screenshot-card img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  background: #0b1117;
+}
+.screenshot-card span {
+  display: grid;
+  gap: 2px;
+  padding: 9px 11px;
+}
+.screenshot-card small {
+  color: #7f95a8;
+}
+.screenshot-view img {
+  width: 100%;
+  border-radius: 6px;
+}
+.screenshot-view p {
+  margin: 10px 0 4px;
+}
+@media (max-width: 600px) {
+  .feed-list li {
+    display: grid;
+    gap: 2px;
+  }
+}

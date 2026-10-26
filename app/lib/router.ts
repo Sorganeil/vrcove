@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { desktop } from './platform';
 import { entityPath } from './routes';
 
 export type DetailKind = 'world' | 'user' | 'group';
@@ -33,6 +34,8 @@ const sectionNames: Record<string, string> = {
   uploads: 'Uploads',
   account: 'Account',
   collections: 'Collections',
+  // Only the desktop app has these pages.
+  ...(desktop ? { history: 'History', feed: 'Feed', screenshots: 'Screenshots' } : {}),
 };
 
 // Sections use clean paths (/avatars, /about) that the server renders and search engines can index.

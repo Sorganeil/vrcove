@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from './api';
 import { t as tr } from './i18n';
+import { desktop } from './platform';
 import { goTo } from './routes';
 
 /** Kinds of VRChat notification people can choose to see on their desktop. */
@@ -17,7 +18,10 @@ export type DesktopPrefs = { enabled: boolean; kinds: NotificationKind[] };
 const prefsKey = 'vrcove-desktop-notifications';
 const seenKey = (user: string) => 'vrcove-notifications-seen:' + user;
 const changed = 'vrcove:desktop-notifications';
-const defaults: DesktopPrefs = { enabled: false, kinds: ['friendRequest', 'invite', 'requestInvite', 'response'] };
+const defaults: DesktopPrefs = {
+  enabled: false,
+  kinds: ['friendRequest', 'invite', 'requestInvite', 'response'],
+};
 // VRChat asks third-party apps to check no more than once a minute.
 const every = 60_000;
 
@@ -116,7 +120,8 @@ async function announce(userId: string, n: VRChatNotification) {
   if (seen.has(n.id)) return;
   writeSeen(userId, [...seen, n.id]);
   const prefs = loadPrefs();
-  if (!prefs.enabled || !prefs.kinds.includes(kindOf(n.type)) || Notification.permission !== 'granted') return;
+  if (!prefs.enabled || !prefs.kinds.includes(kindOf(n.type)) || Notification.permission !== 'granted')
+    return;
   const { title, body } = describe(n);
   await showDesktopNotification(title, body, 'vrchat-' + n.id);
 }
@@ -125,7 +130,10 @@ async function announce(userId: string, n: VRChatNotification) {
 async function catchUp(userId: string) {
   const list: VRChatNotification[] = await api('/account/notifications');
   if (!readSeen(userId)) {
-    writeSeen(userId, list.map((n) => n.id));
+    writeSeen(
+      userId,
+      list.map((n) => n.id),
+    );
     return;
   }
   for (const n of list) await announce(userId, n);
@@ -150,7 +158,9 @@ export function useDesktopNotifications(userId: string | undefined) {
     };
   }, []);
   useEffect(() => {
-    if (!userId || !enabled || !notificationsSupported() || Notification.permission !== 'granted') return;
+    // The desktop app shows notifications itself, even with the window closed.
+    if (desktop || !userId || !enabled || !notificationsSupported() || Notification.permission !== 'granted')
+      return;
     const stop = new AbortController();
     const wait = (ms: number) =>
       new Promise<void>((resolve) => {
