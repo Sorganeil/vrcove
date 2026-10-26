@@ -80,6 +80,13 @@ AI-assisted contributions are allowed. Follow AI best practices: review what you
 
 Keep pull requests small and focused. Monolithic pull requests that take forever to review will be ignored or closed.
 
+
+### AI Disclosure
+
+Yes, this app was built with AI assistance. No it wasn't vibe-coded. We use AI to speed up development while writing code ourselves wherever practical. We carefully review every prompt and output, take ownership of every decision, and hold the result to our own quality standards.
+
+We take pride in what we build, and we understand if AI-assisted development isn’t for you.
+
 ## Contact
 
 VRChat staff, or anyone else who wants to get in touch, can email [vrcove-contact.overbid399@passmail.net](mailto:vrcove-contact.overbid399@passmail.net) or [open an issue](https://github.com/Sorganeil/vrcove/issues).
