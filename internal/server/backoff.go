@@ -84,14 +84,18 @@ func (b *backoff) extend(key string, until time.Time) {
 // retryAfter reads Retry-After as seconds or an HTTP date, clamped to a sane
 // range.
 func retryAfter(h http.Header, now time.Time) time.Duration {
+	return retryAfterMax(h, now, maxRetryAfter)
+}
+
+func retryAfterMax(h http.Header, now time.Time, limit time.Duration) time.Duration {
 	v := strings.TrimSpace(h.Get("Retry-After"))
 	wait := defaultRetryAfter
 	if n, err := strconv.Atoi(v); err == nil {
-		wait = time.Duration(n) * time.Second
+		wait = time.Duration(min(max(n, 1), int(limit/time.Second))) * time.Second
 	} else if t, err := http.ParseTime(v); err == nil {
 		wait = t.Sub(now)
 	}
-	return min(max(wait, time.Second), maxRetryAfter)
+	return min(max(wait, time.Second), limit)
 }
 
 func rateLimitedError() error {

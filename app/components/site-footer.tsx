@@ -1,3 +1,4 @@
+import { desktop } from '../lib/platform';
 import { Compass } from 'lucide-react';
 import { t as tr, useLocale } from '../lib/i18n';
 import { useApp } from '../lib/app-context';
@@ -15,7 +16,7 @@ export default function SiteFooter() {
         <a href="https://github.com/Sorganeil/vrcove" target="_blank" rel="noopener noreferrer">
           GitHub
         </a>
-        <a {...sectionLink('Companion')}>{tr('Desktop companion')}</a>
+        {!desktop && <a {...sectionLink('Companion')}>{tr('Desktop app')}</a>}
         <a {...sectionLink('About')}>{tr('About')}</a>
         <a {...sectionLink('Donations')}>{tr('Donations')}</a>
         <button onClick={openPrivacy}>{tr('Privacy & data')}</button>

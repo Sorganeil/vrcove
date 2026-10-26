@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('companion page opens by path and from the banner, and downloads from GitHub', async ({
+test('desktop app page opens by path and from the banner, and downloads from GitHub', async ({
   page,
   isMobile,
 }) => {
@@ -11,16 +11,17 @@ test('companion page opens by path and from the banner, and downloads from GitHu
     await expect(banner).toBeHidden();
     await page.goto('/companion');
   } else {
-    await banner.getByRole('link', { name: 'Get the companion' }).click();
+    await banner.getByRole('link', { name: 'Get VRCove Desktop' }).click();
   }
   await expect(page).toHaveURL(/\/companion$/);
-  await expect(page.getByRole('heading', { name: 'Help grow the avatar database.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'VRCove on your desktop.' })).toBeVisible();
   for (const name of [
     'Setup',
-    'Checked twice',
-    'Your credentials',
-    'Gentle on rate limits',
-    'Small and native',
+    'Straight to VRChat',
+    'Avatar logger built in',
+    'Your history, on your computer',
+    'Tools',
+    'Open source',
   ])
     await expect(page.getByRole('heading', { name, exact: true })).toBeVisible();
   const download = page.getByRole('link', { name: 'Download for Windows or Linux' });
@@ -31,15 +32,15 @@ test('companion page opens by path and from the banner, and downloads from GitHu
   );
   await page.locator('.companion-setup').getByRole('link', { name: 'Open Account page' }).click();
   await expect(page).toHaveURL(/\/account$/);
-  await page.locator('footer').getByRole('link', { name: 'Desktop companion' }).click();
+  await page.locator('footer').getByRole('link', { name: 'Desktop app' }).click();
   await expect(page).toHaveURL(/\/companion$/);
   await page.locator('.topbar select').selectOption('ja');
   await expect(
-    page.getByRole('heading', { name: 'アバターデータベースの拡充にご協力ください。' }),
+    page.getByRole('heading', { name: 'デスクトップで使う VRCove。' }),
   ).toBeVisible();
 });
 
-test('the companion banner can be dismissed and stays hidden', async ({ page, isMobile }, testInfo) => {
+test('the desktop app banner can be dismissed and stays hidden', async ({ page, isMobile }, testInfo) => {
   test.skip(isMobile, 'The banner is desktop only.');
   await page.goto('/avatars');
   const banner = page.locator('.companion-download');
@@ -50,6 +51,6 @@ test('the companion banner can be dismissed and stays hidden', async ({ page, is
   await expect(page.locator('.companion-download')).toHaveCount(0);
   await page.goto('/');
   await expect(page.locator('.companion-download')).toHaveCount(0);
-  // The companion page is still one click away in the sidebar.
-  await expect(page.getByRole('link', { name: 'Desktop companion' }).first()).toBeVisible();
+  // The desktop app page is still one click away in the sidebar.
+  await expect(page.getByRole('link', { name: 'Desktop app' }).first()).toBeVisible();
 });

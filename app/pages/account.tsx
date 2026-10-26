@@ -393,7 +393,7 @@ export default function AccountPage({
         {heading}
         <div className="cove-auth">
           <div className="login-content">
-            <div className="result-actions">
+            <div className="chips">
               <button
                 className={mode === 'login' ? 'chosen' : ''}
                 disabled={!!busy}

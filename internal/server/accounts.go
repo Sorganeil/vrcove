@@ -175,7 +175,11 @@ func openBytes(key []byte, value, aad string) ([]byte, error) {
 
 // linkKey is the lookup key for a VRChat user ID: an HMAC, never the ID itself.
 func (s *Server) linkKey(vrcID string) []byte {
-	mac := hmac.New(sha256.New, s.keys.linkID)
+	key := s.keys.linkID
+	if s.cfg.Local {
+		key = s.cfg.SessionKey
+	}
+	mac := hmac.New(sha256.New, key)
 	mac.Write([]byte(vrcID))
 	return mac.Sum(nil)
 }
@@ -571,6 +575,10 @@ func (s *Server) rememberVRChatUsername(r *http.Request, session *Session, me an
 		username = session.Username
 	}
 	if username == "" || s.accounts == nil {
+		if s.cfg.Local {
+			session.Username = username
+			session.DisplayName = field(me, "displayName")
+		}
 		return nil
 	}
 	var sealed string
@@ -819,7 +827,22 @@ func (s *Server) storeVRChatLink(w http.ResponseWriter, r *http.Request, a *acco
 		username = session.Username
 	}
 	if s.cfg.Local {
+		saved := s.localSessions(r)
+		if saved[vrcID] == nil && len(saved) >= maxLocalAccounts {
+			return errStatus(http.StatusBadRequest, "You can save up to 10 VRChat accounts on this device. Remove one before adding another.")
+		}
+		// Keep the previous account when upgrading from a single-account app.
+		if cookie, err := r.Cookie(s.cookieName()); err == nil {
+			if previous := unseal(cookie.Value, s.cfg.SessionKey, time.UnixMilli(0)); previous != nil && previous.UserID != "" && previous.Pending == nil && previous.UserID != vrcID {
+				if _, err := r.Cookie(s.linkedCookieName(previous.UserID)); err != nil {
+					if value, err := s.namedSessionCookie(s.linkedCookieName(previous.UserID), previous); err == nil {
+						w.Header().Add("Set-Cookie", value)
+					}
+				}
+			}
+		}
 		session.AccountID, session.UserID, session.Username = a.ID, vrcID, username
+		session.DisplayName = field(me, "displayName")
 		session.activate = true
 		result := map[string]any{"ok": true, "similarName": false}
 		if connected {

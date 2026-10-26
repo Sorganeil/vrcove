@@ -224,10 +224,11 @@
   white-space: nowrap;
 }
 .sort-label select {
-  max-width: 165px;
-  padding: 5px 0;
+  max-width: 180px;
+  padding: 5px 20px 5px 4px;
   border: 0;
-  background: none;
+  background-color: transparent;
+  background-position: right 2px center;
   color: #b5c8d9;
   font-size: 12px;
 }
@@ -252,10 +253,10 @@
   font-size: 13px;
 }
 .filter-panel select {
-  padding: 8px 10px;
+  padding: 8px 32px 8px 10px;
   border: 1px solid #32485b;
   border-radius: 4px;
-  background: #0b1722;
+  background-color: #0b1722;
   color: #d1e2f1;
   font-size: 13px;
 }

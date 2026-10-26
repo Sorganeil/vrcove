@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Package only the two binaries, user documentation and license; no local state."""
+"""Package only the desktop app binaries, user documentation and license; no local state."""
 import gzip
 import hashlib
 import io
@@ -20,8 +20,12 @@ def package(tag: str) -> None:
     out = base / "dist" / "releases" / tag
     out.mkdir(parents=True, exist_ok=True)
     archives = []
-    for platform, binary in [("linux", "vrcove-logger"), ("windows", "vrcove-logger.exe")]:
-        root = f"vrcove-logger-{tag}-{platform}-amd64"
+    targets = [
+        ("vrcove-desktop", "linux", "vrcove-desktop"),
+        ("vrcove-desktop", "windows", "vrcove-desktop.exe"),
+    ]
+    for app_name, platform, binary in targets:
+        root = f"{app_name}-{tag}-{platform}-amd64"
         # Read all inputs before opening output: missing builds fail cleanly.
         entries = {
             binary: (base / "dist" / binary).read_bytes(),

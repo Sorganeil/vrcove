@@ -175,10 +175,10 @@
 }
 .instance-new select {
   height: 40px;
-  padding: 0 10px;
+  padding: 0 32px 0 10px;
   border: 1px solid #45647d;
   border-radius: 4px;
-  background: #09131e;
+  background-color: #09131e;
   color: #d9eaf6;
   font-size: 13px;
 }

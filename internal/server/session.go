@@ -30,6 +30,7 @@ type Session struct {
 	AccountID      int64    `json:"accountId,omitempty"`
 	ExpectedUserID string   `json:"expectedUserId,omitempty"`
 	Username       string   `json:"username,omitempty"`
+	DisplayName    string   `json:"displayName,omitempty"`
 	UserID         string   `json:"userId,omitempty"`
 	Auth           string   `json:"auth,omitempty"`
 	TwoFactorAuth  string   `json:"twoFactorAuth,omitempty"`
@@ -132,7 +133,7 @@ func (s *Server) readSession(r *http.Request) *Session {
 		return nil
 	}
 	session := unseal(c.Value, s.cfg.SessionKey, s.now())
-	if session != nil && session.UserID != "" && s.accounts != nil {
+	if session != nil && session.UserID != "" && (s.accounts != nil || s.cfg.Local) {
 		if _, err := r.Cookie(s.linkedCookieName(session.UserID)); err == nil {
 			return s.readLinkedSession(r, session.UserID, session.AccountID)
 		}
@@ -155,6 +156,9 @@ func (s *Server) namedSessionCookie(name string, session *Session) (string, erro
 			return "", err
 		}
 		maxAge = max(0, (session.Expires-s.now().UnixMilli())/1000)
+		if s.cfg.Local && session.UserID != "" && name == s.linkedCookieName(session.UserID) {
+			maxAge = max(1, maxAge)
+		}
 	}
 	secure := ""
 	if s.secure {
@@ -168,7 +172,7 @@ func (s *Server) writeWithSession(w http.ResponseWriter, data any, session *Sess
 	names := []string{s.cookieName()}
 	if session != nil && session.Pending != nil {
 		names = []string{s.cookieName() + "-pending"}
-	} else if session != nil && session.AccountID != 0 && session.UserID != "" && s.accounts != nil {
+	} else if session != nil && session.AccountID != 0 && session.UserID != "" && (s.accounts != nil || s.cfg.Local) {
 		names = []string{s.linkedCookieName(session.UserID)}
 		if session.activate {
 			names = append([]string{s.cookieName()}, names...)

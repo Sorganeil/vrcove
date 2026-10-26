@@ -25,17 +25,18 @@ CREATE INDEX IF NOT EXISTS encounters_user ON encounters (user_id);
 CREATE TABLE IF NOT EXISTS avatar_changes (id INTEGER PRIMARY KEY, visit_id INTEGER NOT NULL REFERENCES visits(id) ON DELETE CASCADE,
 	display_name TEXT NOT NULL, avatar_name TEXT NOT NULL, at INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS feed (id INTEGER PRIMARY KEY, at INTEGER NOT NULL, user_id TEXT NOT NULL, display_name TEXT NOT NULL,
-	kind TEXT NOT NULL, detail TEXT NOT NULL, previous TEXT NOT NULL DEFAULT '', world_name TEXT NOT NULL DEFAULT '');
+	kind TEXT NOT NULL, detail TEXT NOT NULL, previous TEXT NOT NULL DEFAULT '', world_name TEXT NOT NULL DEFAULT '', owner TEXT NOT NULL DEFAULT '');
 CREATE INDEX IF NOT EXISTS feed_at ON feed (at);
-CREATE TABLE IF NOT EXISTS friends (user_id TEXT PRIMARY KEY, display_name TEXT NOT NULL, status TEXT NOT NULL,
-	status_description TEXT NOT NULL, location TEXT NOT NULL, online INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS friends (owner TEXT NOT NULL DEFAULT '', user_id TEXT NOT NULL, display_name TEXT NOT NULL, status TEXT NOT NULL,
+	status_description TEXT NOT NULL, location TEXT NOT NULL, online INTEGER NOT NULL, PRIMARY KEY(owner,user_id));
 `
 
 // Store is the local history database.
 type Store struct {
 	db *sql.DB
 	// mu serializes writers; SQLite allows one at a time anyway.
-	mu sync.Mutex
+	mu         sync.Mutex
+	legacyFeed bool
 }
 
 // Open opens or creates the history database at path.
@@ -48,7 +49,79 @@ func Open(path string) (*Store, error) {
 		db.Close()
 		return nil, err
 	}
-	return &Store{db: db}, nil
+	var scoped int
+	if err := db.QueryRow(`SELECT count(*) FROM pragma_table_info('feed') WHERE name='owner'`).Scan(&scoped); err != nil {
+		db.Close()
+		return nil, err
+	}
+	if scoped == 0 {
+		tx, err := db.Begin()
+		if err != nil {
+			db.Close()
+			return nil, err
+		}
+		_, err = tx.Exec(`ALTER TABLE feed ADD COLUMN owner TEXT NOT NULL DEFAULT '';
+		ALTER TABLE friends RENAME TO friends_legacy;
+		CREATE TABLE friends (owner TEXT NOT NULL DEFAULT '', user_id TEXT NOT NULL, display_name TEXT NOT NULL, status TEXT NOT NULL,
+		status_description TEXT NOT NULL, location TEXT NOT NULL, online INTEGER NOT NULL, PRIMARY KEY(owner,user_id));
+		INSERT INTO friends SELECT '',user_id,display_name,status,status_description,location,online FROM friends_legacy;
+		DROP TABLE friends_legacy;`)
+		if err == nil {
+			err = tx.Commit()
+		} else {
+			tx.Rollback()
+		}
+		if err != nil {
+			db.Close()
+			return nil, err
+		}
+	}
+	if _, err := db.Exec(`CREATE INDEX IF NOT EXISTS feed_owner_at ON feed(owner,at)`); err != nil {
+		db.Close()
+		return nil, err
+	}
+	cleanupDuplicateVisits(db)
+	return &Store{db: db, legacyFeed: scoped == 0}, nil
+}
+
+// cleanupDuplicateVisits repairs visits split across VRChat's paired
+// "Entering Room" and "Joining or Creating Room" log lines, and closes open
+// visits that were superseded by a later visit.
+func cleanupDuplicateVisits(db *sql.DB) {
+	_, _ = db.Exec(`UPDATE visits SET
+		world_id = CASE WHEN world_id = '' THEN COALESCE((SELECT v2.world_id FROM visits v2 WHERE v2.world_name = visits.world_name AND v2.world_id != '' ORDER BY ABS(v2.joined - visits.joined), v2.joined DESC LIMIT 1), '') ELSE world_id END,
+		location = CASE WHEN location = '' THEN COALESCE((SELECT v2.location FROM visits v2 WHERE v2.world_name = visits.world_name AND v2.location != '' AND ABS(v2.joined - visits.joined) <= 30000 ORDER BY ABS(v2.joined - visits.joined), v2.joined DESC LIMIT 1), '') ELSE location END
+		WHERE world_id = '' OR location = ''`)
+	_, _ = db.Exec(`DELETE FROM visits WHERE
+		NOT EXISTS (SELECT 1 FROM encounters e WHERE e.visit_id = visits.id)
+		AND left_at IS NOT NULL AND left_at - joined <= 5000
+		AND EXISTS (SELECT 1 FROM visits v2 WHERE v2.id != visits.id AND v2.world_name = visits.world_name AND ABS(v2.joined - visits.joined) <= 5000)`)
+	_, _ = db.Exec(`UPDATE visits SET left_at = COALESCE(
+		(SELECT MAX(COALESCE(e.left_at, e.joined)) FROM encounters e WHERE e.visit_id = visits.id),
+		joined
+	) WHERE left_at IS NULL AND EXISTS (SELECT 1 FROM visits v2 WHERE v2.joined > visits.joined)`)
+}
+
+// ClaimLegacyFeed attributes the pre-switcher feed to the account that was
+// active during upgrade. If none is known, old rows stay intact and unassigned.
+func (s *Store) ClaimLegacyFeed(ctx context.Context, owner string) error {
+	if !s.legacyFeed || owner == "" {
+		return nil
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	if _, err = tx.ExecContext(ctx, `UPDATE feed SET owner=? WHERE owner=''`, owner); err != nil {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, `UPDATE friends SET owner=? WHERE owner=''`, owner); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 func (s *Store) Close() error { return s.db.Close() }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { KeyRound, Pause, Play, Trash2, MonitorDown } from 'lucide-react';
+import { FolderOpen, KeyRound, Pause, Play, Trash2, MonitorDown } from 'lucide-react';
 import { api } from '../lib/api';
 import { t as tr, useLocale } from '../lib/i18n';
 import { useApp } from '../lib/app-context';
@@ -14,21 +14,32 @@ type LoggerState = {
   pending: number;
   events: { time: string; id: string; result: string }[];
   folder: string;
+  server?: string;
   autoStart: boolean;
   hasKey: boolean;
+  message?: string;
 };
 
 /** The avatar logger built into the desktop app, in place of the companion download page. */
 export default function DesktopLogger() {
   useLocale();
-  const { user, requestConnection, notify } = useApp();
+  const { user, requestConnection, sectionLink, notify } = useApp();
   const [state, setState] = useState<LoggerState | null>(null);
   const [key, setKey] = useState('');
   const [folder, setFolder] = useState<string | null>(null);
-  const send = (body: object) =>
+  const [server, setServer] = useState<string | null>(null);
+  const send = (body: object, savedNote?: string) =>
     api('/desktop/logger', body)
-      .then(setState)
-      .catch((e) => notify(e.message));
+      .then((next: LoggerState) => {
+        setState(next);
+        if (next.message) notify(tr(next.message));
+        else if (savedNote) notify(tr(savedNote));
+        return next;
+      })
+      .catch((e) => {
+        notify(e.message);
+        return null;
+      });
   useEffect(() => {
     const load = () =>
       api('/desktop/logger')
@@ -95,9 +106,32 @@ export default function DesktopLogger() {
           <div className="settings-content">
             <p>
               {tr(
-                'Avatars are checked with your VRChat sign-in on this device, then sent with a VRCove API key. Generate one on your VRCove account page after linking VRChat there; the website checks every avatar again.',
+                'Uploading avatars requires both a local VRChat sign-in on this device and a VRCove API key:',
               )}
             </p>
+            <ol className="logger-steps">
+              <li>
+                {tr('Create or sign in to a VRCove account.')}{' '}
+                <a className="text-link" {...sectionLink('Account')}>
+                  {tr('Open VRCove Settings')}
+                </a>
+              </li>
+              <li>
+                {tr(
+                  'Link a VRChat account to your VRCove account. VRCove uses that linked account for server-side avatar checks.',
+                )}
+              </li>
+              <li>
+                {tr(
+                  'Generate a Companion API key on your VRCove account page, then paste and save it below.',
+                )}
+              </li>
+              <li>
+                {tr(
+                  'Sign in to VRChat in this app so your PC can check avatars locally before uploading, then press Start.',
+                )}
+              </li>
+            </ol>
             {!user && (
               <p>
                 <button className="text-link" onClick={() => requestConnection()}>
@@ -109,7 +143,9 @@ export default function DesktopLogger() {
               className="logger-key"
               onSubmit={(e) => {
                 e.preventDefault();
-                void send({ token: key }).then(() => setKey(''));
+                void send({ token: key }, 'Saved').then((ok) => {
+                  if (ok) setKey('');
+                });
               }}
             >
               <label>
@@ -119,11 +155,33 @@ export default function DesktopLogger() {
                   autoComplete="off"
                   value={key}
                   onChange={(e) => setKey(e.target.value)}
-                  placeholder={state.hasKey ? tr('Saved') : ''}
+                  placeholder={state.hasKey ? tr('Saved') : tr('From your VRCove account page')}
                 />
               </label>
               <button className="standard-button" type="submit" disabled={!key.trim()}>
                 {tr('Save key')}
+              </button>
+            </form>
+            <form
+              className="logger-key"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (server !== null)
+                  void send({ server }, 'Saved').then((ok) => {
+                    if (ok) setServer(null);
+                  });
+              }}
+            >
+              <label>
+                {tr('Server')}
+                <input
+                  value={server ?? state.server ?? 'https://vrcove.st'}
+                  onChange={(e) => setServer(e.target.value)}
+                  placeholder="https://vrcove.st"
+                />
+              </label>
+              <button className="standard-button" type="submit" disabled={server === null}>
+                {tr('Save server')}
               </button>
             </form>
           </div>
@@ -137,13 +195,32 @@ export default function DesktopLogger() {
               className="logger-key"
               onSubmit={(e) => {
                 e.preventDefault();
-                if (folder !== null) void send({ folder }).then(() => setFolder(null));
+                if (folder !== null)
+                  void send({ folder }, 'Saved').then((ok) => {
+                    if (ok) setFolder(null);
+                  });
               }}
             >
               <label>
                 {tr('VRChat analytics folder')}
-                <input value={folder ?? state.folder} onChange={(e) => setFolder(e.target.value)} />
+                <input
+                  value={folder ?? state.folder}
+                  onChange={(e) => setFolder(e.target.value)}
+                  placeholder={tr('Folder containing amplitude.cache')}
+                />
               </label>
+              <button
+                className="standard-button"
+                type="button"
+                onClick={() =>
+                  void send({ action: 'choose-folder' }, 'Saved').then((ok) => {
+                    if (ok) setFolder(null);
+                  })
+                }
+              >
+                <FolderOpen size={14} />
+                {tr('Choose folder')}
+              </button>
               <button className="standard-button" type="submit" disabled={folder === null}>
                 {tr('Save folder')}
               </button>
@@ -161,6 +238,7 @@ export default function DesktopLogger() {
                 <Trash2 size={14} />
                 {tr('Clear analytics cache')}
               </button>
+              <span className="fineprint">{tr('Saves avatar IDs first.')}</span>
             </div>
           </div>
         </section>

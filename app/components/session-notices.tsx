@@ -4,6 +4,7 @@ import { ArrowRight, ShieldCheck, X } from 'lucide-react';
 import { api, useSessionTime, useVRChatSession, vrchatAccountState } from '../lib/api';
 import { t as tr, useLocale } from '../lib/i18n';
 import { useApp } from '../lib/app-context';
+import { DesktopAccounts } from './desktop-accounts';
 
 /**
  * Banners above every page: the link reminder, the active VRChat account picker, and the
@@ -13,10 +14,12 @@ export default function SessionNotices({
   onSwitch,
   switching,
   connecting,
+  refresh,
 }: {
   onSwitch: (id: number) => Promise<void>;
   switching: boolean;
   connecting: boolean;
+  refresh: () => Promise<unknown>;
 }) {
   useLocale();
   const { user, coveAccount, linkAccount, setCoveAccount, requestConnection, navigate, notify } = useApp();
@@ -25,6 +28,9 @@ export default function SessionNotices({
   const [hiddenNotice, setHiddenNotice] = useState<object | null>(null);
   return (
     <>
+      {desktop && (
+        <DesktopAccounts onSwitch={onSwitch} refresh={refresh} disabled={switching || connecting} />
+      )}
       {!desktop && coveAccount?.showLinkReminder && !coveAccount?.links?.length && (
         <div className="vrchat-session-notice" role="status">
           <ShieldCheck size={22} />

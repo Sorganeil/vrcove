@@ -17,4 +17,8 @@ func Summary() string {
 	return fmt.Sprintf("VRCove Logger %s (%s; %s; %s/%s)", Version, Commit, Date, runtime.GOOS, runtime.GOARCH)
 }
 
+func DesktopSummary() string {
+	return fmt.Sprintf("VRCove Desktop %s (%s; %s; %s/%s)", Version, Commit, Date, runtime.GOOS, runtime.GOARCH)
+}
+
 func UserAgent() string { return "VRCoveLogger/" + Version }

@@ -58,7 +58,8 @@
 .nav-item.active {
   background: #172432;
   color: #f0f5fa;
-  box-shadow: inset 3px 0 #00c8ff;
+  border-left: 3px solid #00c8ff;
+  padding-left: 10px;
 }
 .nav-item.active > svg {
   color: var(--accent);

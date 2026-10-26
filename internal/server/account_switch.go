@@ -30,7 +30,7 @@ func (s *Server) clearNamedSession(w http.ResponseWriter, name string) {
 }
 func (s *Server) clearActiveSession(w http.ResponseWriter, r *http.Request) {
 	if c, err := r.Cookie(s.cookieName()); err == nil {
-		if session := unseal(c.Value, s.cfg.SessionKey, time.UnixMilli(0)); session != nil && session.UserID != "" && s.accounts != nil {
+		if session := unseal(c.Value, s.cfg.SessionKey, time.UnixMilli(0)); session != nil && session.UserID != "" && (s.accounts != nil || s.cfg.Local) {
 			s.clearNamedSession(w, s.linkedCookieName(session.UserID))
 		}
 	}
@@ -41,7 +41,12 @@ func (s *Server) clearActiveSession(w http.ResponseWriter, r *http.Request) {
 // another account must never clear a newly selected active account.
 func (s *Server) invalidateRequestSession(w http.ResponseWriter, r *http.Request) {
 	if s.cfg.Local {
-		// One device, one account: a rejected session is simply signed out.
+		if c, err := r.Cookie(s.cookieName()); err == nil {
+			if old := unseal(c.Value, s.cfg.SessionKey, time.UnixMilli(0)); old != nil && old.UserID != "" {
+				w.Header().Set("X-VRChat-Session-User", old.UserID)
+				s.invalidateLocalAccount(w, old)
+			}
+		}
 		s.clearNamedSession(w, s.cookieName())
 		return
 	}

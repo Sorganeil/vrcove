@@ -13,8 +13,8 @@ concurrency:
 
 jobs:
   release:
-    # An older glibc baseline keeps Linux downloads usable on more distributions.
-    runs-on: ubuntu-22.04
+    # Ubuntu 24.04 provides GTK 4.14+ and WebKitGTK 6.0 for VRCove Desktop.
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     permissions:
       contents: write
@@ -29,10 +29,17 @@ jobs:
         with:
           go-version-file: companion/go.mod
           cache-dependency-path: companion/go.sum
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22.13.0'
+          cache: 'npm'
+      - name: Install frontend dependencies
+        run: npm ci
       - name: Install Linux build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc pkg-config python3 libwayland-dev libx11-dev libx11-xcb-dev libxkbcommon-x11-dev libegl1-mesa-dev libgles2-mesa-dev libffi-dev libxcursor-dev libxfixes-dev
+          sudo apt-get install -y gcc pkg-config python3 libwayland-dev libx11-dev libx11-xcb-dev libxkbcommon-x11-dev libegl1-mesa-dev libgles2-mesa-dev libffi-dev libxcursor-dev libxfixes-dev libgtk-4-dev libwebkitgtk-6.0-dev
       - name: Test release packaging and failure handling
         run: python3 -m unittest discover -s companion/tests -p test_release.py -v
       - name: Build, test, package and publish companions

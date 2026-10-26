@@ -89,6 +89,7 @@ export async function api(path: string, body?: unknown): Promise<any> {
     revision++;
     const expiry = Number(response.headers.get('X-VRChat-Session-Expires'));
     update({ expiresAt: expiry > 0 ? expiry : null, issue: null, userId: data.user.id });
+    window.dispatchEvent(new Event('vrcove:device-accounts'));
     return data;
   }
   if ((started !== revision || (!belongs && path !== '/account/me')) && path.startsWith('/account/'))
@@ -101,6 +102,8 @@ export async function api(path: string, body?: unknown): Promise<any> {
     const expiresAt = Number(response.headers.get('X-VRChat-Session-Expires'));
     if (Number.isFinite(expiresAt) && expiresAt > 0) update({ ...connection, expiresAt });
   }
+  if (path === '/account/logout' || path === '/account/device/remove')
+    window.dispatchEvent(new Event('vrcove:device-accounts'));
   return data;
 }
 

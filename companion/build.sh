@@ -2,7 +2,8 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 mkdir -p dist
-version="${VERSION:-dev}"
+default_version=$(tr -d '[:space:]' < ../VERSION 2>/dev/null || true)
+version="${VERSION:-${default_version:-dev}}"
 commit="${COMMIT:-$(git rev-parse --short=12 HEAD 2>/dev/null || printf unknown)}"
 build_date="${BUILD_DATE:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
 # Metadata is passed through Go's linker flag parser; reject spaces/options.
@@ -15,22 +16,16 @@ export CGO_ENABLED=1
 export CGO_CFLAGS="-Os -ffunction-sections -fdata-sections"
 export CGO_CXXFLAGS="-Os -ffunction-sections -fdata-sections"
 case "${1:-linux}" in
-  linux)
-    export CGO_LDFLAGS="-Wl,--gc-sections"
-    go build -trimpath -buildvcs=false -tags 'novulkan netgo osusergo' -ldflags="$ldflags" -o dist/vrcove-logger ./cmd/vrcove-logger
-    ;;
-  windows)
-    export GOOS=windows GOARCH=amd64 CGO_ENABLED=0
-    go build -trimpath -buildvcs=false -tags 'noopengl netgo osusergo' -ldflags="$ldflags -H=windowsgui" -o dist/vrcove-logger.exe ./cmd/vrcove-logger
-    ;;
-  desktop-linux|desktop-windows)
-    # The experimental desktop app embeds the website frontend built in desktop mode.
-    (cd .. && npm run build:desktop)
-    if [[ "$1" == desktop-linux ]]; then
-      go build -trimpath -buildvcs=false -ldflags="$ldflags" -o dist/vrcove-desktop ./cmd/vrcove-desktop
-    else
+  linux|windows|desktop-linux|desktop-windows)
+    # The desktop app embeds the website frontend built in desktop mode.
+    if [[ "${SKIP_FRONTEND_BUILD:-}" != 1 ]]; then
+      (cd .. && npm run build:desktop)
+    fi
+    if [[ "$1" == *windows ]]; then
       GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -buildvcs=false -ldflags="$ldflags -H=windowsgui" -o dist/vrcove-desktop.exe ./cmd/vrcove-desktop
+    else
+      go build -trimpath -buildvcs=false -ldflags="$ldflags" -o dist/vrcove-desktop ./cmd/vrcove-desktop
     fi
     ;;
-  *) echo 'Usage: bash build.sh [linux|windows|desktop-linux|desktop-windows]' >&2; exit 2 ;;
+  *) echo 'Usage: bash build.sh [linux|windows]' >&2; exit 2 ;;
 esac

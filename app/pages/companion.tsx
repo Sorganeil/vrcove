@@ -6,49 +6,48 @@ import {
   Code,
   Download,
   FileSearch,
-  Gauge,
-  KeyRound,
+  History,
   MonitorDown,
   ShieldCheck,
+  Wrench,
 } from 'lucide-react';
 
 const features = [
   {
-    icon: FileSearch,
-    title: 'Reads VRChat’s analytics cache',
-    points: [
-      'Finds avatar IDs in amplitude.cache while you play. No game injection or memory access.',
-      'The file is only read. VRCove receives avatar IDs, never the rest of your analytics.',
-    ],
-  },
-  {
     icon: ShieldCheck,
-    title: 'Checked twice',
+    title: 'Straight to VRChat',
     points: [
-      'The companion checks each new avatar with your VRChat login and skips private or invalid ones.',
-      'The server then verifies every avatar again on its own. Avatars already in the database are skipped.',
+      'Your VRChat password and session go from your computer to VRChat and never pass through VRCove’s server, so you don’t have to trust us with them.',
+      'The session is kept in a file encrypted with a key in Windows Credential Manager or your Linux keyring.',
     ],
   },
   {
-    icon: KeyRound,
-    title: 'Your credentials',
+    icon: FileSearch,
+    title: 'Avatar logger built in',
     points: [
-      'Your VRChat password goes only to VRChat and is never saved.',
-      'The VRChat session is stored in Windows Credential Manager or your Linux keyring.',
-      'The API key expires when its VRChat session on VRCove ends. Revoke it any time on your Account page.',
+      'Finds public avatar IDs in VRChat’s analytics cache while you play and adds new ones to VRCove’s search. No game injection or memory access.',
+      'Each avatar is checked with your VRChat sign-in, then again by the server. Uploading needs an API key from your Account page.',
     ],
   },
   {
-    icon: Gauge,
-    title: 'Gentle on rate limits',
+    icon: History,
+    title: 'Your history, on your computer',
     points: [
-      'Uploads up to 40 batches of five avatars per ten minutes, paced automatically.',
-      'If VRChat or VRCove asks it to wait, it shows when it will retry and keeps collecting.',
+      'Instances you joined and the people you met, read from VRChat’s logs, a friend activity feed, and your screenshots with the world and people.',
+      'Notifications keep working with the window closed. All of it stays on your computer.',
+    ],
+  },
+  {
+    icon: Wrench,
+    title: 'Tools',
+    points: [
+      'Username checker, OSC chatbox and Unity package extractor.',
+      'Updates are offered in the app and installed only after their checksums match the release.',
     ],
   },
 ];
 
-/* The desktop companion: what it does and how to set it up. Downloads come from GitHub. */
+/* VRCove Desktop: what it does and how to set it up. Downloads come from GitHub. */
 export default function Companion() {
   useLocale();
   const { sectionLink } = useApp();
@@ -57,12 +56,12 @@ export default function Companion() {
       <div className="about-intro">
         <span className="eyebrow">
           <MonitorDown size={15} />
-          {tr('DESKTOP COMPANION')}
+          {tr('VRCOVE DESKTOP')}
         </span>
-        <h1 id="companion-title">{tr('Help grow the avatar database.')}</h1>
+        <h1 id="companion-title">{tr('VRCove on your desktop.')}</h1>
         <p>
           {tr(
-            'A small native app for Windows and Linux that collects public avatar IDs while you play VRChat and adds new ones to VRCove’s search.',
+            'The full VRCove app for Windows and Linux. It looks and works like this website, but talks to VRChat directly from your computer. A VRCove account is optional.',
           )}
         </p>
         <div className="companion-download-actions">
@@ -83,27 +82,24 @@ export default function Companion() {
         <ol>
           <li>
             {tr(
-              'Download the Windows .zip or Linux .tar.gz from the latest release, extract it, and run vrcove-logger.',
+              'Download the Windows .zip or Linux .tar.gz from the latest release, extract it, and run vrcove-desktop.',
             )}
           </li>
           <li>
             {tr(
-              'On VRCove, sign in, connect VRChat, and generate an API key on your Account page. Paste it into the companion’s Settings.',
+              'Sign in to VRChat in the app. Enter your authenticator, email or recovery code if VRChat asks.',
+            )}
+          </li>
+          <li>
+            {tr(
+              'Optional, to add avatars to the search: on VRCove, sign in, connect VRChat, and generate an API key on your Account page. Paste it into Avatar logger in the app.',
             )}{' '}
             <a {...sectionLink('Account')}>{tr('Open Account page')}</a>
-          </li>
-          <li>
-            {tr(
-              'In the companion’s Settings, sign in to VRChat. Enter your authenticator, email or recovery code if VRChat asks.',
-            )}
-          </li>
-          <li>
-            {tr('Press Start, then play VRChat. Closing the window keeps it collecting in the system tray.')}
           </li>
         </ol>
         <p>
           {tr(
-            'Uploads need both logins. The VRChat login checks avatars on your PC; the API key lets VRCove verify them again with your encrypted session on the server.',
+            'VRCove Desktop replaces the old VRCove Logger, which is retired. It picks up the logger’s settings and queue automatically.',
           )}
         </p>
       </article>
@@ -122,25 +118,14 @@ export default function Companion() {
           </article>
         ))}
       </div>
-      <article className="about-feature">
-        <h2>
-          <ShieldCheck size={18} />
-          {tr('Coming next: VRCove Desktop')}
-        </h2>
-        <p>
-          {tr(
-            'A full VRCove app for Windows and Linux is in testing. It looks and works like this website, with the logger built in, but it talks to VRChat directly from your computer. Your VRChat password and session never pass through VRCove’s server, so you don’t have to trust us with them. A VRCove account is optional; avatar search, reviews and collections still come from vrcove.st.',
-          )}
-        </p>
-      </article>
       <article className="about-feature about-open">
         <h2>
           <Code size={18} />
-          {tr('Small and native')}
+          {tr('Open source')}
         </h2>
         <p>
           {tr(
-            'Built with Go and Gio. No browser, Electron or runtime to install. Linux needs a tray host such as KDE Plasma to run in the background.',
+            'Built with Go and Wails, using the same code as this website. Linux needs GTK 4, WebKitGTK and a tray host such as KDE Plasma to run in the background.',
           )}
         </p>
         <a

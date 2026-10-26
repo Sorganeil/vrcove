@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { ShieldCheck, Download, Upload, Trash2, ExternalLink } from 'lucide-react';
+import { DesktopAccountSettings } from '../components/desktop-accounts';
 import DesktopNotificationSettings from '../components/desktop-notification-settings';
+import DesktopUpdateSettings from '../components/desktop-update-settings';
 import LanguagePicker from '../components/language-picker';
 import PrivacyApproach from '../components/privacy-approach';
 import { t as tr, useLocale } from '../lib/i18n';
@@ -11,10 +13,16 @@ export default function Settings({
   notify,
   saved,
   setSaved,
+  onSwitch,
+  switching,
+  refresh,
 }: {
   notify: (message: string) => void;
   saved: Avatar[];
   setSaved: (avatars: Avatar[]) => void;
+  onSwitch?: (id: number) => Promise<void>;
+  switching?: boolean;
+  refresh?: () => Promise<unknown>;
 }) {
   useLocale();
   const [confirm, setConfirm] = useState<{ action: string; text: string } | null>(null),
@@ -79,9 +87,11 @@ export default function Settings({
         </div>
         <ShieldCheck size={25} />
       </div>
+      <DesktopAccountSettings onSwitch={onSwitch} refresh={refresh} disabled={!!switching} />
       <section className="dashboard-panel language-settings">
         <LanguagePicker />
       </section>
+      <DesktopUpdateSettings notify={notify} />
       <DesktopNotificationSettings notify={notify} />
       <PrivacyApproach />
       <div className="settings-grid">

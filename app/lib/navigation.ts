@@ -1,4 +1,4 @@
-import { Activity, History, Images, Library, Upload, KeyRound, MonitorDown } from 'lucide-react';
+import { Activity, History, Images, Library, Upload, KeyRound, MonitorDown, Wrench } from 'lucide-react';
 import { desktop } from './platform';
 import {
   HomeIcon,
@@ -52,6 +52,7 @@ export const navigationGroups = [
             { name: 'History', label: 'History', icon: History },
             { name: 'Feed', label: 'Feed', icon: Activity },
             { name: 'Screenshots', label: 'Screenshots', icon: Images },
+            { name: 'Tools', label: 'Tools', icon: Wrench },
           ],
         },
       ]
@@ -62,18 +63,18 @@ export const sectionLabels: Record<string, string> = {
   MyGroups: 'My groups',
   Uploads: 'My uploads',
   Profile: 'My profile',
-  Account: 'VRCove account',
-  Companion: 'Desktop companion',
+  Account: 'VRCove Settings',
+  Companion: 'Desktop app',
   Admin: 'Moderation',
   CoveProfile: 'Profile',
-  Settings: 'Settings',
+  Settings: 'Local Settings',
 };
 export const primaryNavigation = [
   { name: 'Home', label: 'Home', icon: HomeIcon },
   { name: 'Search', label: 'Search', icon: SearchIcon },
 ];
 export const accountNavigation = [
-  { name: 'Companion', label: 'Desktop companion', icon: MonitorDown },
-  { name: 'Account', label: 'VRCove account', icon: KeyRound },
-  { name: 'Settings', label: 'Settings', icon: SettingsIcon },
+  { name: 'Companion', label: 'Desktop app', icon: MonitorDown },
+  { name: 'Account', label: 'VRCove Settings', icon: KeyRound },
+  { name: 'Settings', label: 'Local Settings', icon: SettingsIcon },
 ];

@@ -34,11 +34,11 @@ var sectionCopy = map[string][2]string{
 	"users":     {"Find VRChat users", "Look up VRChat players by name from your phone or PC after signing in with VRChat. No ads or analytics."},
 	"search":    {"Search VRChat", "Search VRChat avatars, people, worlds and groups in one place, on phone or PC. No ads, analytics or tracking."},
 	"about":     {"About VRCove", "VRCove is a private VRChat web client and avatar search that works in any browser, including Android, iPhone and iPad. It shows friends, worlds, groups, favorites and notifications, lets you change avatars, and adds reviews and collections. VRCX users can add VRCove as an avatar search provider."},
-	"companion": {"VRCove desktop companion", "A small Windows and Linux app that collects public VRChat avatar IDs while you play and adds new ones to VRCove's avatar search. It never sends your VRChat login to VRCove."},
+	"companion": {"VRCove Desktop", "VRCove as an app for Windows and Linux. It talks to VRChat directly from your computer, so your VRChat login never reaches VRCove, and adds public avatars you see to VRCove's avatar search."},
 	"donations": {"Support VRCove", "Help keep VRCove independent, private and free of ads."},
 }
 
-const seoNav = `<nav class="seo-nav" aria-label="VRCove"><a href="/">VRCove</a><a href="/avatars">Avatar search</a><a href="/worlds">Worlds</a><a href="/groups">Groups</a><a href="/users">Users</a><a href="/companion">Desktop companion</a><a href="/about">About</a></nav>`
+const seoNav = `<nav class="seo-nav" aria-label="VRCove"><a href="/">VRCove</a><a href="/avatars">Avatar search</a><a href="/worlds">Worlds</a><a href="/groups">Groups</a><a href="/users">Users</a><a href="/companion">Desktop app</a><a href="/about">About</a></nav>`
 
 type catalogAvatar struct {
 	ID, Name, Author, AuthorID, Description, Image, Full, Created, Updated, Rank string

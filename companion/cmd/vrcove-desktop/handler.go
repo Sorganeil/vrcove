@@ -1,6 +1,9 @@
 package main
 
 import (
+	"bytes"
+	"context"
+	"io"
 	"io/fs"
 	"net/http"
 	"net/http/httptest"
@@ -8,15 +11,21 @@ import (
 	"net/url"
 	"path"
 	"strings"
+	"sync"
 
+	"vrcove/companion/internal/autostart"
 	"vrcove/companion/internal/buildinfo"
 	"vrcove/companion/internal/history"
+	"vrcove/companion/internal/updater"
 	"vrcove/internal/server"
 )
 
 // apiOrigin is the origin the in-app API expects. Requests reach it only from
 // this app's own window, never over a network port.
-const apiOrigin = "http://wails.localhost"
+const (
+	apiOrigin  = "http://wails.localhost"
+	desktopCSP = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'"
+)
 
 // desktop serves the window: the bundled frontend, the website's own API
 // code running locally for VRChat, and the VRCove website for everything else.
@@ -27,13 +36,24 @@ type desktop struct {
 	assets fs.FS
 	logger *avatarLogger
 	// history is the local history database; notify shows a desktop alert.
-	history *history.Store
-	notify  func(id, title, body string)
-	openURL func(string) error
+	history       *history.Store
+	notify        func(id, title, body string)
+	openURL       func(string) error
+	tools         desktopTools
+	choosePackage func() (string, error)
+	chooseFolder  func() (string, error)
+	toolContext   context.Context
+	updater       *updater.Updater
+	autostart     *autostart.Manager
+	accountMu     sync.Mutex
 }
 
 func newDesktop(st *store, site *url.URL, assets fs.FS) (*desktop, error) {
-	d := &desktop{store: st, assets: assets}
+	d := &desktop{store: st, assets: assets, updater: updater.New(buildinfo.Version), autostart: autostart.New()}
+	d.tools.prefs = st.data.Chatbox
+	if d.tools.prefs.Port == 0 {
+		d.tools.prefs = chatPrefs{Port: 9000, Interval: 10}
+	}
 	d.remote = &httputil.ReverseProxy{
 		Rewrite: func(pr *httputil.ProxyRequest) {
 			pr.SetURL(site)
@@ -94,15 +114,74 @@ func (d *desktop) user() (id, name string) {
 // serveAPI gives the local API the cookies a browser would send, and keeps
 // the ones it sets. The window never holds them.
 func (d *desktop) serveAPI(w http.ResponseWriter, r *http.Request) {
+	account := strings.HasPrefix(r.URL.Path, "/api/account/")
+	action := account && (r.URL.Path == "/api/account/login" || r.URL.Path == "/api/account/2fa" || r.URL.Path == "/api/account/switch" || r.URL.Path == "/api/account/logout" || r.URL.Path == "/api/account/device/remove") && r.Method == http.MethodPost
+	if action {
+		d.accountMu.Lock()
+		defer d.accountMu.Unlock()
+	}
+	cookies, version, changed := d.store.localSnapshot()
 	r = r.Clone(r.Context())
+	if r.Body != nil && r.Body != http.NoBody && r.ContentLength <= 0 {
+		// WebKitGTK custom-scheme requests omit Content-Length, leaving
+		// ContentLength at 0; httputil.ReverseProxy drops the body when
+		// ContentLength is 0. Buffer the body so its length is known.
+		if body, err := io.ReadAll(io.LimitReader(r.Body, 1<<20)); err == nil {
+			r.Body = io.NopCloser(bytes.NewReader(body))
+			r.ContentLength = int64(len(body))
+		}
+	}
 	r.Header.Del("Cookie")
-	for name, value := range d.store.cookies(false) {
+	for name, value := range cookies {
 		r.AddCookie(&http.Cookie{Name: name, Value: value})
 	}
 	if r.Method != http.MethodGet && r.Method != http.MethodHead {
 		r.Header.Set("Origin", apiOrigin)
 	}
-	d.api.APIHandler().ServeHTTP(&cookieKeeper{ResponseWriter: w, store: d.store}, r)
+	if !account {
+		d.api.APIHandler().ServeHTTP(&cookieKeeper{ResponseWriter: w, store: d.store, version: &version}, r)
+		return
+	}
+	// Buffer local account responses so a late result cannot overwrite the
+	// cookies or UI of an account selected while the request was in flight.
+	ctx, cancel := context.WithCancel(r.Context())
+	defer cancel()
+	go func() {
+		select {
+		case <-changed:
+			cancel()
+		case <-ctx.Done():
+		}
+	}()
+	r = r.WithContext(ctx)
+	if r.URL.Path == "/api/account/live" {
+		d.api.APIHandler().ServeHTTP(&cookieKeeper{ResponseWriter: w, store: d.store, version: &version}, r)
+		return
+	}
+	response := httptest.NewRecorder()
+	d.api.APIHandler().ServeHTTP(response, r)
+	mutated := action && response.Code < 300 && (response.Header().Get("X-VRChat-Session-User") != "" || r.URL.Path == "/api/account/logout" || r.URL.Path == "/api/account/device/remove")
+	accepted, err := keepLocal(d.store, version, response.Header(), mutated)
+	if err != nil {
+		writeJSON(w, 503, map[string]string{"error": "Could not save accounts on this device."})
+		return
+	}
+	if !accepted {
+		writeJSON(w, 409, map[string]string{"code": "vrchat_account_changed", "error": "Your VRChat connection changed. Please try again."})
+		return
+	}
+	_, currentVersion, _ := d.store.localSnapshot()
+	if currentVersion != version {
+		d.tools.usernames.Stop()
+	}
+	if response.Code == http.StatusOK && r.Method == http.MethodGet {
+		d.learnAccountEntities(r.Context(), r.URL.Path, response.Body.Bytes())
+	}
+	for name, values := range response.Header() {
+		w.Header()[name] = values
+	}
+	w.WriteHeader(response.Code)
+	w.Write(response.Body.Bytes())
 }
 
 // serveAsset serves the bundled frontend; unknown paths get the app shell,
@@ -114,6 +193,9 @@ func (d *desktop) serveAsset(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("X-Frame-Options", "DENY")
+	w.Header().Set("Referrer-Policy", "no-referrer")
+	w.Header().Set("Content-Security-Policy", desktopCSP)
 	http.ServeFileFS(w, r, d.assets, name)
 }
 
@@ -148,12 +230,17 @@ type cookieKeeper struct {
 	http.ResponseWriter
 	store       *store
 	wroteHeader bool
+	version     *uint64
 }
 
 func (c *cookieKeeper) WriteHeader(status int) {
 	if !c.wroteHeader {
 		c.wroteHeader = true
-		keep(c.store, false, c.Header())
+		if c.version != nil {
+			keepLocal(c.store, *c.version, c.Header(), false)
+		} else {
+			keep(c.store, false, c.Header())
+		}
 	}
 	c.ResponseWriter.WriteHeader(status)
 }

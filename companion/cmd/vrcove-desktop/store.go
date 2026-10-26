@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"maps"
 	"os"
 	"path/filepath"
 	"sync"
@@ -22,9 +23,10 @@ const keyringService = "VRCove Desktop"
 type state struct {
 	// Local holds this device's VRChat session cookies, already sealed by the
 	// local API with SessionKey. Remote holds the VRCove website's cookies.
-	Local  map[string]string `json:"local"`
-	Remote map[string]string `json:"remote"`
-	Notify notifyPrefs       `json:"notify"`
+	Local   map[string]string `json:"local"`
+	Remote  map[string]string `json:"remote"`
+	Notify  notifyPrefs       `json:"notify"`
+	Chatbox chatPrefs         `json:"chatbox"`
 }
 
 // notifyPrefs are the desktop notification settings. Text holds the alert
@@ -43,8 +45,20 @@ type store struct {
 	fileKey, SessionKey []byte
 	// persistent is false when the keyring is unavailable; the app then
 	// works but forgets sign-ins when it closes.
-	persistent bool
-	data       state
+	persistent   bool
+	data         state
+	localVersion uint64
+	localChanged chan struct{}
+}
+
+// localSnapshot binds a request or live connection to one account selection.
+func (s *store) localSnapshot() (map[string]string, uint64, <-chan struct{}) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.localChanged == nil {
+		s.localChanged = make(chan struct{})
+	}
+	return maps.Clone(s.data.Local), s.localVersion, s.localChanged
 }
 
 func openStore(dir string) (*store, error) {

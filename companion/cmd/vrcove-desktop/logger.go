@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -27,47 +28,91 @@ type avatarLogger struct {
 	config   logger.Config
 }
 
+func isEmptyLoggerState(s *logger.State) bool {
+	return len(s.Seen) == 0 && s.Added == 0 && s.Existing == 0 && s.Rejected == 0 && len(s.Pending) == 0 && s.Config.Token == ""
+}
+
 func startLogger(ctx context.Context, d *desktop, dir string, site string) (*avatarLogger, error) {
 	path := filepath.Join(dir, "logger.json")
 	s, err := logger.Load(path)
 	if err != nil {
 		return nil, err
 	}
+	if isEmptyLoggerState(s) {
+		legacyPath := filepath.Join(filepath.Dir(dir), "vrcove-logger", "state.json")
+		if legacy, err := logger.Load(legacyPath); err == nil && !isEmptyLoggerState(legacy) {
+			s = legacy
+			_ = s.Save(path)
+		}
+	}
 	if s.Config.Folder == "" {
 		s.Config.Folder = logger.DetectFolder()
 	}
-	s.Config.Server = site
+	if origin, err := logger.ValidateServer(s.Config.Server); err == nil {
+		s.Config.Server = origin
+	} else {
+		s.Config.Server = site
+	}
 	s.Verifier = verifier{d}
 	l := &avatarLogger{d: d, commands: make(chan collector.Command, 4), config: s.Config}
 	updates := make(chan collector.Snapshot, 1)
-	go collector.Run(ctx, path, s, l.commands, updates, func() {})
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case snap := <-updates:
-				l.mu.Lock()
-				l.snap = snap
-				l.mu.Unlock()
-			}
+	go collector.Run(ctx, path, s, l.commands, updates, func() {
+		select {
+		case snap := <-updates:
+			l.mu.Lock()
+			l.snap = snap
+			l.mu.Unlock()
+		default:
 		}
-	}()
+	})
 	return l, nil
 }
 
 // serve answers /api/desktop/logger for the logger page.
 func (l *avatarLogger) serve(w http.ResponseWriter, r *http.Request) {
+	var message string
 	if r.Method == http.MethodPost {
 		var body struct {
 			Action    string  `json:"action"`
 			Token     *string `json:"token"`
 			Folder    *string `json:"folder"`
+			Server    *string `json:"server"`
 			AutoStart *bool   `json:"autoStart"`
 		}
 		if json.NewDecoder(http.MaxBytesReader(w, r.Body, 8192)).Decode(&body) != nil {
 			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Invalid request."})
 			return
+		}
+		if body.Action == "choose-folder" {
+			if l.d == nil || l.d.chooseFolder == nil {
+				writeJSON(w, http.StatusServiceUnavailable, map[string]string{"error": "Folder picker is unavailable."})
+				return
+			}
+			chosen, err := l.d.chooseFolder()
+			if err != nil {
+				writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+				return
+			}
+			if strings.TrimSpace(chosen) != "" {
+				body.Folder = &chosen
+			}
+		}
+		var verifiedServer string
+		if body.Server != nil {
+			origin, err := logger.ValidateServer(*body.Server)
+			if err != nil {
+				writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+				return
+			}
+			verifiedServer = origin
+		}
+		var verifiedFolder string
+		if body.Folder != nil {
+			verifiedFolder = strings.TrimSpace(*body.Folder)
+			if info, err := os.Stat(verifiedFolder); err != nil || !info.IsDir() {
+				writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Enter an existing VRChat analytics folder."})
+				return
+			}
 		}
 		l.mu.Lock()
 		next := l.config
@@ -75,13 +120,25 @@ func (l *avatarLogger) serve(w http.ResponseWriter, r *http.Request) {
 			next.Token = strings.TrimSpace(*body.Token)
 		}
 		if body.Folder != nil {
-			next.Folder = strings.TrimSpace(*body.Folder)
+			next.Folder = verifiedFolder
+		}
+		if body.Server != nil {
+			next.Server = verifiedServer
 		}
 		if body.AutoStart != nil {
 			next.AutoStart = *body.AutoStart
 		}
 		changed := next != l.config
 		l.config = next
+		if body.Action == "start" {
+			l.snap.Paused = false
+			if l.snap.Status == "" || l.snap.Status == "Paused" {
+				l.snap.Status = "Watching VRChat analytics"
+			}
+		} else if body.Action == "pause" {
+			l.snap.Paused = true
+			l.snap.Status = "Paused"
+		}
 		l.mu.Unlock()
 		switch {
 		case body.Action == "start" || body.Action == "pause":
@@ -90,7 +147,7 @@ func (l *avatarLogger) serve(w http.ResponseWriter, r *http.Request) {
 			reply := make(chan string, 1)
 			l.commands <- collector.Command{Kind: "clear-cache", Reply: reply}
 			select {
-			case <-reply:
+			case message = <-reply:
 			case <-time.After(10 * time.Second):
 			}
 		case changed:
@@ -104,11 +161,15 @@ func (l *avatarLogger) serve(w http.ResponseWriter, r *http.Request) {
 	for _, e := range snap.Events {
 		events = append(events, map[string]string{"time": e.Time, "id": e.ID, "result": e.Result})
 	}
-	writeJSON(w, http.StatusOK, map[string]any{
+	resp := map[string]any{
 		"status": snap.Status, "paused": snap.Paused, "detected": snap.Detected, "added": snap.Added,
 		"existing": snap.Existing, "rejected": snap.Rejected, "pending": snap.Pending, "events": events,
-		"folder": config.Folder, "autoStart": config.AutoStart, "hasKey": config.Token != "",
-	})
+		"folder": config.Folder, "server": config.Server, "autoStart": config.AutoStart, "hasKey": config.Token != "",
+	}
+	if message != "" {
+		resp["message"] = message
+	}
+	writeJSON(w, http.StatusOK, resp)
 }
 
 func writeJSON(w http.ResponseWriter, status int, data any) {

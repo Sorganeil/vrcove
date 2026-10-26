@@ -17,7 +17,7 @@ const backend=spawn(join(dir,'vrcove'),[],{stdio:'inherit',env:{...process.env,
  DATABASE_PATH:join(dir,'catalog.sqlite'),ACCOUNTS_PATH:join(dir,'accounts.sqlite'),
  ACCOUNT_KEY:accountKey,SESSION_KEY:'',VRC_CONTACT:'',
 }});
-const frontend=spawn(process.execPath,['node_modules/vite/bin/vite.js','--host','localhost','--port',frontendPort,'--strictPort'],{stdio:'inherit',env:{...process.env,VRCOVE_API_TARGET:`http://127.0.0.1:${backendPort}`}});
+const frontend=spawn(process.execPath,['node_modules/vite/bin/vite.js','--host','localhost','--port',frontendPort,'--strictPort','--mode',process.env.VRCOVE_TEST_MODE||'development'],{stdio:'inherit',env:{...process.env,VRCOVE_API_TARGET:`http://127.0.0.1:${backendPort}`}});
 let stopping=false;
 function stop(){if(stopping)return;stopping=true;backend.kill('SIGTERM');frontend.kill('SIGTERM');}
 process.on('SIGINT',()=>stop());process.on('SIGTERM',()=>stop());

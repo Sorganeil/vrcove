@@ -320,8 +320,9 @@
   gap: 10px !important;
 }
 .cove-switch input {
-  width: auto !important;
-  height: auto !important;
+  width: 16px !important;
+  height: 16px !important;
+  padding: 0 !important;
 }
 .review-author {
   display: inline-flex;

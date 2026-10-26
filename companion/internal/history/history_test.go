@@ -36,7 +36,8 @@ func TestGameLogHistory(t *testing.T) {
 	s := openTest(t)
 	dir := t.TempDir()
 	log := filepath.Join(dir, "output_log_2026-10-25_18-00-00.txt")
-	first := "2026.10.25 18:00:01 Log        -  [Behaviour] Joining wrld_00000000-0000-0000-0000-000000000009:12345~private(usr_x)\n" +
+	first := "2026.10.25 18:00:01 Log        -  [Behaviour] Entering Room: Cozy Room\n" +
+		"2026.10.25 18:00:01 Log        -  [Behaviour] Joining wrld_00000000-0000-0000-0000-000000000009:12345~private(usr_x)\n" +
 		"2026.10.25 18:00:02 Log        -  [Behaviour] Joining or Creating Room: Cozy Room\n" +
 		"2026.10.25 18:00:03 Log        -  [Behaviour] OnPlayerJoined Mia (" + mia + ")\n" +
 		"2026.10.25 18:00:04 Debug      -  unrelated noise\n" +
@@ -152,5 +153,16 @@ func TestFriendFeed(t *testing.T) {
 	note := record(`{"type":"notification","content":"{\"id\":\"not_0123456789abcdef\",\"type\":\"invite\",\"senderUsername\":\"Mia\",\"details\":\"{\\\"worldName\\\":\\\"Cozy Room\\\"}\"}"}`)
 	if note == nil || note.WorldName != "Cozy Room" || note.Type != "invite" {
 		t.Fatalf("note = %+v", note)
+	}
+
+	// An offline event for a friend whose name was not yet in the friends table
+	// is backfilled as soon as RememberUsers or a later event supplies the name.
+	record(`{"type":"friend-offline","content":{"userId":"` + zoe + `"}}`)
+	if err := s.RememberUsers(ctx, "", map[string]string{zoe: "Zoe"}); err != nil {
+		t.Fatal(err)
+	}
+	entries, err = s.Feed(ctx, 0, "offline", "", 50)
+	if err != nil || len(entries) < 1 || entries[0].DisplayName != "Zoe" {
+		t.Fatalf("resolved offline entry = %+v %v", entries, err)
 	}
 }

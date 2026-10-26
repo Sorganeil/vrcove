@@ -24,6 +24,7 @@ import { DetailView } from './components/detail-view';
 import About from './pages/about';
 import Companion from './pages/companion';
 import DesktopLogger from './pages/desktop-logger';
+import DesktopTools from './pages/desktop-tools';
 import { FriendFeed, GameHistory, Screenshots } from './pages/desktop-history';
 import Admin from './pages/admin';
 import AccountPage from './pages/account';
@@ -152,8 +153,7 @@ export default function App() {
       setSelected(null);
       setPalette(false);
       setUser(result.user);
-      const account = await api('/cove/me').catch(() => null);
-      if (account) setCoveAccount(account);
+      await refreshLinks();
     } finally {
       setSwitching(false);
     }
@@ -175,6 +175,9 @@ export default function App() {
       .then(setCoveAccount)
       .catch(() => {});
     if (desktop) void refreshLinks();
+    const refreshDevice = () => void refreshLinks();
+    if (desktop) window.addEventListener('vrcove:device-accounts', refreshDevice);
+    return () => window.removeEventListener('vrcove:device-accounts', refreshDevice);
   }, []);
 
   // Verify the VRChat session on entry, periodically while visible, and when returning to the tab.
@@ -317,7 +320,12 @@ export default function App() {
           <div className="main-shell">
             <Topbar onMenu={() => setMobile(true)} onSearch={() => setPalette(true)} />
             <main>
-              <SessionNotices onSwitch={switchAccount} switching={switching} connecting={login} />
+              <SessionNotices
+                onSwitch={switchAccount}
+                switching={switching}
+                connecting={login}
+                refresh={refreshLinks}
+              />
               {section === 'Home' && (
                 <Dashboard
                   key={vrchatKey}
@@ -332,7 +340,16 @@ export default function App() {
                 />
               )}
               {searchSections.includes(section) && <SearchPage key={route.version} section={section} />}
-              {section === 'Settings' && <Settings notify={notify} saved={saved} setSaved={setSaved} />}
+              {section === 'Settings' && (
+                <Settings
+                  notify={notify}
+                  saved={saved}
+                  setSaved={setSaved}
+                  onSwitch={switchAccount}
+                  switching={switching || login}
+                  refresh={refreshLinks}
+                />
+              )}
               {section === 'Bookmarks' && <Bookmarks />}
               {section === 'Favorites' && <Favorites key={vrchatKey} />}
               {section === 'Friends' && <Friends key={vrchatKey} />}
@@ -344,8 +361,9 @@ export default function App() {
               )}
               {section === 'Companion' && (desktop ? <DesktopLogger /> : <Companion />)}
               {section === 'History' && <GameHistory key={route.version} />}
-              {section === 'Feed' && <FriendFeed />}
+              {section === 'Feed' && <FriendFeed key={vrchatKey} />}
               {section === 'Screenshots' && <Screenshots />}
+              {desktop && section === 'Tools' && <DesktopTools />}
               {section === 'Admin' && <Admin key={route.version} notify={notify} />}
               {section === 'Collections' && <CollectionsPage notify={notify} />}
               {section === 'CoveProfile' && (

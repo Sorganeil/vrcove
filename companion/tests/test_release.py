@@ -27,12 +27,15 @@ class ReleaseTests(unittest.TestCase):
         (self.app / "build.sh").write_text('''#!/usr/bin/env bash
 set -eu
 mkdir -p dist
-if [ "$1" = linux ]; then
-  printf '#!/usr/bin/env bash\nprintf "VRCove Logger %%s (fixture)\\n" "$VERSION"\n' > dist/vrcove-logger
-  chmod +x dist/vrcove-logger
-else
-  printf 'MZfixture' > dist/vrcove-logger.exe
-fi
+case "$1" in
+  linux)
+    printf '#!/usr/bin/env bash\nprintf "VRCove Desktop %%s (fixture)\\n" "$VERSION"\n' > dist/vrcove-desktop
+    chmod +x dist/vrcove-desktop
+    ;;
+  windows)
+    printf 'MZfixture-desktop' > dist/vrcove-desktop.exe
+    ;;
+esac
 ''')
         subprocess.run(["git", "init", "-q", str(self.repo)], check=True)
         self.git("add", ".")
@@ -87,18 +90,28 @@ else: sys.exit('unexpected gh call: '+repr(a))
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.calls(), [])
         out = self.app / "dist/releases/v1.2.3"
-        for line in (out / "SHA256SUMS").read_text().splitlines():
+        lines = (out / "SHA256SUMS").read_text().splitlines()
+        self.assertEqual(len(lines), 2)
+        for line in lines:
             digest, name = line.split("  ")
             self.assertEqual(digest, hashlib.sha256((out / name).read_bytes()).hexdigest())
-        with tarfile.open(next(out.glob("*.tar.gz"))) as archive:
-            self.assertEqual({Path(n).name for n in archive.getnames()}, {"vrcove-logger", "README.md", "LICENSE", "BUILD-INFO.txt"})
-            executable = next(m for m in archive.getmembers() if m.name.endswith("/vrcove-logger"))
-            self.assertEqual(executable.mode, 0o755)
-        with zipfile.ZipFile(next(out.glob("*.zip"))) as archive:
-            self.assertEqual({Path(n).name for n in archive.namelist()}, {"vrcove-logger.exe", "README.md", "LICENSE", "BUILD-INFO.txt"})
+        for app_name in ("vrcove-desktop",):
+            with tarfile.open(out / f"{app_name}-v1.2.3-linux-amd64.tar.gz") as archive:
+                self.assertEqual({Path(n).name for n in archive.getnames()}, {app_name, "README.md", "LICENSE", "BUILD-INFO.txt"})
+                executable = next(m for m in archive.getmembers() if m.name.endswith(f"/{app_name}"))
+                self.assertEqual(executable.mode, 0o755)
+            with zipfile.ZipFile(out / f"{app_name}-v1.2.3-windows-amd64.zip") as archive:
+                self.assertEqual({Path(n).name for n in archive.namelist()}, {f"{app_name}.exe", "README.md", "LICENSE", "BUILD-INFO.txt"})
         first = (out / "SHA256SUMS").read_bytes()
         self.assertEqual(self.release().returncode, 0)
         self.assertEqual(first, (out / "SHA256SUMS").read_bytes())
+
+    def test_version_file_is_enforced_and_used_by_default(self):
+        (self.repo / "VERSION").write_text("v1.2.3\n")
+        self.assertNotEqual(self.release("v9.9.9").returncode, 0)
+        res = subprocess.run(["bash", str(self.app / "release.sh")], env=self.env, capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0, res.stderr)
+        self.assertTrue((self.app / "dist/releases/v1.2.3/SHA256SUMS").exists())
 
     def test_publish_creates_draft_before_publishing(self):
         result = self.release("v1.2.3-rc.1", publish=True)

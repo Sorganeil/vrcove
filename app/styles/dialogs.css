@@ -258,7 +258,7 @@
   color: #b7cede;
   font-size: 13px;
 }
-.login-content input,
+.login-content input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
 .login-content select,
 .confirm-content select {
   width: 100%;
@@ -266,11 +266,28 @@
   padding: 0 11px;
   border: 1px solid #45647d;
   border-radius: 4px;
-  background: #09131e;
+  background-color: #09131e;
   color: #d9eaf6;
   font-size: 14px;
 }
-.login-content input::placeholder {
+.login-content select,
+.confirm-content select {
+  padding-right: 32px;
+}
+.login-content textarea {
+  width: 100%;
+  min-height: 96px;
+  padding: 10px 11px;
+  resize: vertical;
+  border: 1px solid #45647d;
+  border-radius: 4px;
+  background-color: #09131e;
+  color: #d9eaf6;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.login-content input::placeholder,
+.login-content textarea::placeholder {
   color: #7691a8;
   font-size: 13px;
 }

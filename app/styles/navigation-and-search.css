@@ -16,7 +16,7 @@
   filter: brightness(1.12);
 }
 .nav-item {
-  border-radius: 3px 9px 3px 3px;
+  border-radius: 4px;
 }
 .nav-item > svg {
   width: 17px;
@@ -26,7 +26,8 @@
 .nav-item.active {
   color: #c9f6ff;
   background: #142a36;
-  box-shadow: inset 3px 0 #00c8ff;
+  border-left: 3px solid #00c8ff;
+  padding-left: 10px;
 }
 .nav-item.active > svg {
   opacity: 1;

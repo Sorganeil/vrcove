@@ -1,0 +1,227 @@
+.desktop-tools-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+.username-tool {
+  grid-column: 1 / -1;
+}
+.username-check-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+}
+.username-check-input,
+.username-check-output {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.username-input-actions,
+.username-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.username-input-actions small,
+.username-progress small {
+  margin-left: auto;
+}
+.username-progress {
+  font-size: 13px;
+  min-height: 24px;
+}
+.username-check-output progress {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background-color: #162330;
+  accent-color: var(--accent);
+}
+.username-check-output progress::-webkit-progress-bar {
+  background-color: #162330;
+  border-radius: 999px;
+}
+.username-check-output progress::-webkit-progress-value {
+  background-color: var(--accent);
+  border-radius: 999px;
+}
+.username-check-output progress::-moz-progress-bar {
+  background-color: var(--accent);
+  border-radius: 999px;
+}
+.username-results {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.username-results li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+.username-results li > span {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.username-results strong {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  text-align: right;
+  flex-shrink: 0;
+}
+.username-results .username-result-available {
+  color: #88d5b0;
+}
+.username-results .username-result-taken,
+.username-results .username-result-invalid,
+.username-results .username-result-error {
+  color: #f18b8b;
+}
+.username-wait {
+  color: #e2c188;
+}
+@media (max-width: 700px) {
+  .username-check-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.desktop-tool.login-content {
+  display: flex;
+  flex-direction: column;
+  padding: 22px;
+  gap: 16px;
+  min-width: 0;
+}
+.desktop-tool-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.desktop-tool-heading > svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.desktop-tool-heading h3 {
+  font-size: 17px;
+  color: var(--text);
+  font-weight: 600;
+}
+.desktop-tool-heading p {
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.tool-state {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 3px 8px;
+}
+.tool-state.active {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.desktop-tool .result-actions {
+  margin-top: 0;
+}
+.desktop-tool label.tool-checkbox {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  gap: 8px;
+}
+.tool-checkbox input {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+}
+.chatbox-preview {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  background: #0b1118;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 16px;
+  min-height: 72px;
+}
+.chatbox-preview span {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.chatbox-preview small {
+  align-self: end;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.chatbox-preview small.danger-text {
+  color: #f18b8b;
+}
+.tool-options summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--muted);
+}
+.tool-option-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 12px;
+}
+.tool-option-fields label {
+  flex: 1 1 150px;
+}
+.tool-option-fields .tool-checkbox {
+  flex-basis: 100%;
+}
+.extraction-result {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--accent);
+}
+.extraction-result code {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+@media (max-width: 1000px) {
+  .desktop-tools-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.tool-message-field label {
+  margin-bottom: 8px;
+}
+
+.desktop-tool p.fineprint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.65;
+}
+.desktop-tool textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px;
+  resize: vertical;
+  border: 1px solid #45647d;
+  border-radius: 4px;
+  background: #09131e;
+  color: #d9eaf6;
+  font-size: 14px;
+}

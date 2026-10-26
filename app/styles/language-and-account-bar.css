@@ -11,14 +11,19 @@
 .language-picker select {
   min-width: 0;
   max-width: 100%;
-  padding: 8px 24px 8px 10px;
+  min-height: 36px;
+  padding: 7px 30px 7px 10px;
   border: 1px solid var(--line);
-  border-radius: 7px;
-  background: var(--panel, #15171b);
-  color: var(--text, #eee);
+  border-radius: 4px;
+  background-color: #080f17;
+  color: #dce8f3;
   font: inherit;
   cursor: pointer;
   color-scheme: dark;
+}
+.language-picker select:hover:not(:disabled) {
+  border-color: #477e95;
+  color: var(--text);
 }
 .language-picker select:focus-visible {
   outline: 2px solid var(--accent, #9d8cff);
@@ -42,7 +47,8 @@
   }
   .language-picker.compact select {
     width: 86px;
-    padding: 7px 3px;
+    padding: 7px 22px 7px 6px;
+    background-position: right 6px center;
     font-size: 11px;
   }
   .top-actions {
@@ -220,6 +226,54 @@ span.cove-account-picture::before {
   gap: 14px;
   padding-top: 16px;
 }
+.desktop-account-switcher {
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.desktop-account-switcher > .text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.desktop-account-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+  display: grid;
+  gap: 12px;
+}
+.desktop-account-list li {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.desktop-account-list li > div:first-child {
+  flex: 1 1 150px;
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+.desktop-account-list strong,
+.desktop-account-list small {
+  overflow-wrap: anywhere;
+}
+.desktop-account-list small {
+  color: var(--muted);
+}
+.desktop-account-list .fineprint {
+  margin: 0;
+}
+.desktop-account-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.desktop-account-manager .settings-content > p:last-child {
+  margin: 14px 0 0;
+}
 .vrchat-account-switcher label {
   display: flex;
   align-items: center;
@@ -230,8 +284,9 @@ span.cove-account-picture::before {
 .vrchat-account-switcher select {
   max-width: 250px;
   min-width: 160px;
-  padding: 8px;
-  background: #101e2b;
+  min-height: 36px;
+  padding: 7px 32px 7px 10px;
+  background-color: #101e2b;
   color: #dce8f3;
   border: 1px solid #304555;
   border-radius: 4px;

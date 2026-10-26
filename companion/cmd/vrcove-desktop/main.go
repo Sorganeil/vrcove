@@ -8,17 +8,21 @@ package main
 import (
 	"context"
 	"embed"
+	"fmt"
 	"io/fs"
 	"log"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/events"
 	"github.com/wailsapp/wails/v3/pkg/services/notifications"
+	"vrcove/companion/internal/buildinfo"
 	"vrcove/companion/internal/history"
+	"vrcove/companion/internal/updater"
 )
 
 //go:embed all:frontend
@@ -29,6 +33,11 @@ var frontendFiles embed.FS
 const defaultSite = "https://vrcove.st"
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "--version" {
+		fmt.Println(buildinfo.DesktopSummary())
+		return
+	}
+	updater.CleanupOldExecutable()
 	site, err := url.Parse(defaultSite)
 	if v := os.Getenv("VRCOVE_SITE"); v != "" {
 		site, err = url.Parse(v)
@@ -60,6 +69,7 @@ func main() {
 	}
 	ctx, stop := context.WithCancel(context.Background())
 	defer stop()
+	handler.toolContext = ctx
 	if handler.logger, err = startLogger(ctx, handler, filepath.Join(config, "VRCove Desktop"), site.Scheme+"://"+site.Host); err != nil {
 		log.Print("avatar logger unavailable: ", err)
 	}
@@ -67,9 +77,24 @@ func main() {
 		log.Print("history unavailable: ", err)
 	} else {
 		defer handler.history.Close()
+		id, _ := handler.user()
+		if err := handler.history.ClaimLegacyFeed(ctx, id); err != nil {
+			log.Print("could not assign legacy friend feed: ", err)
+		}
 	}
 	go handler.readLogs(ctx)
 	go handler.runLive(ctx)
+	go handler.runChatbox(ctx)
+	if buildinfo.Version != "dev" {
+		go func() {
+			select {
+			case <-ctx.Done():
+				return
+			case <-time.After(10 * time.Second):
+				_, _ = handler.updater.Check(ctx)
+			}
+		}()
+	}
 	alerts := notifications.New()
 
 	// VRCOVE_START opens another page first, for development and screenshots.
@@ -103,6 +128,12 @@ func main() {
 		BackgroundColour: application.NewRGB(14, 19, 26),
 		URL:              start,
 	})
+	handler.choosePackage = func() (string, error) {
+		return app.Dialog.OpenFile().AttachToWindow(window).SetTitle("Choose a Unity package").AddFilter("Unity packages", "*.unitypackage").PromptForSingleSelection()
+	}
+	handler.chooseFolder = func() (string, error) {
+		return app.Dialog.OpenFile().AttachToWindow(window).SetTitle("Choose where to extract").CanChooseFiles(false).CanChooseDirectories(true).CanCreateDirectories(true).PromptForSingleSelection()
+	}
 	handler.openURL = app.Browser.OpenURL
 	handler.notify = func(id, title, body string) {
 		alerts.SendNotification(notifications.NotificationOptions{ID: id, Title: title, Body: body})
@@ -128,6 +159,12 @@ func main() {
 	menu.Add("Open VRCove").OnClick(func(*application.Context) {
 		window.Show()
 		window.Focus()
+	})
+	menu.Add("Check for updates").OnClick(func(*application.Context) {
+		go handler.updater.Check(ctx)
+		window.Show()
+		window.Focus()
+		window.ExecJS("history.pushState(null,'','/settings');dispatchEvent(new PopStateEvent('popstate'))")
 	})
 	menu.AddSeparator()
 	menu.Add("Quit").OnClick(func(*application.Context) { app.Quit() })

@@ -215,6 +215,7 @@ func Run(ctx context.Context, path string, s *logger.State, commands <-chan Comm
 				continue
 			case "start":
 				paused = false
+				s.Status = "Watching VRChat analytics"
 			case "pause":
 				paused = true
 				s.Status = "Paused"
@@ -226,6 +227,7 @@ func Run(ctx context.Context, path string, s *logger.State, commands <-chan Comm
 				}
 				s.Config = c.Config
 			}
+			publish()
 			persist()
 		case <-ticker.C:
 		}

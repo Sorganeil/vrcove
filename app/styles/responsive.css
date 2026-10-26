@@ -351,7 +351,7 @@
   .panel-title h2 {
     font-size: 13px;
   }
-  .panel-title > button {
+  .panel-title > button:not(.standard-button) {
     gap: 5px;
     font-size: 12px;
   }

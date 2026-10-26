@@ -16,31 +16,40 @@ import (
 // on this device, even with the window closed. It records friend activity and
 // shows notifications on the desktop. The connection goes straight to VRChat.
 func (d *desktop) runLive(ctx context.Context) {
-	wait := func(t time.Duration) bool {
+	wait := func(t time.Duration, changed <-chan struct{}) bool {
 		select {
 		case <-ctx.Done():
 			return false
 		case <-time.After(t):
 			return true
+		case <-changed:
+			return true
 		}
 	}
 	delay := 10 * time.Second
 	for ctx.Err() == nil {
+		_, _, changed := d.store.localSnapshot()
 		if id, _ := d.user(); id == "" {
-			if !wait(30 * time.Second) {
+			if !wait(30*time.Second, changed) {
 				return
 			}
 			continue
 		}
 		opened := time.Now()
 		d.listen(ctx)
+		select {
+		case <-changed:
+			delay = 10 * time.Second
+			continue
+		default:
+		}
 		// Reconnect quickly after a long connection, slowly after failures.
 		if time.Since(opened) > 2*time.Minute {
 			delay = 10 * time.Second
 		} else {
 			delay = min(delay*2, 5*time.Minute)
 		}
-		if !wait(delay) {
+		if !wait(delay, changed) {
 			return
 		}
 	}
@@ -48,9 +57,23 @@ func (d *desktop) runLive(ctx context.Context) {
 
 // listen reads one pipeline connection until it closes.
 func (d *desktop) listen(ctx context.Context) {
+	cookies, version, changed := d.store.localSnapshot()
+	ctx, stop := context.WithCancel(ctx)
+	defer stop()
+	go func() {
+		select {
+		case <-changed:
+			stop()
+		case <-ctx.Done():
+		}
+	}()
 	r := httptest.NewRequestWithContext(ctx, http.MethodGet, "/api/account/live", nil)
-	for name, value := range d.store.cookies(false) {
+	for name, value := range cookies {
 		r.AddCookie(&http.Cookie{Name: name, Value: value})
+	}
+	owner, _ := d.api.LocalUser(r)
+	if owner == "" {
+		return
 	}
 	dialCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
 	pipe, err := d.api.OpenPipeline(dialCtx, r)
@@ -59,9 +82,14 @@ func (d *desktop) listen(ctx context.Context) {
 		return
 	}
 	defer pipe.Close()
+	go func() { <-ctx.Done(); pipe.Close() }()
 	for {
 		message, err := pipe.Read(ctx)
 		if err != nil {
+			return
+		}
+		_, current, _ := d.store.localSnapshot()
+		if current != version || ctx.Err() != nil {
 			return
 		}
 		var envelope struct {
@@ -73,9 +101,12 @@ func (d *desktop) listen(ctx context.Context) {
 		if d.history == nil {
 			continue
 		}
-		note, err := d.history.Record(ctx, message, time.Now())
-		if err == nil && note != nil {
-			d.alert(note)
+		note, err := d.history.RecordFor(ctx, owner, message, time.Now())
+		if err == nil && note != nil && ctx.Err() == nil {
+			_, latest, _ := d.store.localSnapshot()
+			if latest == version {
+				d.alert(note)
+			}
 		}
 	}
 }

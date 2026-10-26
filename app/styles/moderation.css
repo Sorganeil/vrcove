@@ -207,10 +207,10 @@
   font-size: 12px;
 }
 .admin-suspend select {
-  padding: 6px 8px;
+  padding: 6px 28px 6px 8px;
   border: 1px solid var(--line);
   border-radius: 5px;
-  background: var(--bg);
+  background-color: var(--bg);
   color: var(--text);
   font-size: 13px;
 }

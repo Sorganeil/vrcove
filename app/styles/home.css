@@ -290,10 +290,14 @@
   font-size: 11px;
   font-weight: 400;
 }
-.panel-title > button {
+.panel-title > button:not(.standard-button) {
   padding: 0;
   color: #50d6fa;
   font-size: 12px;
+}
+.panel-title > .standard-button {
+  min-height: 32px;
+  padding: 6px 12px;
 }
 .panel-title > small {
   color: #8ca2b7;
@@ -505,9 +509,12 @@
   padding: 0 10px;
   border: 1px solid #32485b;
   border-radius: 4px;
-  background: #080f17;
+  background-color: #080f17;
   color: #d7e5f2;
   font-size: 13px;
+}
+.status-editor select {
+  padding-right: 32px;
 }
 .status-editor .primary {
   width: 100%;

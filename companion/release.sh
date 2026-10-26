@@ -5,11 +5,21 @@ cd "$(dirname "$0")"
 
 publish=false
 if [[ "${1:-}" == --publish ]]; then publish=true; shift; fi
+if [[ $# == 0 && -f ../VERSION ]]; then
+  set -- "$(tr -d '[:space:]' < ../VERSION)"
+fi
 if [[ $# != 1 || ! "$1" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9]+([.-][A-Za-z0-9]+)*)?$ ]]; then
-  echo 'Usage: bash companion/release.sh [--publish] vMAJOR.MINOR.PATCH[-prerelease]' >&2
+  echo 'Usage: bash companion/release.sh [--publish] [vMAJOR.MINOR.PATCH[-prerelease]]' >&2
   exit 2
 fi
 tag="$1"
+if [[ -f ../VERSION ]]; then
+  file_version=$(tr -d '[:space:]' < ../VERSION)
+  if [[ "$file_version" != "$tag" ]]; then
+    echo "Release tag ($tag) does not match VERSION ($file_version)." >&2
+    exit 1
+  fi
+fi
 export VERSION="$tag"
 export COMMIT
 COMMIT=$(git rev-parse --verify HEAD)
@@ -31,19 +41,22 @@ if "$publish"; then
   command -v gh >/dev/null || { echo 'Publishing requires the GitHub CLI (gh).' >&2; exit 1; }
 fi
 
-# The experimental desktop app needs GTK 4 and WebKitGTK and isn't released yet.
-packages=$(go list ./... | grep -v '/cmd/vrcove-desktop$' || true)
-go test -race -tags novulkan $packages
-go vet -tags novulkan $packages
+packages=$(go list ./... || true)
+go test -race $packages
+go vet $packages
 bash build.sh linux
-bash build.sh windows
+SKIP_FRONTEND_BUILD=1 bash build.sh windows
 # This path must work headlessly; metadata is checked before packaging.
-version_output=$(dist/vrcove-logger --version)
-[[ "$version_output" == "VRCove Logger $tag ("* ]] || { echo 'Embedded version did not match the release tag.' >&2; exit 1; }
+desktop_version_output=$(dist/vrcove-desktop --version)
+[[ "$desktop_version_output" == "VRCove Desktop $tag ("* ]] || { echo 'Embedded desktop version did not match the release tag.' >&2; exit 1; }
 python3 package-release.py "$tag"
 
 out="dist/releases/$tag"
-assets=("$out/vrcove-logger-$tag-linux-amd64.tar.gz" "$out/vrcove-logger-$tag-windows-amd64.zip" "$out/SHA256SUMS")
+assets=(
+  "$out/vrcove-desktop-$tag-linux-amd64.tar.gz"
+  "$out/vrcove-desktop-$tag-windows-amd64.zip"
+  "$out/SHA256SUMS"
+)
 if ! "$publish"; then
   printf 'Packages ready in %s. Nothing published.\n' "$out"
   exit 0
@@ -65,7 +78,7 @@ if [[ "$state" == true ]]; then
   # A previous failed upload can be retried while the release is still a draft.
   gh release upload "$tag" "${assets[@]}" --repo "$repo" --clobber
 else
-  flags=(--draft --verify-tag --generate-notes --title "VRCove companions $tag")
+  flags=(--draft --verify-tag --generate-notes --title "VRCove Desktop $tag")
   if [[ "$tag" == *-* ]]; then flags+=(--prerelease --latest=false); fi
   gh release create "$tag" "${assets[@]}" --repo "$repo" "${flags[@]}"
 fi

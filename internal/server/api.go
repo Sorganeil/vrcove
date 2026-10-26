@@ -119,6 +119,9 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, p string) error {
 			s.deviceLinks(w, r)
 			return nil
 		}
+		if p == "/account/device/remove" && post {
+			return s.removeLocalAccount(w, r)
+		}
 	}
 	if acct == nil {
 		return errStatus(http.StatusUnauthorized, "Sign in to your VRCove account first, then link VRChat.")
@@ -134,7 +137,7 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, p string) error {
 	case p == "/account/login" && post:
 		return s.login(w, r, acct)
 	case p == "/account/switch" && post && s.cfg.Local:
-		return errStatus(http.StatusBadRequest, "Switching VRChat accounts isn't available in the desktop app yet. Sign out, then sign in to the other account.")
+		return s.switchLocalAccount(w, r)
 	case p == "/account/switch" && post:
 		return s.switchVRChat(w, r, acct)
 	case p == "/account/2fa" && post:
@@ -276,10 +279,15 @@ func (s *Server) verifyTwoFactor(w http.ResponseWriter, r *http.Request, session
 	ctx := r.Context()
 	result, updates, err := s.vrc(ctx, "/auth/twofactorauth/"+method+"/verify", session, vrcRequest{Method: http.MethodPost, Body: map[string]string{"code": code}})
 	if err != nil {
+		var he *httpError
+		if errors.As(err, &he) && he.status == http.StatusBadRequest {
+			writeError(w, http.StatusUnauthorized, "That verification code was not accepted or has expired. Check the code and try again.")
+			return nil
+		}
 		return err
 	}
 	if status, _ := result.(map[string]any); status["verified"] != true {
-		writeError(w, http.StatusUnauthorized, "The code was not accepted.")
+		writeError(w, http.StatusUnauthorized, "That verification code was not accepted or has expired. Check the code and try again.")
 		return nil
 	}
 	session.apply(updates)
@@ -339,6 +347,8 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, sessi
 		return id, true
 	}
 	switch {
+	case p == "/account/username-check" && !post && s.cfg.Local:
+		return s.checkUsername(w, r, session)
 	case p == "/account/profile" && post:
 		input, err := requestJSON(r)
 		if err != nil {

@@ -258,7 +258,7 @@ export default function Dashboard({
             </section>
           </aside>
         </div>
-        {!desktop && <CompanionDownload />}
+        <CompanionDownload />
       </div>
     );
   return (

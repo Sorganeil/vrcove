@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 	"testing/fstest"
+	"time"
 
 	"vrcove/companion/internal/history"
 )
@@ -41,8 +42,11 @@ func do(d *desktop, method, path, body string) *httptest.ResponseRecorder {
 
 func TestDesktopKeepsVRChatOnTheDevice(t *testing.T) {
 	var remoteSaw []*http.Request
+	var remoteBodies []string
 	remote := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
 		remoteSaw = append(remoteSaw, r)
+		remoteBodies = append(remoteBodies, string(body))
 		http.SetCookie(w, &http.Cookie{Name: "__Host-veil-account", Value: "cove-token", Path: "/", Secure: true, HttpOnly: true})
 		w.Header().Set("Content-Type", "application/json")
 		io.WriteString(w, `{"avatars":[],"total":0}`)
@@ -62,19 +66,20 @@ func TestDesktopKeepsVRChatOnTheDevice(t *testing.T) {
 	})
 
 	// Pages fall back to the app shell; files are served as they are.
-	if w := do(d, "GET", "/settings", ""); !strings.Contains(w.Body.String(), "<title>VRCove") {
-		t.Fatalf("page = %d %q", w.Code, w.Body)
+	w := do(d, "GET", "/settings", "")
+	if !strings.Contains(w.Body.String(), "<title>VRCove") || !strings.Contains(w.Header().Get("Content-Security-Policy"), "script-src 'self'") {
+		t.Fatalf("page = %d %q csp=%q", w.Code, w.Body, w.Header().Get("Content-Security-Policy"))
 	}
 	if w := do(d, "GET", "/assets/app.js", ""); w.Body.String() != "app" {
 		t.Fatalf("asset = %q", w.Body)
 	}
 
 	// Signing in goes to VRChat only, and the session stays with the app.
-	w := do(d, "POST", "/api/account/login", `{"username":"tester","password":"synthetic passphrase"}`)
+	w = do(d, "POST", "/api/account/login", `{"username":"tester","password":"synthetic passphrase"}`)
 	if w.Code != 200 || w.Header().Get("Set-Cookie") != "" || len(remoteSaw) != 0 || vrchat != 1 {
 		t.Fatalf("login = %d %s, cookies %q, remote %d", w.Code, w.Body, w.Header().Values("Set-Cookie"), len(remoteSaw))
 	}
-	if len(d.store.cookies(false)) != 1 {
+	if len(d.store.cookies(false)) != 2 {
 		t.Fatalf("local cookies = %v", d.store.cookies(false))
 	}
 	if w := do(d, "GET", "/api/account/device", ""); !strings.Contains(w.Body.String(), `"username":"tester"`) {
@@ -103,6 +108,14 @@ func TestDesktopKeepsVRChatOnTheDevice(t *testing.T) {
 	if c := remoteSaw[1].Header.Get("Cookie"); c != "__Host-veil-account=cove-token" {
 		t.Fatalf("remote cookie sent = %q", c)
 	}
+	// WebKitGTK custom-scheme POSTs arrive with ContentLength == 0 on a non-empty stream.
+	coveLogin := httptest.NewRequest("POST", "http://wails.localhost/api/cove/login", io.NopCloser(strings.NewReader(`{"username":"frog","password":"secret"}`)))
+	coveLogin.ContentLength = 0
+	coveLogin.Header.Set("Content-Type", "application/json")
+	d.ServeHTTP(httptest.NewRecorder(), coveLogin)
+	if len(remoteBodies) < 3 || remoteBodies[2] != `{"username":"frog","password":"secret"}` {
+		t.Fatalf("remote POST body = %q", remoteBodies)
+	}
 
 	// Signing out clears the device session.
 	do(d, "POST", "/api/account/logout", `{}`)
@@ -125,10 +138,13 @@ func TestDesktopRoutes(t *testing.T) {
 	var alerts []string
 	d.notify = func(id, title, body string) { alerts = append(alerts, title+"|"+body) }
 
-	for _, path := range []string{"/api/desktop/history", "/api/desktop/feed", "/api/desktop/screenshots"} {
+	for _, path := range []string{"/api/desktop/history", "/api/desktop/feed", "/api/desktop/screenshots", "/api/desktop/update"} {
 		if w := do(d, "GET", path, ""); w.Code != 200 {
 			t.Errorf("%s = %d %s", path, w.Code, w.Body)
 		}
+	}
+	if w := do(d, "POST", "/api/desktop/update", `{"action":"unknown"}`); w.Code != 400 {
+		t.Errorf("unknown update action = %d", w.Code)
 	}
 	if w := do(d, "GET", "/api/desktop/screenshot?file=../../etc/passwd", ""); w.Code != 404 {
 		t.Errorf("screenshot outside the folder = %d", w.Code)
@@ -160,5 +176,29 @@ func TestDesktopRoutes(t *testing.T) {
 	do(d, "POST", "/api/desktop/notifications", `{"action":"test"}`)
 	if len(alerts) != 2 || alerts[1] != "Notifications are on|New VRChat notifications will show up like this." {
 		t.Fatalf("test alert = %v", alerts)
+	}
+
+	// Unresolved user IDs in the feed are resolved through the local VRChat session.
+	d.api.Client.Transport = roundTrip(func(r *http.Request) (*http.Response, error) {
+		hdr := http.Header{"Content-Type": {"application/json"}, "Set-Cookie": {"auth=authcookie_desktop; Path=/"}}
+		switch r.URL.Path {
+		case "/api/1/users/usr_a9a88016-df1c-4cdb-b1f5-072a41e6b7ce":
+			return &http.Response{StatusCode: 200, Header: hdr, Request: r,
+				Body: io.NopCloser(strings.NewReader(`{"id":"usr_a9a88016-df1c-4cdb-b1f5-072a41e6b7ce","displayName":"Starlight"}`))}, nil
+		case "/api/1/profile/usr_a9a88016-df1c-4cdb-b1f5-072a41e6b7ce":
+			return &http.Response{StatusCode: 200, Header: hdr, Request: r,
+				Body: io.NopCloser(strings.NewReader(`{"bio":"hi"}`))}, nil
+		default:
+			return &http.Response{StatusCode: 200, Header: hdr, Request: r,
+				Body: io.NopCloser(strings.NewReader(`{"id":"usr_00000000-0000-0000-0000-000000000001","username":"tester","displayName":"Tester"}`))}, nil
+		}
+	})
+	do(d, "POST", "/api/account/login", `{"username":"tester","password":"synthetic passphrase"}`)
+	if _, err := h.RecordFor(context.Background(), "usr_00000000-0000-0000-0000-000000000001", []byte(`{"type":"friend-offline","content":{"userId":"usr_a9a88016-df1c-4cdb-b1f5-072a41e6b7ce"}}`), time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	feedResp := do(d, "GET", "/api/desktop/feed", "")
+	if feedResp.Code != 200 || !strings.Contains(feedResp.Body.String(), `"displayName":"Starlight"`) {
+		t.Fatalf("feed resolution = %d %s", feedResp.Code, feedResp.Body.String())
 	}
 }

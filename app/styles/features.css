@@ -360,6 +360,10 @@
   outline-offset: 2px;
   border-radius: 4px;
 }
+.picture-cropper > button {
+  width: 100%;
+  margin-top: 10px;
+}
 
 .logger-generated-key {
   display: grid;
@@ -372,8 +376,15 @@
 .logger-generated-key textarea {
   width: 100%;
   min-width: 0;
-  overflow-wrap: anywhere;
+  padding: 10px 12px;
+  border: 1px solid #32485b;
+  border-radius: 4px;
+  background-color: #080f17;
+  color: #d9eaf6;
   font-family: monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
   resize: vertical;
 }
 .logger-key-list {

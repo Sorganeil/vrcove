@@ -16,7 +16,7 @@ import (
 const (
 	vrchatAPI = "https://api.vrchat.cloud/api/1"
 	// appVersion is reported in the User-Agent; keep it in step with package.json.
-	appVersion = "0.1.0"
+	appVersion = "0.2.0"
 )
 
 var (
@@ -128,7 +128,11 @@ func (s *Server) vrc(ctx context.Context, path string, session *Session, req vrc
 			msg = "VRChat denied this action. The avatar or account may be restricted."
 		case 429:
 			now := s.now()
-			s.backoff.limited(key, retryAfter(resp.Header, now), now)
+			wait := retryAfter(resp.Header, now)
+			if s.cfg.Local {
+				wait = retryAfterMax(resp.Header, now, 24*time.Hour)
+			}
+			s.backoff.limited(key, wait, now)
 			return nil, updates, rateLimitedError()
 		}
 		return nil, updates, errStatus(resp.StatusCode, msg)
