@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -207,5 +208,31 @@ func TestGameLogTimeline(t *testing.T) {
 	}
 	if older, _ := s.GameLog(ctx, all[2].At, "", "", 50); len(older) != 3 {
 		t.Fatalf("paging = %+v", older)
+	}
+}
+
+func TestDatabaseIsPrivate(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows keeps AppData private per user instead of using file modes.")
+	}
+	path := filepath.Join(t.TempDir(), "history.sqlite")
+	// Earlier versions left the database readable by other users.
+	for _, name := range []string{path, path + "-wal", path + "-shm"} {
+		os.WriteFile(name, nil, 0o644)
+	}
+	os.Remove(path)
+	s, err := Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	s.db.Exec(`INSERT INTO log_files (name, offset) VALUES ('x', 1)`)
+	s.Close()
+	for _, name := range []string{path, path + "-wal", path + "-shm"} {
+		if info, err := os.Stat(name); err == nil && info.Mode().Perm() != 0o600 {
+			t.Errorf("%s mode = %v", filepath.Base(name), info.Mode().Perm())
+		}
+	}
+	if info, _ := os.Stat(path); info == nil || info.Mode().Perm() != 0o600 {
+		t.Fatalf("database mode = %v", info)
 	}
 }

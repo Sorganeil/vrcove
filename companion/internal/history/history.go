@@ -6,6 +6,8 @@ package history
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -43,6 +45,9 @@ type Store struct {
 
 // Open opens or creates the history database at path.
 func Open(path string) (*Store, error) {
+	if err := private(path); err != nil {
+		return nil, err
+	}
 	db, err := sql.Open("sqlite", "file:"+path+"?_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)&_pragma=foreign_keys(1)")
 	if err != nil {
 		return nil, err
@@ -237,4 +242,22 @@ func (s *Store) visit(ctx context.Context, id, t int64) (*Visit, error) {
 		v.People = append(v.People, e)
 	}
 	return &v, rows.Err()
+}
+
+// private makes the database readable only by the current user: it holds the
+// names of people met and friend activity. SQLite gives its -wal and -shm
+// files the database file's permissions, and older versions created all
+// three readable by others, so existing files are tightened too.
+func private(path string) error {
+	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0o600)
+	if err != nil {
+		return err
+	}
+	f.Close()
+	for _, name := range []string{path, path + "-wal", path + "-shm"} {
+		if err := os.Chmod(name, 0o600); err != nil && !errors.Is(err, os.ErrNotExist) {
+			return err
+		}
+	}
+	return nil
 }

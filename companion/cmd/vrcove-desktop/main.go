@@ -102,9 +102,12 @@ func main() {
 	if v := os.Getenv("VRCOVE_START"); strings.HasPrefix(v, "/") && !strings.HasPrefix(v, "//") {
 		start = v
 	}
+	// The app, window and tray use VRCove's icon instead of Wails' default.
+	icon, _ := fs.ReadFile(assets, "icon-192.png")
 	var window *application.WebviewWindow
 	app := application.New(application.Options{
 		Name:        "VRCove",
+		Icon:        icon,
 		Description: "VRChat avatar search and a private VRChat client",
 		Assets:      application.AssetOptions{Handler: handler, DisableLogging: true},
 		Services:    []application.Service{application.NewService(alerts)},
@@ -151,9 +154,11 @@ func main() {
 	})
 
 	tray := app.SystemTray.New()
-	if icon, err := fs.ReadFile(assets, "icon-192.png"); err == nil {
+	if icon != nil {
 		tray.SetIcon(icon)
 	}
+	// Linux trays show the label as the name; without it Wails says "Wails".
+	tray.SetLabel("VRCove")
 	tray.SetTooltip("VRCove")
 	menu := app.NewMenu()
 	menu.Add("Open VRCove").OnClick(func(*application.Context) {
