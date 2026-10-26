@@ -1,3 +1,4 @@
+import { siteOrigin } from '../lib/platform';
 import { useRef, useState } from 'react';
 import { t as tr, useLocale } from '../lib/i18n';
 import {
@@ -73,7 +74,7 @@ const features = [
 /* About VRCove: what it is and what it does. */
 export default function About({ onPrivacy, onDonate }: { onPrivacy: () => void; onDonate: () => void }) {
   useLocale();
-  const provider = window.location.origin + '/api/vrcx/avatars';
+  const provider = siteOrigin + '/api/vrcx/avatars';
   const [copied, setCopied] = useState(false);
   const address = useRef<HTMLElement>(null);
   // Browsers can refuse clipboard access; then select the address to copy by hand.

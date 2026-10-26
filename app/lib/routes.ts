@@ -1,7 +1,8 @@
+import { siteOrigin } from './platform';
 export type EntityKind = 'avatar' | 'world' | 'user' | 'group';
 export const entityPath = (kind: EntityKind, id: string) => '/' + kind + '/' + encodeURIComponent(id);
 export const copyEntityLink = (kind: EntityKind, id: string) =>
-  navigator.clipboard.writeText(window.location.origin + entityPath(kind, id));
+  navigator.clipboard.writeText(siteOrigin + entityPath(kind, id));
 export const covePath = (kind: 'cove' | 'collection', id: string) =>
   '/' + kind + '/' + encodeURIComponent(id);
 export function goTo(path: string) {

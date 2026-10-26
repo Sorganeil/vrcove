@@ -1,3 +1,4 @@
+import { siteOrigin } from '../lib/platform';
 import { covePath, appLink, goTo } from '../lib/routes';
 import { t as tr, useLocale } from '../lib/i18n';
 import { useState } from 'react';
@@ -72,7 +73,7 @@ export function CollectionPage({ id, notify }: { id: string; notify: (s: string)
     });
   const copy = () =>
     navigator.clipboard
-      .writeText(window.location.origin + '/collection/' + id)
+      .writeText(siteOrigin + '/collection/' + id)
       .then(() => notify(tr('Link copied')))
       .catch(() => notify(tr('Clipboard access is unavailable.')));
   return (

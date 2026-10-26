@@ -19,3 +19,9 @@ export function openExternal(url: string) {
  * app are built from the same frontend, so they always show the same one.
  */
 export const appVersion = (import.meta as { env?: { APP_VERSION?: string } }).env?.APP_VERSION || 'dev';
+
+/**
+ * The public website's origin for links people share or paste elsewhere. In
+ * the desktop app the page's own origin is internal (wails://localhost).
+ */
+export const siteOrigin = desktop ? 'https://vrcove.st' : window.location.origin;
