@@ -32,8 +32,8 @@ const (
 	liveConnects = 30
 )
 
-// pipelineConn is one open VRChat pipeline connection.
-type pipelineConn interface {
+// Pipeline is one open connection to VRChat's live feed.
+type Pipeline interface {
 	Read(ctx context.Context) ([]byte, error)
 	Close() error
 }
@@ -76,7 +76,7 @@ func (p wsPipeline) Read(ctx context.Context) ([]byte, error) {
 }
 func (p wsPipeline) Close() error { return p.c.CloseNow() }
 
-func (s *Server) dialVRChatPipeline(ctx context.Context, auth string) (pipelineConn, error) {
+func (s *Server) dialVRChatPipeline(ctx context.Context, auth string) (Pipeline, error) {
 	c, resp, err := websocket.Dial(ctx, vrchatPipeline+"?authToken="+url.QueryEscape(auth), &websocket.DialOptions{
 		HTTPClient: s.Client,
 		HTTPHeader: http.Header{"User-Agent": {s.userAgent()}},

@@ -1,6 +1,9 @@
 package server
 
-import "net/http"
+import (
+	"context"
+	"net/http"
+)
 
 // localAccountID stands in for the VRCove account in local mode, where the
 // VRChat session alone identifies the person using the device.
@@ -28,4 +31,17 @@ func (s *Server) deviceLinks(w http.ResponseWriter, r *http.Request) {
 			"displayName": name, "linked": "", "active": true, "sessionExpires": session.Expires})
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"links": links})
+}
+
+// OpenPipeline connects to VRChat's live feed with the session on r, for the
+// desktop app's own background updates.
+func (s *Server) OpenPipeline(ctx context.Context, r *http.Request) (Pipeline, error) {
+	session := s.readSession(r)
+	if session == nil || session.Auth == "" || session.Pending != nil {
+		return nil, invalidVRChatSession()
+	}
+	if s.backoff.coolingDown(backoffKey(session), s.now()) {
+		return nil, rateLimitedError()
+	}
+	return s.dialPipeline(ctx, session.Auth)
 }

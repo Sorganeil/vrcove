@@ -28,7 +28,7 @@ func TestLiveNotifications(t *testing.T) {
 	session := &Session{Auth: "live-token", Expires: time.Now().Add(time.Hour).UnixMilli()}
 	var dialed string
 	messages := make(chan string, 4)
-	h.srv.dialPipeline = func(_ context.Context, auth string) (pipelineConn, error) {
+	h.srv.dialPipeline = func(_ context.Context, auth string) (Pipeline, error) {
 		dialed = auth
 		return fakePipeline{messages}, nil
 	}

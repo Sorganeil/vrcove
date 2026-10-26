@@ -71,7 +71,9 @@ func TestLocalModeSignsInWithoutVRCoveAccount(t *testing.T) {
 	}
 
 	// A session VRChat rejects is signed out on the device.
-	h.upstream = func(*http.Request) (*http.Response, error) { return respond(401, "application/json", []byte(`{}`)), nil }
+	h.upstream = func(*http.Request) (*http.Response, error) {
+		return respond(401, "application/json", []byte(`{}`)), nil
+	}
 	w = h.do(as(get("/account/me"), session))
 	cleared := false
 	for _, c := range w.Result().Cookies() {

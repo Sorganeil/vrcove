@@ -24,6 +24,16 @@ type state struct {
 	// local API with SessionKey. Remote holds the VRCove website's cookies.
 	Local  map[string]string `json:"local"`
 	Remote map[string]string `json:"remote"`
+	Notify notifyPrefs       `json:"notify"`
+}
+
+// notifyPrefs are the desktop notification settings. Text holds the alert
+// wording in the window's language, sent by the window, since translations
+// live in the frontend.
+type notifyPrefs struct {
+	Enabled bool              `json:"enabled"`
+	Kinds   []string          `json:"kinds"`
+	Text    map[string]string `json:"text,omitempty"`
 }
 
 type store struct {
@@ -113,6 +123,13 @@ func (s *store) update(change func(*state)) error {
 		return err
 	}
 	return os.Rename(tmp, s.path)
+}
+
+// notify returns the notification settings.
+func (s *store) notify() notifyPrefs {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.data.Notify
 }
 
 // cookies returns a copy of one cookie set.

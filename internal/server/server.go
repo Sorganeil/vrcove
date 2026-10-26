@@ -86,7 +86,7 @@ type Server struct {
 	// live counts open live-notification relays; dialPipeline opens VRChat's
 	// pipeline and is replaced in tests.
 	live         liveStreams
-	dialPipeline func(ctx context.Context, auth string) (pipelineConn, error)
+	dialPipeline func(ctx context.Context, auth string) (Pipeline, error)
 }
 
 func New(cfg Config, db *sql.DB, static fs.FS) (*Server, error) {
