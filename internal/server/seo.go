@@ -28,7 +28,7 @@ var indexedSections = map[string]linkPreview{
 	"users":     {"Find VRChat Users by Name | VRCove", "Find VRChat players by name from your phone or PC. No ads or analytics.", ""},
 	"search":    {"Search VRChat Avatars, Worlds, Users & Groups | VRCove", "Search VRChat avatars, people, worlds and groups in one place, on phone or PC. No ads, analytics or tracking.", ""},
 	"donations": {"Support VRCove", "Help keep VRCove independent, private and free of ads.", ""},
-	"companion": {"VRCove Desktop: VRChat App for Windows & Linux", "VRCove as an app for Windows and Linux. It talks to VRChat directly from your computer, keeps your instance history and friend feed locally, and adds public avatars you see to VRCove's search.", ""},
+	"companion": {"VRCove Desktop: VRChat App & Avatar Logger for Windows & Linux", "VRCove as an app for Windows and Linux with a built-in VRChat avatar logger that adds public avatars you see to VRCove's search. It talks to VRChat directly from your computer and keeps your history locally.", ""},
 	"about":     {"About VRCove: VRChat in Your Browser, on Phone or PC", "VRCove is a free VRChat web client and avatar search for phone and PC: friends, worlds, groups, favorites, avatar switching, reviews and collections, with no ads or tracking.", ""},
 }
 

@@ -1,4 +1,4 @@
-import { desktop } from '../lib/platform';
+import { appVersion, desktop } from '../lib/platform';
 import { Compass } from 'lucide-react';
 import { t as tr, useLocale } from '../lib/i18n';
 import { useApp } from '../lib/app-context';
@@ -11,6 +11,14 @@ export default function SiteFooter() {
       <div className="footer-brand">
         <Compass size={17} />
         VRCove<span>{tr('Independent VRChat frontend')}</span>
+        <a
+          className="footer-version"
+          href={'https://github.com/Sorganeil/vrcove/releases/tag/' + appVersion}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {appVersion}
+        </a>
       </div>
       <div>
         <a href="https://github.com/Sorganeil/vrcove" target="_blank" rel="noopener noreferrer">

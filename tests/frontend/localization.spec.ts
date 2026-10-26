@@ -18,7 +18,7 @@ const homeNames: Record<string, string> = {
 
 test('all languages switch immediately, survive reload and fit the viewport', async ({ page }, testInfo) => {
   await page.goto('/');
-  const picker = page.locator('.topbar select');
+  const picker = page.locator('.topbar .language-picker select');
   await expect(picker.locator('option')).toHaveCount(9);
   for (const [code, name] of Object.entries(homeNames)) {
     await picker.selectOption(code);
@@ -44,7 +44,7 @@ test('switching language preserves account input and route, settings selectors s
   await page.goto('/#account');
   const username = page.locator('input[autocomplete="username"]');
   await username.fill('draft_username');
-  await page.locator('.topbar select').selectOption('uk');
+  await page.locator('.topbar .language-picker select').selectOption('uk');
   await expect(username).toHaveValue('draft_username');
   await expect(page.getByRole('button', { name: 'Створити обліковий запис', exact: true })).toBeVisible();
   // Old #account links are rewritten to the shareable path.
@@ -52,7 +52,7 @@ test('switching language preserves account input and route, settings selectors s
   await page.goto('/#settings');
   await expect(page.locator('.language-settings select')).toHaveValue('uk');
   await page.locator('.language-settings select').selectOption('ja');
-  await expect(page.locator('.topbar select')).toHaveValue('ja');
+  await expect(page.locator('.topbar .language-picker select')).toHaveValue('ja');
   await expect(page.getByRole('heading', { name: 'プライバシーと設定', exact: true })).toBeVisible();
 });
 
@@ -84,7 +84,7 @@ test('detects regional browser languages, falls back safely and works without st
   });
   await page.goto(baseURL!);
   await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
-  await page.locator('.topbar select').selectOption('de');
+  await page.locator('.topbar .language-picker select').selectOption('de');
   await expect(page.getByRole('heading', { name: 'Startseite', exact: true })).toBeVisible();
   await context.close();
 });
@@ -98,7 +98,7 @@ test('language changes sync across tabs and invalid preferences use browser fall
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   const other = await context.newPage();
   await other.goto('/');
-  await page.locator('.topbar select').selectOption('es');
+  await page.locator('.topbar .language-picker select').selectOption('es');
   await expect(other.getByRole('heading', { name: 'Inicio', exact: true })).toBeVisible();
   await other.close();
 });
@@ -116,7 +116,7 @@ test('catalogs have matching keys and preserve interpolation placeholders', () =
 
 test('formats dates and numbers in the chosen language and retains English fallback', async ({ page }) => {
   await page.goto('/');
-  await page.locator('.topbar select').selectOption('de');
+  await page.locator('.topbar .language-picker select').selectOption('de');
   const result = await page.evaluate(async () => {
     const path = '/app/lib/i18n.ts';
     const i18n = await import(/* @vite-ignore */ path);

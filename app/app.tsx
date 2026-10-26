@@ -14,7 +14,7 @@ import AvatarView from './components/avatar-view';
 import Modal from './components/modal';
 import PrivacyDialog from './components/privacy-dialog';
 import SearchPalette from './components/search-palette';
-import SessionNotices from './components/session-notices';
+import SessionNotices, { AccountSwitcher } from './components/session-notices';
 import Sidebar from './components/sidebar';
 import SiteFooter from './components/site-footer';
 import Topbar from './components/topbar';
@@ -25,7 +25,7 @@ import About from './pages/about';
 import Companion from './pages/companion';
 import DesktopLogger from './pages/desktop-logger';
 import DesktopTools from './pages/desktop-tools';
-import { FriendFeed, GameHistory, Screenshots } from './pages/desktop-history';
+import { FriendFeed, GameHistory, GameLog, Screenshots } from './pages/desktop-history';
 import Admin from './pages/admin';
 import AccountPage from './pages/account';
 import AvatarPage from './pages/avatar-page';
@@ -318,14 +318,20 @@ export default function App() {
           )}
           <Sidebar open={mobile} />
           <div className="main-shell">
-            <Topbar onMenu={() => setMobile(true)} onSearch={() => setPalette(true)} />
+            <Topbar
+              onMenu={() => setMobile(true)}
+              onSearch={() => setPalette(true)}
+              accounts={
+                <AccountSwitcher
+                  onSwitch={switchAccount}
+                  switching={switching}
+                  connecting={login}
+                  refresh={refreshLinks}
+                />
+              }
+            />
             <main>
-              <SessionNotices
-                onSwitch={switchAccount}
-                switching={switching}
-                connecting={login}
-                refresh={refreshLinks}
-              />
+              <SessionNotices />
               {section === 'Home' && (
                 <Dashboard
                   key={vrchatKey}
@@ -361,6 +367,7 @@ export default function App() {
               )}
               {section === 'Companion' && (desktop ? <DesktopLogger /> : <Companion />)}
               {section === 'History' && <GameHistory key={route.version} />}
+              {section === 'GameLog' && <GameLog />}
               {section === 'Feed' && <FriendFeed key={vrchatKey} />}
               {section === 'Screenshots' && <Screenshots />}
               {desktop && section === 'Tools' && <DesktopTools />}

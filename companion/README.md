@@ -25,7 +25,8 @@ Closing the window keeps it running in the tray. On Linux that needs a tray
 host (KDE Plasma, or a GNOME tray extension). Updates are offered in Local
 Settings and installed only after their checksums match the release.
 
-Also in the app: instance history and people you met (read from VRChat's logs),
+Also in the app: instance history and people you met, a game log of joins,
+leaves, avatar changes and videos (read from VRChat's logs),
 a friend activity feed, screenshots with the world and people, desktop
 notifications with the window closed, and Tools (username checker, OSC chatbox
 and Unity package extractor). All of it is stored only on your computer.

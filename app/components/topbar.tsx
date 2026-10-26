@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { ArrowUpRight, LogOut, Menu, UserRound } from 'lucide-react';
 import { api } from '../lib/api';
 import { t as tr, useLocale } from '../lib/i18n';
@@ -9,7 +9,16 @@ import { SearchIcon } from './nav-icons';
 import { CovePicture } from './cove-picture';
 
 /** Header with the current section, language, search and VRCove account. */
-export default function Topbar({ onMenu, onSearch }: { onMenu: () => void; onSearch: () => void }) {
+export default function Topbar({
+  onMenu,
+  onSearch,
+  accounts,
+}: {
+  onMenu: () => void;
+  onSearch: () => void;
+  /** The VRChat account picker, shown first among the actions. */
+  accounts?: ReactNode;
+}) {
   useLocale();
   const { section, sectionLink, coveAccount, accountChanged, navigate, notify } = useApp();
   const [busy, setBusy] = useState(false);
@@ -40,6 +49,7 @@ export default function Topbar({ onMenu, onSearch }: { onMenu: () => void; onSea
         <strong>{tr(sectionLabels[section] || section)}</strong>
       </div>
       <div className="top-actions">
+        {accounts}
         <LanguagePicker compact />
         <button className="header-search" aria-label={tr('Search')} aria-haspopup="dialog" onClick={onSearch}>
           <SearchIcon size={15} />

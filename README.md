@@ -40,7 +40,7 @@ Install VRCove as an app on desktop or mobile, straight from your browser.
 
 - We maintain our own large avatar database, so you can search public avatars without linking a VRChat account.
 - Open any avatar to see its details, copy its ID, bookmark it, or switch to it if your VRChat account is linked.
-- Want to help us grow our database? Use our desktop logger companion. 
+- Want to help us grow our database? Use [VRCove Desktop](#vrcove-desktop), which has an avatar logger built in.
 
 ### Reviews and collections
 
@@ -52,6 +52,21 @@ Install VRCove as an app on desktop or mobile, straight from your browser.
 
 - Link VRChat to manage friends, friend requests, favorites, notifications and your current avatar.
 - See every avatar and world you've uploaded, including private ones.
+
+### VRCove Desktop
+
+VRCove as an app for Windows and Linux. It looks and works like the website, but talks to VRChat directly from your computer. [Download the latest release](https://github.com/Sorganeil/vrcove/releases/latest).
+
+- **Straight to VRChat.** Your VRChat password and session go from your computer to VRChat and never pass through VRCove's server, so you don't have to trust us with them. The session is kept encrypted with a key in Windows Credential Manager or your Linux keyring.
+- **A VRCove account is optional.** Avatar search, reviews and collections still come from vrcove.st.
+- **Your history, on your computer.** Instances you joined and the people you met, a game log of joins, leaves, avatar changes and videos, a friend activity feed, and your screenshots with the world and the people who were there. All of it stays on your computer.
+- **Notifications** keep working with the window closed while VRCove runs in the tray.
+- **Avatar logger built in.** Adds public avatars you see in VRChat to VRCove's search. Uploading needs an API key from your VRCove account page.
+- **Tools:** username checker, OSC chatbox and Unity package extractor.
+- **Several VRChat accounts** saved on the device, with switching.
+- **Updates** are offered in the app and installed only after their checksums match the release.
+
+It's built with Go and Wails from the same frontend and server code as the website. Source, build steps and details are in [companion/](companion/). Linux needs GTK 4, WebKitGTK and a tray host such as KDE Plasma.
 
 ## Development
 
@@ -72,7 +87,7 @@ Run `npm run build`, then `CGO_ENABLED=0 go build -o vrcove ./cmd/vrcove`. Deplo
 
 ## Contributing
 
-Pull requests are welcome. Be decent to other contributors and reviewers.
+Pull requests are welcome. Be decent to other contributors and reviewers. See [CONTRIBUTING.md](CONTRIBUTING.md) for branch naming, commits and pull request guidelines.
 
 ### AI policy
 

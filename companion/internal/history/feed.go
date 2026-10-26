@@ -326,9 +326,12 @@ func (s *Store) FeedFor(ctx context.Context, owner string, before int64, kind, q
 	END`
 	query := `SELECT id, at, user_id, ` + resolvedNameExpr + `, kind, detail, previous, ` + resolvedWorldExpr + ` FROM feed WHERE owner = ? AND at < ?`
 	args := []any{owner, before}
-	if kind != "" {
-		query += ` AND kind = ?`
-		args = append(args, kind)
+	// kind may list several kinds separated by commas, such as "online,offline".
+	if kinds := kindList(kind); len(kinds) > 0 {
+		query += ` AND kind IN (?` + strings.Repeat(`, ?`, len(kinds)-1) + `)`
+		for _, k := range kinds {
+			args = append(args, k)
+		}
 	}
 	if q = strings.TrimSpace(q); q != "" {
 		query += ` AND ((` + resolvedNameExpr + `) LIKE ? ESCAPE '\' OR (` + resolvedWorldExpr + `) LIKE ? ESCAPE '\' OR user_id LIKE ? ESCAPE '\')`
@@ -351,4 +354,15 @@ func (s *Store) FeedFor(ctx context.Context, owner string, before int64, kind, q
 		entries = append(entries, e)
 	}
 	return entries, rows.Err()
+}
+
+// kindList splits a comma-separated list of kinds, dropping blanks.
+func kindList(kinds string) []string {
+	var out []string
+	for _, k := range strings.Split(kinds, ",") {
+		if k = strings.TrimSpace(k); k != "" {
+			out = append(out, k)
+		}
+	}
+	return out
 }

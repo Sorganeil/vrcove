@@ -82,7 +82,9 @@ test('saved accounts switch, reconnect, add with 2FA and remove without a VRCove
   await expect(login.getByLabel('VRChat username', { exact: true })).toHaveValue('bob');
   await expect(picker).toHaveValue(alice.vrchatId);
   await login.getByRole('button', { name: 'Close dialog' }).click();
-  await page.getByRole('button', { name: 'Add account', exact: true }).click();
+  // Add and Manage live in the header picker's menu; the picker stays on the active account.
+  await picker.selectOption('__add');
+  await expect(picker).toHaveValue(alice.vrchatId);
   await expect(login.getByLabel('VRChat username', { exact: true })).toHaveValue('');
   await login.getByLabel('VRChat username', { exact: true }).fill('carol');
   await login.getByLabel('Password', { exact: true }).fill('synthetic passphrase');
@@ -93,7 +95,7 @@ test('saved accounts switch, reconnect, add with 2FA and remove without a VRCove
   await login.getByRole('button', { name: 'Verify & connect', exact: true }).click();
   await expect(login).not.toBeVisible();
   await expect(picker).toHaveValue('usr_carol');
-  await page.getByRole('button', { name: 'Manage accounts', exact: true }).click();
+  await picker.selectOption('__manage');
   expect(new URL(page.url()).pathname).toBe('/settings');
   const manager = page.getByRole('region', { name: 'VRChat accounts on this device', exact: true });
   await expect(manager.getByRole('listitem')).toHaveCount(3);

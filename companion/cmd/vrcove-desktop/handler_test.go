@@ -138,7 +138,7 @@ func TestDesktopRoutes(t *testing.T) {
 	var alerts []string
 	d.notify = func(id, title, body string) { alerts = append(alerts, title+"|"+body) }
 
-	for _, path := range []string{"/api/desktop/history", "/api/desktop/feed", "/api/desktop/screenshots", "/api/desktop/update"} {
+	for _, path := range []string{"/api/desktop/history", "/api/desktop/feed", "/api/desktop/gamelog?kind=join,leave", "/api/desktop/screenshots", "/api/desktop/update"} {
 		if w := do(d, "GET", path, ""); w.Code != 200 {
 			t.Errorf("%s = %d %s", path, w.Code, w.Body)
 		}

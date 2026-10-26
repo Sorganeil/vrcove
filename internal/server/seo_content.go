@@ -34,7 +34,7 @@ var sectionCopy = map[string][2]string{
 	"users":     {"Find VRChat users", "Look up VRChat players by name from your phone or PC after signing in with VRChat. No ads or analytics."},
 	"search":    {"Search VRChat", "Search VRChat avatars, people, worlds and groups in one place, on phone or PC. No ads, analytics or tracking."},
 	"about":     {"About VRCove", "VRCove is a private VRChat web client and avatar search that works in any browser, including Android, iPhone and iPad. It shows friends, worlds, groups, favorites and notifications, lets you change avatars, and adds reviews and collections. VRCX users can add VRCove as an avatar search provider."},
-	"companion": {"VRCove Desktop", "VRCove as an app for Windows and Linux. It talks to VRChat directly from your computer, so your VRChat login never reaches VRCove, and adds public avatars you see to VRCove's avatar search."},
+	"companion": {"VRCove Desktop: VRChat app and avatar logger", "VRCove as an app for Windows and Linux with a built-in VRChat avatar logger that adds public avatars you see to VRCove's avatar search. It talks to VRChat directly from your computer, so your VRChat login never reaches VRCove."},
 	"donations": {"Support VRCove", "Help keep VRCove independent, private and free of ads."},
 }
 

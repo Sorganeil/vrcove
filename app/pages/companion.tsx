@@ -97,11 +97,6 @@ export default function Companion() {
             <a {...sectionLink('Account')}>{tr('Open Account page')}</a>
           </li>
         </ol>
-        <p>
-          {tr(
-            'VRCove Desktop replaces the old VRCove Logger, which is retired. It picks up the logger’s settings and queue automatically.',
-          )}
-        </p>
       </article>
       <div className="about-grid">
         {features.map((f) => (

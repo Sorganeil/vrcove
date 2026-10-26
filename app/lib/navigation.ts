@@ -1,4 +1,14 @@
-import { Activity, History, Images, Library, Upload, KeyRound, MonitorDown, Wrench } from 'lucide-react';
+import {
+  Activity,
+  History,
+  ScrollText,
+  Images,
+  Library,
+  Upload,
+  KeyRound,
+  MonitorDown,
+  Wrench,
+} from 'lucide-react';
 import { desktop } from './platform';
 import {
   HomeIcon,
@@ -50,6 +60,7 @@ export const navigationGroups = [
           label: 'On this PC',
           items: [
             { name: 'History', label: 'History', icon: History },
+            { name: 'GameLog', label: 'Game log', icon: ScrollText },
             { name: 'Feed', label: 'Feed', icon: Activity },
             { name: 'Screenshots', label: 'Screenshots', icon: Images },
             { name: 'Tools', label: 'Tools', icon: Wrench },
@@ -68,6 +79,7 @@ export const sectionLabels: Record<string, string> = {
   Admin: 'Moderation',
   CoveProfile: 'Profile',
   Settings: 'Local Settings',
+  GameLog: 'Game log',
 };
 export const primaryNavigation = [
   { name: 'Home', label: 'Home', icon: HomeIcon },

@@ -6,6 +6,10 @@ import { t as tr, useLocale } from '../lib/i18n';
 import { desktop } from '../lib/platform';
 import type { LinkedAccount } from '../lib/types';
 
+const addValue = '__add',
+  manageValue = '__manage';
+
+/** The VRChat account picker in the desktop app's header, with Add and Manage in the same menu. */
 export function DesktopAccounts({
   onSwitch,
   refresh,
@@ -40,50 +44,40 @@ export function DesktopAccounts({
     }
   }
   return (
-    <div className="vrchat-account-switcher desktop-account-switcher">
-      <label>
-        {tr('Active VRChat account')}
-        <select
-          aria-label={tr('Active VRChat account')}
-          value={user?.id || ''}
-          disabled={disabled || busy !== null || !links.length}
-          onChange={(e) => {
-            const link = links.find((l) => l.vrchatId === e.target.value);
-            if (link) void select(link);
-          }}
-        >
-          {!user && (
-            <option value="">
-              {tr(links.length ? 'Choose a connected account' : 'No saved VRChat accounts')}
-            </option>
-          )}
-          {links.map((link) => (
-            <option key={link.id} value={link.vrchatId}>
-              {link.displayName || link.username || link.vrchatId}
-              {!link.sessionExpires || link.sessionExpires <= now
-                ? ' (' + tr('Reconnect required') + ')'
-                : ''}
-            </option>
-          ))}
-        </select>
-      </label>
-      <button
-        className="standard-button"
-        disabled={disabled || busy !== null || links.length >= 10}
-        onClick={() => requestConnection('')}
-      >
-        <Plus size={14} />
-        {tr('Add account')}
-      </button>
-      <button
-        className="text-link"
+    <label className="vrchat-account-switcher">
+      <span className="sr-only">{tr('Active VRChat account')}</span>
+      <select
+        aria-label={tr('Active VRChat account')}
+        value={user?.id || ''}
         disabled={disabled || busy !== null}
-        onClick={() => navigate('Settings')}
+        onChange={(e) => {
+          const value = e.target.value;
+          // Add and Manage are actions in the same menu; the selection stays on the active account.
+          if (value === addValue) requestConnection('');
+          else if (value === manageValue) navigate('Settings');
+          else {
+            const link = links.find((l) => l.vrchatId === value);
+            if (link) void select(link);
+          }
+        }}
       >
-        <Users size={14} />
-        {tr('Manage accounts')}
-      </button>
-    </div>
+        {!user && (
+          <option value="">
+            {tr(links.length ? 'Choose a connected account' : 'No saved VRChat accounts')}
+          </option>
+        )}
+        {links.map((link) => (
+          <option key={link.id} value={link.vrchatId}>
+            {link.displayName || link.username || link.vrchatId}
+            {!link.sessionExpires || link.sessionExpires <= now ? ' (' + tr('Reconnect required') + ')' : ''}
+          </option>
+        ))}
+        <option value={addValue} disabled={links.length >= 10}>
+          + {tr('Add account')}
+        </option>
+        <option value={manageValue}>{tr('Manage accounts')}</option>
+      </select>
+    </label>
   );
 }
 
@@ -144,10 +138,7 @@ export function DesktopAccountSettings({
     }
   }
   return (
-    <section
-      className="dashboard-panel desktop-account-manager"
-      aria-labelledby="desktop-accounts-title"
-    >
+    <section className="dashboard-panel desktop-account-manager" aria-labelledby="desktop-accounts-title">
       <div className="panel-title">
         <h2 id="desktop-accounts-title">{tr('VRChat accounts on this device')}</h2>
         <Users size={16} />
@@ -184,9 +175,7 @@ export function DesktopAccountSettings({
                     >
                       {busy === link.id && <LoaderCircle size={14} className="spin" />}
                       {tr(
-                        !link.sessionExpires || link.sessionExpires <= now
-                          ? 'Reconnect'
-                          : 'Switch account',
+                        !link.sessionExpires || link.sessionExpires <= now ? 'Reconnect' : 'Switch account',
                       )}
                     </button>
                   )}
@@ -223,9 +212,7 @@ export function DesktopAccountSettings({
           </button>
         </div>
         <p className="fineprint">
-          {tr(
-            'Removing an account forgets its session on this device. You can add it again by signing in.',
-          )}
+          {tr('Removing an account forgets its session on this device. You can add it again by signing in.')}
         </p>
       </div>
     </section>

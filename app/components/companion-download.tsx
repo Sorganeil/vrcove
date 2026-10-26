@@ -9,8 +9,8 @@ export const companionReleaseUrl = 'https://github.com/Sorganeil/vrcove/releases
 // A new key, so people who hid the old logger banner see the desktop app once.
 const dismissedKey = 'vrcove-desktop-banner-dismissed';
 
-/* VRCove Desktop promo on Home and Avatar search. Dismissing hides it in this browser; the sidebar still links the page. */
-export default function CompanionDownload() {
+/* VRCove Desktop promo on Home, and on Avatar search as a way to help grow the catalog. Dismissing hides it in this browser; the sidebar still links the page. */
+export default function CompanionDownload({ contribute = false }: { contribute?: boolean }) {
   useLocale();
   const { sectionLink } = useApp();
   const [dismissed, setDismissed] = useState(() => {
@@ -36,10 +36,12 @@ export default function CompanionDownload() {
         <MonitorDown size={22} />
       </span>
       <div>
-        <h2>{tr('VRCove Desktop is here')}</h2>
+        <h2>{tr(contribute ? 'Want to help grow the avatar database?' : 'VRCove Desktop is here')}</h2>
         <p>
           {tr(
-            'Use VRCove as an app on Windows or Linux. It talks to VRChat directly from your computer, keeps your history, and has the avatar logger built in.',
+            contribute
+              ? 'Install VRCove Desktop for Windows or Linux to contribute public avatar IDs discovered while you play VRChat.'
+              : 'Use VRCove as an app on Windows or Linux. It talks to VRChat directly from your computer, keeps your history, and has an avatar logger built in.',
           )}
         </p>
       </div>

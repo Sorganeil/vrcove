@@ -62,6 +62,16 @@ func (d *desktop) serveDesktop(w http.ResponseWriter, r *http.Request) {
 			visits = []history.Visit{}
 		}
 		writeJSON(w, http.StatusOK, map[string]any{"visits": visits, "folder": history.LogFolder(d.analyticsFolder())})
+	case "/api/desktop/gamelog":
+		if !d.hasHistory(w) {
+			return
+		}
+		entries, err := d.history.GameLog(r.Context(), before, q.Get("kind"), q.Get("q"), 100)
+		if err != nil {
+			writeJSON(w, http.StatusServiceUnavailable, map[string]string{"error": "The game log is unavailable."})
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"entries": entries})
 	case "/api/desktop/feed":
 		if !d.hasHistory(w) {
 			return

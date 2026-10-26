@@ -34,7 +34,7 @@ test('desktop app page opens by path and from the banner, and downloads from Git
   await expect(page).toHaveURL(/\/account$/);
   await page.locator('footer').getByRole('link', { name: 'Desktop app' }).click();
   await expect(page).toHaveURL(/\/companion$/);
-  await page.locator('.topbar select').selectOption('ja');
+  await page.locator('.topbar .language-picker select').selectOption('ja');
   await expect(
     page.getByRole('heading', { name: 'デスクトップで使う VRCove。' }),
   ).toBeVisible();

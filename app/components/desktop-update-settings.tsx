@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Download, ExternalLink, LoaderCircle, RefreshCw } from 'lucide-react';
 import { api } from '../lib/api';
 import { t as tr, useLocale } from '../lib/i18n';
-import { desktop } from '../lib/platform';
+import { appVersion, desktop } from '../lib/platform';
 
 type UpdateStatus = {
   currentVersion: string;
@@ -17,7 +17,7 @@ type UpdateStatus = {
   error?: string;
 };
 
-const bundledVersion = (import.meta as { env?: { APP_VERSION?: string } }).env?.APP_VERSION || 'dev';
+const bundledVersion = appVersion;
 
 export default function DesktopUpdateSettings({ notify }: { notify: (message: string) => void }) {
   useLocale();

@@ -914,3 +914,56 @@
     display: none;
   }
 }
+.game-log {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.game-log-row {
+  display: grid;
+  grid-template-columns: 120px 26px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 8px 2px;
+  border-bottom: 1px solid #1d2935;
+  font-size: 14px;
+}
+.game-log-row time {
+  color: #7f95a8;
+  font-size: 12px;
+}
+.game-log-kind {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #16212c;
+  color: #8fa6b8;
+}
+.game-log-row.kind-location .game-log-kind {
+  color: #00c8ff;
+}
+.game-log-row.kind-join .game-log-kind {
+  color: #70dcbb;
+}
+.game-log-row.kind-leave .game-log-kind {
+  color: #e6b47c;
+}
+.game-log-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.game-log-text small {
+  display: block;
+  color: #7f95a8;
+  font-size: 12px;
+}
+@media (max-width: 600px) {
+  .game-log-row {
+    grid-template-columns: 26px minmax(0, 1fr);
+  }
+  .game-log-row time {
+    grid-column: 1 / -1;
+  }
+}

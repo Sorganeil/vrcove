@@ -35,7 +35,9 @@ const sectionNames: Record<string, string> = {
   account: 'Account',
   collections: 'Collections',
   // Only the desktop app has these pages.
-  ...(desktop ? { history: 'History', feed: 'Feed', screenshots: 'Screenshots', tools: 'Tools' } : {}),
+  ...(desktop
+    ? { history: 'History', gamelog: 'GameLog', feed: 'Feed', screenshots: 'Screenshots', tools: 'Tools' }
+    : {}),
 };
 
 // Sections use clean paths (/avatars, /about) that the server renders and search engines can index.

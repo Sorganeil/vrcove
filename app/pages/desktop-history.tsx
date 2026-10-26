@@ -1,5 +1,18 @@
 import { useEffect, useState } from 'react';
-import { ArrowUpRight, Clock, Globe2, MapPin, Search, UserCheck, UserMinus, Users } from 'lucide-react';
+import {
+  ArrowUpRight,
+  Clock,
+  Globe2,
+  LogIn,
+  LogOut,
+  MapPin,
+  PlaySquare,
+  Search,
+  Shirt,
+  UserCheck,
+  UserMinus,
+  Users,
+} from 'lucide-react';
 import { api } from '../lib/api';
 import { formatDate, t as tr, useLocale } from '../lib/i18n';
 import { Picture } from '../components/avatar-media';
@@ -316,6 +329,7 @@ function usePages<T>(
   at: (item: T) => number,
   deps: unknown[],
   pageSize = 30,
+  enabled = true,
 ) {
   const [items, setItems] = useState<T[] | null>(null);
   const [more, setMore] = useState(false);
@@ -330,6 +344,11 @@ function usePages<T>(
       })
       .catch((e) => setError(e.message));
   useEffect(() => {
+    if (!enabled) {
+      setItems([]);
+      setMore(false);
+      return;
+    }
     setItems(null);
     void load(0, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -491,12 +510,70 @@ export function GameHistory() {
 }
 
 const feedKinds = [
-  ['', 'Everything'],
   ['location', 'Locations'],
   ['online', 'Came online'],
   ['offline', 'Went offline'],
   ['status', 'Status changes'],
+  ['added', 'New friends'],
+  ['removed', 'Removed friends'],
 ] as const;
+
+/**
+ * Event types that can each be shown or hidden. The choice stays on this
+ * device under `storageKey`. `query` is the kind list for the API: empty when
+ * everything is shown, null when everything is hidden.
+ */
+function useKindToggles(storageKey: string, kinds: readonly (readonly [string, string])[]) {
+  const all = kinds.map(([k]) => k);
+  const [hidden, setHidden] = useState<string[]>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(storageKey) || '[]');
+      return Array.isArray(saved) ? saved.filter((k) => all.includes(k)) : [];
+    } catch {
+      return [];
+    }
+  });
+  function toggle(kind: string) {
+    const next = hidden.includes(kind) ? hidden.filter((k) => k !== kind) : [...hidden, kind];
+    setHidden(next);
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(next));
+    } catch {
+      /* The choice still applies until the page reloads. */
+    }
+  }
+  const shown = all.filter((k) => !hidden.includes(k));
+  const query = shown.length === all.length ? '' : shown.length ? shown.join(',') : null;
+  return { hidden, toggle, query };
+}
+
+function KindToggles({
+  kinds,
+  hidden,
+  toggle,
+  label,
+}: {
+  kinds: readonly (readonly [string, string])[];
+  hidden: string[];
+  toggle: (kind: string) => void;
+  label: string;
+}) {
+  return (
+    <div className="chips feed-chips" role="group" aria-label={label}>
+      {kinds.map(([value, text]) => (
+        <button
+          key={value}
+          type="button"
+          className={hidden.includes(value) ? '' : 'chosen'}
+          aria-pressed={!hidden.includes(value)}
+          onClick={() => toggle(value)}
+        >
+          {tr(text)}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 function parseStatusDetail(detail?: string): { tone: string; label: string; message: string } {
   const raw = (detail || '').trim();
@@ -577,13 +654,14 @@ function FeedText({ e, worldInfo }: { e: FeedEntry; worldInfo?: WorldPreview }) 
 export function FriendFeed() {
   useLocale();
   const [q, setQ] = useState('');
-  const [kind, setKind] = useState('');
+  const { hidden, toggle, query: kind } = useKindToggles('vrcove-feed-hidden', feedKinds);
   const { items, more, error, loadMore } = usePages<FeedEntry>(
-    (before) => '/desktop/feed?before=' + before + '&kind=' + kind + '&q=' + encodeURIComponent(q),
+    (before) => '/desktop/feed?before=' + before + '&kind=' + (kind ?? '') + '&q=' + encodeURIComponent(q),
     (data) => data.entries,
     (e) => e.at,
     [q, kind],
     100,
+    kind !== null,
   );
 
   const worldIds = (items || []).map((e) => extractWorldId(e.detail)).filter((id): id is string => !!id);
@@ -594,37 +672,21 @@ export function FriendFeed() {
     <SectionPage title="Feed" subtitle="Your friends’ activity, recorded on this computer while VRCove runs.">
       <div className="desktop-filters">
         <SearchField value={q} set={setQ} label={tr('Search friends and worlds')} />
-        <select
-          className="desktop-select"
-          aria-label={tr('Show')}
-          value={kind}
-          onChange={(e) => setKind(e.target.value)}
-        >
-          {feedKinds.map(([value, label]) => (
-            <option key={value} value={value}>
-              {tr(label)}
-            </option>
-          ))}
-        </select>
       </div>
-      <div className="chips feed-chips" role="group" aria-label={tr('Filter activity')}>
-        {feedKinds.map(([value, label]) => (
-          <button
-            key={value}
-            type="button"
-            className={kind === value ? 'chosen' : ''}
-            aria-pressed={kind === value}
-            onClick={() => setKind(value)}
-          >
-            {tr(label)}
-          </button>
-        ))}
-      </div>
+      <KindToggles kinds={feedKinds} hidden={hidden} toggle={toggle} label={tr('Show or hide activity')} />
       {error && <div className="error-banner">{error}</div>}
       {items && items.length === 0 && (
         <div className="empty-state">
-          <h3>{tr(q || kind ? 'Nothing matches your search.' : 'No activity yet')}</h3>
-          {!q && !kind && (
+          <h3>
+            {tr(
+              kind === null
+                ? 'Every kind of activity is hidden.'
+                : q || kind
+                  ? 'Nothing matches your search.'
+                  : 'No activity yet',
+            )}
+          </h3>
+          {!q && kind === '' && (
             <p>
               {tr(
                 'While you’re signed in to VRChat, friends going online, moving and changing status show up here.',
@@ -689,6 +751,138 @@ export function FriendFeed() {
                   )}
                 </a>
               )}
+            </li>
+          );
+        })}
+      </ol>
+      {more && (
+        <button className="standard-button load-more" onClick={() => void loadMore()}>
+          {tr('Load more')}
+        </button>
+      )}
+    </SectionPage>
+  );
+}
+
+type LogEntry = {
+  at: number;
+  kind: 'location' | 'join' | 'leave' | 'avatar' | 'video';
+  worldId?: string;
+  worldName?: string;
+  location?: string;
+  userId?: string;
+  displayName?: string;
+  detail?: string;
+};
+
+const logKinds = [
+  ['location', 'Instances'],
+  ['join', 'Joined'],
+  ['leave', 'Left'],
+  ['avatar', 'Avatar changes'],
+  ['video', 'Videos'],
+] as const;
+
+const logIcons = { location: MapPin, join: LogIn, leave: LogOut, avatar: Shirt, video: PlaySquare };
+
+function LogText({ e }: { e: LogEntry }) {
+  const person = e.displayName ? <Person p={{ userId: e.userId, displayName: e.displayName }} /> : null;
+  switch (e.kind) {
+    case 'location':
+      return (
+        <>
+          {tr('You joined')} <World id={e.worldId} name={e.worldName} />
+        </>
+      );
+    case 'join':
+      return (
+        <>
+          {person} {tr('joined')}
+        </>
+      );
+    case 'leave':
+      return (
+        <>
+          {person} {tr('left')}
+        </>
+      );
+    case 'avatar':
+      return (
+        <>
+          {person} {tr('switched to')} <em>{e.detail}</em>
+        </>
+      );
+    case 'video':
+      return (
+        <>
+          {tr('Video')}{' '}
+          {/^https:\/\//.test(e.detail || '') ? (
+            <a href={e.detail} target="_blank" rel="noopener noreferrer">
+              {e.detail}
+            </a>
+          ) : (
+            <span>{e.detail}</span>
+          )}
+        </>
+      );
+  }
+  return null;
+}
+
+/** Everything VRChat's logs recorded, newest first, like VRCX's Game Log. */
+export function GameLog() {
+  useLocale();
+  const [q, setQ] = useState('');
+  const { hidden, toggle, query: kind } = useKindToggles('vrcove-gamelog-hidden', logKinds);
+  const { items, more, error, loadMore } = usePages<LogEntry>(
+    (before) => '/desktop/gamelog?before=' + before + '&kind=' + (kind ?? '') + '&q=' + encodeURIComponent(q),
+    (data) => data.entries,
+    (e) => e.at,
+    [q, kind],
+    100,
+    kind !== null,
+  );
+  return (
+    <SectionPage
+      title="Game log"
+      subtitle="Everything VRChat’s logs recorded on this computer: instances, people, avatars and videos."
+    >
+      <div className="desktop-filters">
+        <SearchField value={q} set={setQ} label={tr('Search worlds, people, avatars and videos')} />
+      </div>
+      <KindToggles kinds={logKinds} hidden={hidden} toggle={toggle} label={tr('Show or hide events')} />
+      {error && <div className="error-banner">{error}</div>}
+      {items && items.length === 0 && (
+        <div className="empty-state">
+          <h3>
+            {tr(
+              kind === null
+                ? 'Every kind of event is hidden.'
+                : q || kind
+                  ? 'Nothing matches your search.'
+                  : 'No history yet',
+            )}
+          </h3>
+          {!q && kind === '' && (
+            <p>
+              {tr('VRCove reads VRChat’s logs while it runs. Play VRChat and your instances show up here.')}
+            </p>
+          )}
+        </div>
+      )}
+      <ol className="game-log">
+        {items?.map((e, i) => {
+          const Icon = logIcons[e.kind] || Clock;
+          return (
+            <li key={e.at + e.kind + (e.displayName || '') + i} className={'game-log-row kind-' + e.kind}>
+              <time>{when(e.at)}</time>
+              <span className="game-log-kind" aria-hidden="true">
+                <Icon size={14} />
+              </span>
+              <span className="game-log-text">
+                <LogText e={e} />
+                {e.kind !== 'location' && e.worldName && <small>{e.worldName}</small>}
+              </span>
             </li>
           );
         })}

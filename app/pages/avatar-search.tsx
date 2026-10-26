@@ -170,7 +170,7 @@ export default function AvatarResults({ input, setInput, query, submit }: Search
 
   return (
     <>
-      <CompanionDownload />
+      <CompanionDownload contribute />
       <SearchBar
         label="Search avatars"
         placeholder="Search avatars, creators, or an avatar ID…"

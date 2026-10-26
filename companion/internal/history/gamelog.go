@@ -24,6 +24,7 @@ var (
 	leftRoom     = regexp.MustCompile(`^\[Behaviour\] OnLeftRoom$`)
 	appQuit      = regexp.MustCompile(`^(?:\[Behaviour\] OnApplicationQuit|VRCApplication: HandleApplicationQuit).*$`)
 	avatarSwitch = regexp.MustCompile(`^\[Behaviour\] Switching (.+) to avatar (.+)$`)
+	videoPlay    = regexp.MustCompile(`^\[Video Playback\] Attempting to resolve URL '(.{1,1000})'$`)
 )
 
 // LogFolder finds VRChat's log folder from its analytics folder, which the
@@ -198,6 +199,10 @@ func (g *gameLog) apply(ctx context.Context, tx *sql.Tx, line string) error {
 		p := playerLeft.FindStringSubmatch(msg)
 		_, err := tx.ExecContext(ctx, `UPDATE encounters SET left_at = ? WHERE id = (SELECT id FROM encounters
 			WHERE visit_id = ? AND display_name = ? AND left_at IS NULL ORDER BY joined DESC LIMIT 1)`, at, g.visit, p[1])
+		return err
+	case videoPlay.MatchString(msg):
+		v := videoPlay.FindStringSubmatch(msg)
+		_, err := tx.ExecContext(ctx, `INSERT INTO videos (visit_id, url, at) VALUES (?, ?, ?)`, g.visit, v[1], at)
 		return err
 	case avatarSwitch.MatchString(msg):
 		a := avatarSwitch.FindStringSubmatch(msg)

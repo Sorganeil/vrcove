@@ -13,3 +13,9 @@ export function openExternal(url: string) {
     body: JSON.stringify({ url }),
   });
 }
+
+/**
+ * The release version from VERSION, such as v0.2.0. The website and the desktop
+ * app are built from the same frontend, so they always show the same one.
+ */
+export const appVersion = (import.meta as { env?: { APP_VERSION?: string } }).env?.APP_VERSION || 'dev';

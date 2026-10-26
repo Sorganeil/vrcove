@@ -7,30 +7,15 @@ import { useApp } from '../lib/app-context';
 import { DesktopAccounts } from './desktop-accounts';
 
 /**
- * Banners above every page: the link reminder, the active VRChat account picker, and the
- * connection notice. A dismissed connection notice stays hidden until the connection changes.
+ * Banners above every page: the link reminder and the connection notice. A dismissed connection notice stays hidden until the connection changes.
  */
-export default function SessionNotices({
-  onSwitch,
-  switching,
-  connecting,
-  refresh,
-}: {
-  onSwitch: (id: number) => Promise<void>;
-  switching: boolean;
-  connecting: boolean;
-  refresh: () => Promise<unknown>;
-}) {
+export default function SessionNotices() {
   useLocale();
-  const { user, coveAccount, linkAccount, setCoveAccount, requestConnection, navigate, notify } = useApp();
+  const { coveAccount, linkAccount, setCoveAccount, requestConnection, notify } = useApp();
   const connection = useVRChatSession();
-  const now = useSessionTime();
   const [hiddenNotice, setHiddenNotice] = useState<object | null>(null);
   return (
     <>
-      {desktop && (
-        <DesktopAccounts onSwitch={onSwitch} refresh={refresh} disabled={switching || connecting} />
-      )}
       {!desktop && coveAccount?.showLinkReminder && !coveAccount?.links?.length && (
         <div className="vrchat-session-notice" role="status">
           <ShieldCheck size={22} />
@@ -56,39 +41,6 @@ export default function SessionNotices({
             }}
           >
             {tr('Maybe later')}
-          </button>
-        </div>
-      )}
-      {!desktop && coveAccount && coveAccount.links.length > 0 && (
-        <div className="vrchat-account-switcher">
-          <label>
-            {tr('Active VRChat account')}
-            <select
-              aria-label={tr('Active VRChat account')}
-              value={user?.id || ''}
-              disabled={switching || connecting}
-              onChange={(e) => {
-                const link = coveAccount.links.find((l) => l.vrchatId === e.target.value);
-                if (link)
-                  void onSwitch(link.id).catch(async (e) => {
-                    notify(e.message);
-                    setCoveAccount(await api('/cove/me'));
-                  });
-              }}
-            >
-              {!user && <option value="">{tr('Choose a connected account')}</option>}
-              {coveAccount.links.map((l) => (
-                <option value={l.vrchatId} key={l.id}>
-                  {l.displayName || l.vrchatId}
-                  {vrchatAccountState(l, user?.id, connection, now) !== 'reconnect'
-                    ? ''
-                    : ' · ' + tr('Reconnect required')}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button className="text-link" onClick={() => navigate('Account')}>
-            {tr('Manage accounts')}
           </button>
         </div>
       )}
@@ -127,5 +79,59 @@ export default function SessionNotices({
         </div>
       )}
     </>
+  );
+}
+
+/** The active VRChat account picker in the header; Manage accounts is in the same menu. */
+export function AccountSwitcher({
+  onSwitch,
+  switching,
+  connecting,
+  refresh,
+}: {
+  onSwitch: (id: number) => Promise<void>;
+  switching: boolean;
+  connecting: boolean;
+  refresh: () => Promise<unknown>;
+}) {
+  useLocale();
+  const { user, coveAccount, setCoveAccount, navigate, notify } = useApp();
+  const connection = useVRChatSession();
+  const now = useSessionTime();
+  if (desktop)
+    return <DesktopAccounts onSwitch={onSwitch} refresh={refresh} disabled={switching || connecting} />;
+  if (!coveAccount?.links.length) return null;
+  return (
+    <label className="vrchat-account-switcher">
+      <span className="sr-only">{tr('Active VRChat account')}</span>
+      <select
+        aria-label={tr('Active VRChat account')}
+        value={user?.id || ''}
+        disabled={switching || connecting}
+        onChange={(e) => {
+          if (e.target.value === '__manage') {
+            navigate('Account');
+            return;
+          }
+          const link = coveAccount.links.find((l) => l.vrchatId === e.target.value);
+          if (link)
+            void onSwitch(link.id).catch(async (e) => {
+              notify(e.message);
+              setCoveAccount(await api('/cove/me'));
+            });
+        }}
+      >
+        {!user && <option value="">{tr('Choose a connected account')}</option>}
+        {coveAccount.links.map((l) => (
+          <option value={l.vrchatId} key={l.id}>
+            {l.displayName || l.vrchatId}
+            {vrchatAccountState(l, user?.id, connection, now) !== 'reconnect'
+              ? ''
+              : ' · ' + tr('Reconnect required')}
+          </option>
+        ))}
+        <option value="__manage">{tr('Manage accounts')}</option>
+      </select>
+    </label>
   );
 }

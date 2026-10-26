@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 )
@@ -164,5 +165,47 @@ func TestFriendFeed(t *testing.T) {
 	entries, err = s.Feed(ctx, 0, "offline", "", 50)
 	if err != nil || len(entries) < 1 || entries[0].DisplayName != "Zoe" {
 		t.Fatalf("resolved offline entry = %+v %v", entries, err)
+	}
+}
+
+func TestGameLogTimeline(t *testing.T) {
+	ctx := context.Background()
+	s := openTest(t)
+	dir := t.TempDir()
+	os.WriteFile(filepath.Join(dir, "output_log_2026-10-25_18-00-00.txt"), []byte(
+		"2026.10.25 18:00:01 Log        -  [Behaviour] Joining wrld_00000000-0000-0000-0000-000000000009:1~private(usr_x)\n"+
+			"2026.10.25 18:00:02 Log        -  [Behaviour] Joining or Creating Room: Cozy Room\n"+
+			"2026.10.25 18:00:03 Log        -  [Behaviour] OnPlayerJoined Mia ("+mia+")\n"+
+			"2026.10.25 18:00:04 Log        -  [Behaviour] Switching Mia to avatar Robot Fox\n"+
+			"2026.10.25 18:00:05 Log        -  [Video Playback] Attempting to resolve URL 'https://example.com/v'\n"+
+			"2026.10.25 18:00:06 Log        -  [Behaviour] OnPlayerLeft Mia ("+mia+")\n"+
+			"2026.10.25 18:00:09 Log        -  [Behaviour] OnPlayerJoined Zoe ("+zoe+")\n"+
+			"2026.10.25 18:00:10 Log        -  [Behaviour] OnLeftRoom\n"), 0o600)
+	if err := s.ReadLogs(ctx, dir); err != nil {
+		t.Fatal(err)
+	}
+	all, err := s.GameLog(ctx, 0, "", "", 50)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var kinds []string
+	for _, e := range all {
+		kinds = append(kinds, e.Kind)
+	}
+	// Zoe was still there when you left, so her leave is not a separate event.
+	if got, want := strings.Join(kinds, ","), "join,leave,video,avatar,join,location"; got != want {
+		t.Fatalf("timeline = %s, want %s", got, want)
+	}
+	if all[2].Detail != "https://example.com/v" || all[3].Detail != "Robot Fox" || all[5].WorldName != "Cozy Room" {
+		t.Fatalf("entries = %+v", all)
+	}
+	if only, _ := s.GameLog(ctx, 0, "join, leave", "", 50); len(only) != 3 {
+		t.Fatalf("join and leave filter = %+v", only)
+	}
+	if found, _ := s.GameLog(ctx, 0, "", "robot", 50); len(found) != 1 || found[0].Kind != "avatar" {
+		t.Fatalf("search = %+v", found)
+	}
+	if older, _ := s.GameLog(ctx, all[2].At, "", "", 50); len(older) != 3 {
+		t.Fatalf("paging = %+v", older)
 	}
 }
