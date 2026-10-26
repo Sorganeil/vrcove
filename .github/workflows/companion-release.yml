@@ -36,13 +36,13 @@ jobs:
           cache: 'npm'
       - name: Install frontend dependencies
         run: npm ci
-      - name: Install the Wails CLI matching companion/go.mod
-        working-directory: companion
-        run: go install github.com/wailsapp/wails/v3/cmd/wails3@"$(go list -m -f '{{.Version}}' github.com/wailsapp/wails/v3)"
       - name: Install Linux build dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y gcc pkg-config python3 libwayland-dev libx11-dev libx11-xcb-dev libxkbcommon-x11-dev libegl1-mesa-dev libgles2-mesa-dev libffi-dev libxcursor-dev libxfixes-dev libgtk-4-dev libwebkitgtk-6.0-dev
+      - name: Install the Wails CLI matching companion/go.mod
+        working-directory: companion
+        run: go install github.com/wailsapp/wails/v3/cmd/wails3@"$(go list -m -f '{{.Version}}' github.com/wailsapp/wails/v3)"
       - name: Test release packaging and failure handling
         run: python3 -m unittest discover -s companion/tests -p test_release.py -v
       - name: Build, test, package and publish companions
