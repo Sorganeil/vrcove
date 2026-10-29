@@ -1,0 +1,27 @@
+services:
+  vrcove:
+    # Build first: docker build -t local/vrcove-runtime:20261029 deploy/docker
+    image: local/vrcove-runtime:20261029
+    pull_policy: never
+    command: ["/bin/sh", "-c", "umask 0007; exec /app/vrcove"]
+    user: "988:988"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=128m,mode=1777
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
+    restart: unless-stopped
+    # Root-only host file; never place its contents in this repository.
+    env_file:
+      - /etc/vrcove/env
+    environment:
+      LISTEN_ADDR: unix:/run/vrcove/vrcove.sock
+      DATABASE_PATH: /var/lib/vrcove/catalog.sqlite
+      ACCOUNTS_PATH: /var/lib/vrcove/accounts.sqlite
+    volumes:
+      - /usr/local/bin/vrcove:/app/vrcove:ro
+      - /var/lib/vrcove:/var/lib/vrcove
+      - /run/vrcove:/run/vrcove
+    # Cloudflared connects through the socket. No published ports.
