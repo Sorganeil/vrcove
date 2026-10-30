@@ -12,8 +12,10 @@ docker build -t local/vrcove-runtime:20261029 deploy/docker
 
 Import `deploy/docker/compose.yaml` as a Coolify Docker Compose service. The image
 must exist on the deployment server first. CA certificates support outbound
-VRChat HTTPS. No TCP ports are published; the existing host cloudflared tunnel
-continues using `/run/vrcove/vrcove.sock`.
+VRChat HTTPS. No TCP ports are published; the host's consolidated
+`hosthatch-tunnel.service` connects to `/run/vrcove/vrcove.sock`.
+The container has a 1 GiB memory cap, a 640 MiB Go soft memory target and a
+256-task limit.
 
 The configuration expects host UID/GID 988 and these existing paths:
 
@@ -27,11 +29,18 @@ Adjust numeric ownership for another host. Install `sockets.conf` as
 `systemd-tmpfiles --create /etc/tmpfiles.d/coolify-vrcove.conf`.
 This recreates the socket directory at boot after retiring the systemd app unit.
 
+The shared tunnel unit is provided as `hosthatch-tunnel.service`. Install it once
+per host, with its tunnel token stored separately at
+`/etc/hosthatch-tunnel/tunnel.token` (root-owned mode 0600 inside a mode 0700
+directory). Its `vrcove` and `cunnybin` supplementary groups permit both app
+sockets; adjust the groups when deploying only one app on another host. Manage
+hostname routes in Cloudflare. Keep the older per-app tunnel services disabled.
+
 Before cutover, use SQLite's backup API for both catalog.sqlite and accounts.sqlite
 and save the old unit and workload inventory. Stop and disable only vrcove.service,
 then recreate the socket directory (systemd removes it on stop), and start the
-Coolify service. Remove only the `vrcove-app` boot-controller entry; keep the
-`vrcove` tunnel entry. Compare local socket responses and public HTTPS, ownership,
+Coolify service. Remove only the `vrcove-app` boot-controller entry; preserve the
+consolidated tunnel's systemd startup entry. Compare local socket responses and public HTTPS, ownership,
 database integrity and outbound TLS. Never start Coolify's proxy on the Plesk host.
 
 Rollback: stop the Coolify service using POST, confirm the container is stopped,

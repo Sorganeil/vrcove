@@ -1,0 +1,21 @@
+[Unit]
+Description=Cloudflare Tunnel - consolidated HostHatch applications
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+DynamicUser=true
+SupplementaryGroups=cunnybin vrcove
+LoadCredential=token:/etc/hosthatch-tunnel/tunnel.token
+ExecStart=/usr/local/bin/cloudflared tunnel --no-autoupdate --metrics 127.0.0.1:20311 run --token-file ${CREDENTIALS_DIRECTORY}/token
+Restart=always
+RestartSec=5
+TimeoutStopSec=45
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

@@ -11,12 +11,14 @@ services:
     cap_drop: [ALL]
     security_opt:
       - no-new-privileges:true
+    mem_limit: 1g
     pids_limit: 256
     restart: unless-stopped
     # Root-only host file; never place its contents in this repository.
     env_file:
       - /etc/vrcove/env
     environment:
+      GOMEMLIMIT: 640MiB
       LISTEN_ADDR: unix:/run/vrcove/vrcove.sock
       DATABASE_PATH: /var/lib/vrcove/catalog.sqlite
       ACCOUNTS_PATH: /var/lib/vrcove/accounts.sqlite
