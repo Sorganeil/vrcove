@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"path/filepath"
 	"slices"
+	"strings"
 	"testing"
 )
 
@@ -223,5 +224,34 @@ func TestCatalogByImageFile(t *testing.T) {
 	}
 	if total := decode(t, h.do(get("/catalog?imageFile=file_bogus"))).(map[string]any)["total"]; total != 3.0 {
 		t.Errorf("invalid file ID should be ignored, total = %v", total)
+	}
+}
+
+// A PC-only or Quest-only page must come straight from an index; sorting
+// every match takes tens of seconds on the full catalog.
+func TestCatalogPlatformPagesUseIndex(t *testing.T) {
+	db, err := OpenCatalog(filepath.Join(t.TempDir(), "plan.sqlite"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	for _, where := range []string{"pc=1", "quest=1"} {
+		rows, err := db.Query("EXPLAIN QUERY PLAN SELECT data FROM catalog WHERE "+where+" ORDER BY updated DESC, id ASC LIMIT ? OFFSET ?", 60, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var plan []string
+		for rows.Next() {
+			var id, parent, unused int
+			var detail string
+			if err := rows.Scan(&id, &parent, &unused, &detail); err != nil {
+				t.Fatal(err)
+			}
+			plan = append(plan, detail)
+		}
+		rows.Close()
+		if len(plan) != 1 || !strings.Contains(plan[0], "USING INDEX catalog_") || strings.Contains(plan[0], "TEMP B-TREE") {
+			t.Errorf("%s plan=%q", where, plan)
+		}
 	}
 }
