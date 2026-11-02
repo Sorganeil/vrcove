@@ -2,7 +2,7 @@
 
 VRCove is a VRChat web frontend with built-in avatar search. It works in a browser on your computer, phone or tablet.
 
-[Website](https://vrcove.st) · [GitHub](https://github.com/Sorganeil/vrcove)
+[Website](https://vrcove.st)
 
 Browse avatars, worlds, users and groups, or link your VRChat account to manage friends, favorites and avatars. A VRCove account lets you write reviews and create collections.
 
