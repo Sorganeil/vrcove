@@ -22,7 +22,7 @@ VRCove works on Android, iPhone and iPad, with touch layouts for smaller screens
 
 Avatar search, friends lists and account tools work on phones and tablets. If you play on Quest without a PC, you can manage your friends and avatars from your phone.
 
-### Install as an app
+### Install as an app (PWA)
 
 You can install VRCove from your browser on desktop or mobile. It uses your existing browser, takes very little storage and updates whenever the site does. It doesn't bundle Electron, a .NET runtime, a JVM, Chromium or a webview.
 
