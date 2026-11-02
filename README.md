@@ -1,111 +1,116 @@
-# VRCove
+VRCove
 
-A privacy-focused VRChat web frontend, with avatar search built in. Works in any browser on PC or phone.
+VRCove is a VRChat web frontend with built-in avatar search. It works in a browser on your computer, phone or tablet.
 
-[Website](https://vrcove.st) · [GitHub](https://github.com/Sorganeil/vrcove)
+"Website" (https://vrcove.st) · "GitHub" (https://github.com/Sorganeil/vrcove)
 
-Browse avatars, worlds, users and groups. Link VRChat to manage friends, favorites and avatars. VRCove accounts add reviews and collections. No ads or analytics. Not affiliated with VRChat.
+Browse avatars, worlds, users and groups, or link your VRChat account to manage friends, favorites and avatars. A VRCove account lets you write reviews and create collections.
 
-## Features
+VRCove has no ads or analytics and is not affiliated with VRChat.
 
-### Private by default
+Privacy
 
-- No ads, analytics, telemetry, session replay or third-party error reporting. No Google Analytics, Amplitude, Mixpanel or Sentry.
-- Images are proxied through VRCove, so your browser never contacts VRChat's image hosts directly.
-- No friend-location history or play-time tracking. Account data loads only when you open a section or press Refresh.
-- Bookmarks and notes stay in your browser. You can export and import them as a backup.
-- Linked VRChat sessions are stored encrypted. The full breakdown of what is and isn't shared is on the site's privacy page.
+- No ads, analytics, telemetry, session replay or third-party error reporting. That includes Google Analytics, Amplitude, Mixpanel and Sentry.
+- Images pass through VRCove, so your browser never contacts VRChat's image hosts directly.
+- VRCove doesn't track friend locations or play time. Account data loads when you open a section or press Refresh.
+- Bookmarks and notes stay in your browser. You can export them for backup and import them later.
+- Linked VRChat sessions are stored encrypted. The site's privacy page explains what is and isn't shared.
 
-### Mobile compatible
+On your phone
 
-No PC? No problem. Most VRChat tools are Windows desktop apps, but VRCove runs in the browser you already have, so it works on Android, iPhone and iPad as well as desktop.
+VRCove works on Android, iPhone and iPad, with touch layouts for smaller screens. Open "vrcove.st" (https://vrcove.st) to use it without installing anything.
 
-- No installer or setup. Open [vrcove.st](https://vrcove.st) and start using it.
-- Play on Quest without a PC? Manage your friends and avatars from your phone.
-- Avatar search, your friends list and account tools all work on a phone or tablet.
-- Layouts are built for touch and small screens, not shrunk down from desktop.
-- Prefer an app? You can install VRCove on your phone like a regular app (see below).
+Avatar search, friends lists and account tools work on phones and tablets. If you play on Quest without a PC, you can manage your friends and avatars from your phone.
 
-### Install as an app (PWA)
+Install as an app
 
-Install VRCove as an app on desktop or mobile, straight from your browser.
+You can install VRCove from your browser on desktop or mobile. It uses your existing browser, takes very little storage and updates whenever the site does. It doesn't bundle Electron, a .NET runtime, a JVM, Chromium or a webview.
 
-- **No bloat.** No Electron, .NET runtime, JVM, bundled Chromium or webview. Just your browser.
-- It takes almost no storage and updates itself whenever the site updates.
-- On Windows, macOS, Linux and Android, click **Install app** in VRCove's menu, or use your browser's install option.
-- On iPhone and iPad, tap Share, then Add to Home Screen. In Safari on a Mac, choose File, then Add to Dock.
-- On iPhone and iPad, the app keeps its own sign-in and bookmarks, separate from Safari.
+- On Windows, macOS, Linux and Android, choose Install app from VRCove's menu or use your browser's install option.
+- On iPhone and iPad, tap Share, then Add to Home Screen.
+- In Safari on a Mac, choose File, then Add to Dock.
 
-### Avatar search
+On iPhone and iPad, the installed app has its own sign-in and bookmarks, separate from Safari.
 
-- We maintain our own large avatar database, so you can search public avatars without linking a VRChat account.
-- Open any avatar to see its details, copy its ID, bookmark it, or switch to it if your VRChat account is linked.
-- Want to help us grow our database? Use [VRCove Desktop](#vrcove-desktop), which has an avatar logger built in.
+Avatar search
 
-### Reviews and collections
+Search public avatars in VRCove's own large database without linking a VRChat account. Open an avatar to view its details, copy its ID or bookmark it. With VRChat linked, you can also switch to it.
 
-- Rate and review any user, group, world or avatar you can find on VRCove.
-- Group avatars and worlds into collections. Keep a collection private or share it by link.
-- Profiles start private. Make yours public to show your bio, reviews and public collections.
+To contribute public avatars to the database, use the logger built into "VRCove Desktop" (#vrcove-desktop).
 
-### Your VRChat account, in the browser
+Reviews and collections
 
-- Link VRChat to manage friends, friend requests, favorites, notifications and your current avatar.
-- See every avatar and world you've uploaded, including private ones.
+Rate and review users, groups, worlds and avatars you find on VRCove. You can organize avatars and worlds into collections, then keep them private or share them by link.
 
-### VRCove Desktop
+Profiles start private. Making yours public lets others see your bio, reviews and public collections.
 
-VRCove as an app for Windows and Linux. It looks and works like the website, but talks to VRChat directly from your computer. [Download the latest release](https://github.com/Sorganeil/vrcove/releases/latest).
+Manage your VRChat account
 
-- **Straight to VRChat.** Your VRChat password and session go from your computer to VRChat and never pass through VRCove's server, so you don't have to trust us with them. The session is kept encrypted with a key in Windows Credential Manager or your Linux keyring.
-- **A VRCove account is optional.** Avatar search, reviews and collections still come from vrcove.st.
-- **Your history, on your computer.** Instances you joined and the people you met, a game log of joins, leaves, avatar changes and videos, a friend activity feed, and your screenshots with the world and the people who were there. All of it stays on your computer.
-- **Notifications** keep working with the window closed while VRCove runs in the tray.
-- **Avatar logger built in.** Adds public avatars you see in VRChat to VRCove's search. Uploading needs an API key from your VRCove account page.
-- **Tools:** username checker, OSC chatbox and Unity package extractor.
-- **Several VRChat accounts** saved on the device, with switching.
-- **Updates** are offered in the app and installed only after their checksums match the release.
+Link VRChat to manage friends, friend requests, favorites, notifications and your current avatar. You can also see all the avatars and worlds you've uploaded, including private ones.
 
-It's built with Go and Wails from the same frontend and server code as the website. Source, build steps and details are in [companion/](companion/). Linux needs GTK 4, WebKitGTK and a tray host such as KDE Plasma.
+VRCove Desktop
 
-## Development
+VRCove Desktop runs on Windows and Linux. It uses the same interface as the website and connects to VRChat directly from your computer.
+
+"Download the latest release" (https://github.com/Sorganeil/vrcove/releases/latest).
+
+Your VRChat password and session go directly to VRChat and never pass through VRCove's server. The session is stored encrypted, with its key kept in Windows Credential Manager or your Linux keyring.
+
+A VRCove account is optional. Avatar search, reviews and collections still come from vrcove.st.
+
+The desktop app also includes:
+
+- Instance history and a record of the people you met.
+- A game log of joins, leaves, avatar changes and videos.
+- A friend activity feed.
+- Screenshots with the world and people who were there.
+- Desktop notifications that keep working with the window closed while the app runs in the tray.
+- An avatar logger that adds public avatars you see in VRChat to VRCove's search. Uploading requires an API key from your VRCove account page.
+- A username checker, OSC chatbox and Unity package extractor.
+- Saved VRChat accounts with account switching.
+- In-app updates that install only after their checksums match the release.
+
+Your history, game logs, activity feed and screenshots stay on your computer.
+
+VRCove Desktop uses Go and Wails, sharing frontend and server code with the website. See "companion/" (companion/) for source, build instructions and details. Linux requires GTK 4, WebKitGTK and a tray host such as KDE Plasma.
+
+Development
 
 Requires Node.js 22.13+ and Go 1.26+.
 
-```sh
 npm install
 npm run dev
 # In another terminal:
 PUBLIC_ORIGIN=http://localhost:5173 go run ./cmd/vrcove
-```
 
-See `.env.example` for account settings. The avatar catalog goes in `.data/catalog.sqlite`.
+See ".env.example" for account settings. The avatar catalog goes in ".data/catalog.sqlite".
 
-## Production
+Production
 
-Run `npm run build`, then `CGO_ENABLED=0 go build -o vrcove ./cmd/vrcove`. Deployment templates are in `deploy/`; the app supports Cloudflare Tunnel over a Unix socket. Keep databases and encryption keys out of Git.
+Run "npm run build", then "CGO_ENABLED=0 go build -o vrcove ./cmd/vrcove". Deployment templates are in "deploy/". The app supports Cloudflare Tunnel over a Unix socket.
 
-## Contributing
+Keep databases and encryption keys out of Git.
 
-Pull requests are welcome. Be decent to other contributors and reviewers. See [CONTRIBUTING.md](CONTRIBUTING.md) for branch naming, commits and pull request guidelines.
+Contributing
 
-### AI policy
+Pull requests are welcome. Be decent to other contributors and reviewers. See "CONTRIBUTING.md" (CONTRIBUTING.md) for branch naming, commits and pull request guidelines.
 
-AI-assisted contributions are allowed. Follow AI best practices: review what you give the tool and review everything it produces before you submit it. You are responsible for every line in your pull request.
+AI policy
 
-Keep pull requests small and focused. Monolithic pull requests that take forever to review will be ignored or closed.
+AI-assisted contributions are allowed. Review what you send to a tool and everything it produces before submitting it. You're responsible for every line in your pull request.
 
+Keep pull requests small and focused. Large pull requests that take too long to review may be ignored or closed.
 
-### AI Disclosure
+AI disclosure
 
-Yes, this app was built with AI assistance. No it wasn't vibe-coded. We use AI to speed up development while writing code ourselves wherever practical. We carefully review every prompt and output, take ownership of every decision, and hold the result to our own quality standards.
+We use AI to speed up development and write code ourselves wherever practical. We review every prompt and output and take responsibility for the code and decisions we ship.
 
-We take pride in what we build, and we understand if AI-assisted development isn’t for you.
+We're proud of the work. We also understand that some people prefer projects developed without AI assistance.
 
-## Contact
+Contact
 
-VRChat staff, or anyone else who wants to get in touch, can email [vrcove-contact.overbid399@passmail.net](mailto:vrcove-contact.overbid399@passmail.net) or [open an issue](https://github.com/Sorganeil/vrcove/issues).
+VRChat staff and anyone else who wants to get in touch can email "vrcove-contact.overbid399@passmail.net" (mailto:vrcove-contact.overbid399@passmail.net) or "open an issue" (https://github.com/Sorganeil/vrcove/issues).
 
-## License
+License
 
-VRCove is released under the [MIT License](LICENSE).
+VRCove is released under the "MIT License" (LICENSE).
