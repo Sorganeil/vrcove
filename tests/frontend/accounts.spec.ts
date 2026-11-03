@@ -204,8 +204,8 @@ test('private collections, mobile dialog focus, sharing and removal', async ({ p
   await expect(choice).toBeChecked();
   await expect(choice).toContainText('1 items');
   await expect(dialog.getByRole('status')).toHaveText('Added to collection.');
-  // Existing collections save directly; finishing never submits the empty
-  // optional creation form or creates another collection.
+  // Existing collections save directly. Done must not submit the empty
+  // creation form or create another collection.
   await dialog.getByRole('button', { name: 'Done', exact: true }).click();
   await expect(dialog).toHaveCount(0);
   await trigger.click();
@@ -316,7 +316,7 @@ test('guest actions require VRCove first and the header shows the VRCove identit
     data: { kind: 'world', name: 'Unlinked' },
   });
   expect(denied.status()).toBe(403);
-  // Phones sign out from the account page; the header keeps only the essentials.
+  // On phones, sign out from the account page to keep the header compact.
   if (page.viewportSize()!.width < 650) {
     await page.goto('/#account');
     await page.getByRole('button', { name: 'Sign out', exact: true }).click();

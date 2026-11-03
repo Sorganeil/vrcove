@@ -156,7 +156,7 @@ func (s *Store) RecordFor(ctx context.Context, owner string, message []byte, now
 		next.Online, next.Location = false, "offline"
 	case "location":
 		next.Online = true
-		// "traveling" is the moment between two instances; record the arrival.
+		// Wait for the arrival location before recording a move between instances.
 		if c.Location != "" && c.Location != "traveling" {
 			next.Location = c.Location
 			if c.Location != known.Location {
@@ -297,7 +297,7 @@ func (s *Store) RememberWorld(ctx context.Context, worldID, worldName string) er
 	return tx.Commit()
 }
 
-// Feed lists friend activity before `before` (Unix ms; 0 for now), newest
+// Feed lists friend activity before `before` (Unix ms, or 0 for now), newest
 // first, optionally only of one kind or matching a name.
 func (s *Store) Feed(ctx context.Context, before int64, kind, q string, limit int) ([]FeedEntry, error) {
 	return s.FeedFor(ctx, "", before, kind, q, limit)

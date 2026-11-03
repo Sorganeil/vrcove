@@ -1,5 +1,5 @@
 // Package logger extracts avatar IDs from the local VRChat analytics file.
-// It has no GUI dependencies; all state is owned by the caller's worker goroutine.
+// The caller's worker goroutine owns all state. The package has no GUI dependencies.
 package logger
 
 import (
@@ -54,7 +54,7 @@ type Cursor struct {
 type Event struct{ Time, ID, Result string }
 
 // Verifier checks avatars with the desktop's own VRChat login. Check reports
-// whether id is a public avatar; errors leave the avatar queued.
+// whether id is a public avatar. Errors leave the avatar queued.
 type Verifier interface {
 	Ready() bool
 	Check(ctx context.Context, id string) (public bool, err error)
@@ -212,7 +212,7 @@ type Result struct {
 //     own session before adding it.
 //
 // Rate limits, connection problems and expired logins leave unfinished IDs
-// queued and set RetryAt; collection continues meanwhile.
+// queued and set RetryAt. Collection continues while uploads wait.
 func (s *State) Submit(ctx context.Context, client *http.Client) error {
 	if len(s.Pending) == 0 {
 		return nil
@@ -312,8 +312,8 @@ func (s *State) ingest(ctx context.Context, client *http.Client, origin string, 
 			s.settle(result.ID, result.Status)
 		}
 	}
-	// The server stops early when VRChat limits its verification; the rest of
-	// the batch waits for the time it gives.
+	// If verification hits a VRChat rate limit, wait for Retry-After before
+	// sending the rest of the batch.
 	if resp.Header.Get("Retry-After") != "" {
 		return limit(resp)
 	}
@@ -422,7 +422,7 @@ func limit(resp *http.Response) *retry.Limited {
 }
 
 // retry keeps unfinished IDs queued. Rate limits wait exactly as long as the
-// service asked; other failures back off exponentially up to about five minutes.
+// service requested. Other failures back off exponentially up to about five minutes.
 func (s *State) retry(err error) error {
 	until, reason := time.Time{}, ""
 	var limited *retry.Limited

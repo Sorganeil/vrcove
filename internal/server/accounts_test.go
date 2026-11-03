@@ -289,7 +289,7 @@ func TestVRChatLinks(t *testing.T) {
 		t.Error("database stores the VRChat account in plain text")
 	}
 
-	// Linked accounts can't be self-reviewed; others can.
+	// Reject reviews of linked accounts and allow reviews of other accounts.
 	if w := h.do(as(post("/cove/review", jsonBody(`{"kind":"user","id":"`+testVRCUser+`","rating":5}`)), alice)); w.Code != 403 {
 		t.Errorf("self review = %d", w.Code)
 	}

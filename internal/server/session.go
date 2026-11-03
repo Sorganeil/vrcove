@@ -144,7 +144,7 @@ func (s *Server) readSession(r *http.Request) *Session {
 	return s.hydrateLoggerSession(r.Context(), session)
 }
 
-// sessionCookie builds the Set-Cookie value; a nil session clears the cookie.
+// sessionCookie builds a Set-Cookie value. A nil session clears the cookie.
 func (s *Server) sessionCookie(session *Session) (string, error) {
 	return s.namedSessionCookie(s.cookieName(), session)
 }

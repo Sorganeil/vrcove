@@ -6,7 +6,7 @@ default_version=$(tr -d '[:space:]' < ../VERSION 2>/dev/null || true)
 version="${VERSION:-${default_version:-dev}}"
 commit="${COMMIT:-$(git rev-parse --short=12 HEAD 2>/dev/null || printf unknown)}"
 build_date="${BUILD_DATE:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
-# Metadata is passed through Go's linker flag parser; reject spaces/options.
+# Go's linker flag parser reads this metadata. Reject spaces and options.
 [[ "$version" =~ ^[A-Za-z0-9][A-Za-z0-9.+_-]*$ ]] || { echo 'Invalid VERSION' >&2; exit 2; }
 [[ "$commit" =~ ^[A-Za-z0-9._-]+$ ]] || { echo 'Invalid COMMIT' >&2; exit 2; }
 [[ "$build_date" =~ ^[0-9TZ:+.-]+$ ]] || { echo 'Invalid BUILD_DATE' >&2; exit 2; }

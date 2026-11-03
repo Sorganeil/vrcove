@@ -1,9 +1,9 @@
 # Docker deployment template
 
-This directory provides an example container configuration. Adjust the image, user IDs, file paths, and resource limits for your own environment before deploying.
+Use this container configuration as a starting point. Set the image, user IDs, file paths and resource limits for your environment before deploying.
 
-Keep deployment topology, hosting-provider details, tunnel configuration, credentials, and operational runbooks outside this repository. Do not commit production configuration or data.
+Keep your deployment layout, hosting-provider details, tunnel configuration, credentials and runbooks outside this repository. Do not commit production configuration or data.
 
-The example runs without published TCP ports, uses a read-only root filesystem, drops capabilities, and limits memory and process counts. Validate socket permissions, database integrity, outbound HTTPS, and backups for your deployment.
+The container has no published TCP ports. Its root filesystem is read-only, it drops capabilities, and it limits memory use and process counts. Check socket permissions, database integrity, outbound HTTPS and backups in your deployment.
 
-`tunnel.service` is a generic connector example. Store the connector token separately in the root-only file named by `LoadCredential`; never commit its contents. Adjust local socket groups and the loopback metrics port for your deployment.
+`tunnel.service` is an example connector service. Store its token in the root-only file named by `LoadCredential`, and keep that file out of Git. Set the local socket groups and loopback metrics port for your deployment.

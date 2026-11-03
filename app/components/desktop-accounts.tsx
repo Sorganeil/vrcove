@@ -52,7 +52,7 @@ export function DesktopAccounts({
         disabled={disabled || busy !== null}
         onChange={(e) => {
           const value = e.target.value;
-          // Add and Manage are actions in the same menu; the selection stays on the active account.
+          // Keep the active account selected when Add or Manage opens another view.
           if (value === addValue) requestConnection('');
           else if (value === manageValue) navigate('Settings');
           else {

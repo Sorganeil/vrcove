@@ -41,10 +41,10 @@ type notifyPrefs struct {
 type store struct {
 	mu   sync.Mutex
 	path string
-	// fileKey seals the state file; SessionKey seals VRChat sessions.
+	// fileKey encrypts the state file. SessionKey encrypts VRChat sessions.
 	fileKey, SessionKey []byte
-	// persistent is false when the keyring is unavailable; the app then
-	// works but forgets sign-ins when it closes.
+	// Without a keyring, persistent is false and sign-ins last only until
+	// the app closes.
 	persistent   bool
 	data         state
 	localVersion uint64

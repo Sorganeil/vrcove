@@ -215,6 +215,22 @@
   border-radius: 50%;
   background: #81c7db;
 }
+.avatar-tag-browse {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin-top: 16px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.avatar-tag-browse > small {
+  flex-basis: 100%;
+  font-size: 12px;
+}
+.avatar-tag-browse .chips button {
+  min-height: 40px;
+}
 .sort-label {
   display: flex;
   align-items: center;

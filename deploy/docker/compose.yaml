@@ -14,7 +14,7 @@ services:
     mem_limit: 1g
     pids_limit: 256
     restart: unless-stopped
-    # Root-only host file; never place its contents in this repository.
+    # Only root can read this host file. Keep its contents out of this repository.
     env_file:
       - /etc/vrcove/env
     environment:

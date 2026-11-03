@@ -194,14 +194,14 @@ export default function App() {
         const me = await api('/account/me');
         if (alive && me.id) setUser(me);
       } catch {
-        /* Shared API handling reports confirmed session loss; temporary failures keep their own errors. */
+        /* The shared API handler reports a lost session. Temporary failures keep their own errors. */
       } finally {
         checking = false;
       }
     };
     void check();
     const interval = window.setInterval(() => void check(), 60_000);
-    // Tab switches can fire focus and visibility events in bursts; at most one check per 30 seconds.
+    // Tab switches can fire both focus and visibility events. Check at most once every 30 seconds.
     const focus = () => {
       if (Date.now() - lastCheck >= 30_000) void check();
     };
@@ -258,7 +258,7 @@ export default function App() {
     return () => window.removeEventListener('vrcove:avatar', open);
   }, [user]);
 
-  // Ctrl/Cmd+K opens search; / jumps to avatar search.
+  // Ctrl/Cmd+K opens search. The / key opens avatar search.
   const navigateRef = useRef(navigate);
   useEffect(() => {
     navigateRef.current = navigate;
@@ -438,7 +438,7 @@ export default function App() {
                   desktop
                     ? 'Signed in to VRChat on this device'
                     : similar
-                      ? 'VRChat account linked. Your VRCove name resembles your VRChat name; use an unrelated name to reduce correlation.'
+                      ? 'VRChat account linked. Your VRCove name resembles your VRChat name. Use an unrelated name to reduce correlation.'
                       : 'VRChat account linked',
                 );
               }}

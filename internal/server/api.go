@@ -82,8 +82,8 @@ func (s *Server) handleAPI(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) route(w http.ResponseWriter, r *http.Request, p string) error {
 	post := r.Method == http.MethodPost
-	// On the device only VRChat routes and pictures run here; VRCove's own
-	// features, such as the catalog and accounts, stay on the website.
+	// In the desktop app, this server handles VRChat routes and pictures.
+	// The catalog and VRCove accounts stay on the website.
 	if s.cfg.Local && !strings.HasPrefix(p, "/account/") && p != "/image" {
 		s.cfg.Remote.ServeHTTP(w, r)
 		return nil

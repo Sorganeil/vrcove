@@ -50,8 +50,8 @@ func allowedImage(u *url.URL) bool {
 
 // image proxies avatar and profile images so browsers never contact VRChat
 // directly. Every redirect hop is re-validated against the allow-list.
-// Results are cached on the server only; browsers are still told not to
-// store them, so nothing lingers on a shared device.
+// Cache results on the server. Tell browsers not to store them so images
+// do not remain on a shared device.
 func (s *Server) image(w http.ResponseWriter, r *http.Request) error {
 	target, err := url.Parse(r.URL.Query().Get("url"))
 	if err != nil || !allowedImage(target) {

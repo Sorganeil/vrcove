@@ -11,7 +11,7 @@ import (
 	"unicode"
 )
 
-// Reviews: one rating (1–5) with an optional comment per VRCove account and
+// Reviews have one rating (1 to 5) and an optional comment per VRCove account and
 // target. They are public, signed with the VRCove username only, and dated
 // to the day. Posting one never contacts VRChat.
 

@@ -262,7 +262,7 @@ func (s *Server) catalog(w http.ResponseWriter, r *http.Request) error {
 	order, orderArgs := "updated DESC, id ASC", []any(nil)
 	switch query.Get("sort") {
 	case "relevance":
-		// Best match needs a typed search; without one it is the newest first.
+		// Use best match for a typed search and newest first when browsing.
 		if term != "" && !avatarID.MatchString(term) {
 			order, orderArgs = relevanceOrder(term)
 		}

@@ -1,5 +1,5 @@
 /* Wordmark, navigation states, header search, the search palette and primary buttons. */
-/* The wordmark is custom vector lettering; no remote font request. */
+/* The vector wordmark loads without a remote font request. */
 .brand {
   padding: 0 9px;
   margin: 0 0 24px;

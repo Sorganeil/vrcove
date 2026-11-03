@@ -15,7 +15,7 @@ import (
 
 const (
 	vrchatAPI = "https://api.vrchat.cloud/api/1"
-	// appVersion is reported in the User-Agent; keep it in step with package.json.
+	// Keep the User-Agent appVersion in step with package.json.
 	appVersion = "0.2.4"
 )
 

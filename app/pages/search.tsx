@@ -51,7 +51,7 @@ let lastAvatarQuery = '';
  */
 export default function SearchPage({ section }: { section: string }) {
   useLocale();
-  // VRChat results reload for a different account; the search text stays.
+  // Reload VRChat results when the account changes. Keep the search text.
   const account = useApp().user?.id || 'guest';
   const page = pages[section] || pages.Search;
   const mine = section === 'MyGroups';
@@ -60,7 +60,7 @@ export default function SearchPage({ section }: { section: string }) {
     return linked ?? (page.tab === 'avatars' ? lastAvatarQuery : '');
   });
   const [query, setQuery] = useState(() => input.trim());
-  // Typed searches apply after a short pause; Enter applies them at once.
+  // Search after a short typing pause or immediately on Enter.
   useEffect(() => {
     const timer = setTimeout(() => setQuery(input.trim()), 350);
     return () => clearTimeout(timer);

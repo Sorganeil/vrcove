@@ -16,7 +16,7 @@ import (
 // Live notifications: while a browser keeps /account/live open, the server
 // connects to VRChat's pipeline with that browser's session and forwards new
 // notifications as server-sent events. The VRChat token stays in memory for
-// the length of the connection only; nothing is written to disk. The relay
+// this connection and is never written to disk. The relay
 // ends when the browser leaves, the session is ended or expires, or after an
 // hour, when the browser reconnects with its cookie checked again.
 
@@ -176,7 +176,7 @@ func (s *Server) liveNotifications(w http.ResponseWriter, r *http.Request, sessi
 	defer pipe.Close()
 
 	rc := http.NewResponseController(w)
-	// The server's read and write timeouts suit ordinary requests; this one stays open.
+	// Clear the normal request timeout so the event stream can stay open.
 	rc.SetReadDeadline(time.Time{})
 	h := w.Header()
 	h.Set("Content-Type", "text/event-stream")

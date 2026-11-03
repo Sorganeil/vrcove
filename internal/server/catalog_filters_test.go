@@ -121,7 +121,7 @@ func TestCatalogSorts(t *testing.T) {
 	if got := order("name-desc"); got[0] != "Quest Backup" || got[len(got)-1] != "Club Outfit" {
 		t.Errorf("name-desc = %v", got)
 	}
-	// Creator A–Z, then name within a creator.
+	// Sort by creator name, then by avatar name.
 	if got := order("author"); !slices.Equal(got, []string{"Fox Scout", "Night Terror", "Quest Backup", "Club Outfit", "Plain Robot"}) {
 		t.Errorf("author = %v", got)
 	}
@@ -191,7 +191,7 @@ func TestCatalogByCreatorIDAlone(t *testing.T) {
 	for _, a := range body["avatars"].([]any) {
 		names = append(names, a.(map[string]any)["name"].(string))
 	}
-	// Both upload names count; another creator with the same name does not.
+	// Include both upload names for this creator ID. Exclude other creators with the same name.
 	if !slices.Equal(names, []string{"Second", "First"}) || body["total"] != 2.0 {
 		t.Errorf("by creator ID = %v (%v)", names, body["total"])
 	}
@@ -227,8 +227,8 @@ func TestCatalogByImageFile(t *testing.T) {
 	}
 }
 
-// A PC-only or Quest-only page must come straight from an index; sorting
-// every match takes tens of seconds on the full catalog.
+// Use an index for PC-only and Quest-only pages. Sorting every match takes
+// tens of seconds on the full catalog.
 func TestCatalogPlatformPagesUseIndex(t *testing.T) {
 	db, err := OpenCatalog(filepath.Join(t.TempDir(), "plan.sqlite"))
 	if err != nil {

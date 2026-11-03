@@ -3,7 +3,7 @@ import { Search, X } from 'lucide-react';
 import { t as tr, useLocale } from '../lib/i18n';
 
 /**
- * The search box every search page shares. Typing searches as you go; Enter
+ * Shared search box. Typing searches as you go, and Enter
  * searches right away. `children` sit beside the box, such as a Filters button.
  */
 export default function SearchBar({

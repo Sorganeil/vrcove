@@ -270,7 +270,7 @@ func TestReconnectUsernameRecovery(t *testing.T) {
 					cookie.Value = encoded
 				}
 			} else {
-				// Old sessions may lack the login name too; /auth/user can restore it.
+				// Restore a missing login name in old sessions through /auth/user.
 				for key, cookie := range b.cookies {
 					if key != h.srv.cookieName() && key != h.srv.linkedCookieName(testVRCUser) {
 						continue
