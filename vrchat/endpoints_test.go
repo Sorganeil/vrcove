@@ -288,7 +288,7 @@ func TestCoverageListsImplementedClientMethods(t *testing.T) {
 		}
 		categories[operation.Category] = true
 	}
-	if len(coverage.Operations) != 327 || len(categories) != 19 || len(coverage.Excluded) != 12 {
+	if len(coverage.Operations) != 328 || len(categories) != 19 || len(coverage.Excluded) != 11 {
 		t.Errorf("coverage=%d operations, %d categories, %d exclusions", len(coverage.Operations), len(categories), len(coverage.Excluded))
 	}
 }

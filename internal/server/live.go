@@ -89,12 +89,8 @@ func (s *Server) dialVRChatPipeline(ctx context.Context, auth string) (Pipeline,
 // or returns nil for messages that are not new notifications. ended reports a
 // pipeline error, such as a session VRChat no longer accepts.
 func liveNotification(message []byte) (out map[string]any, ended bool) {
-	var envelope struct {
-		Type    string          `json:"type"`
-		Content json.RawMessage `json:"content"`
-		Err     string          `json:"err"`
-	}
-	if json.Unmarshal(message, &envelope) != nil {
+	envelope, err := vrchat.DecodePipelineMessage(message)
+	if err != nil {
 		return nil, false
 	}
 	if envelope.Err != "" {
@@ -103,36 +99,18 @@ func liveNotification(message []byte) (out map[string]any, ended bool) {
 	if envelope.Type != "notification" {
 		return nil, false
 	}
-	content := []byte(envelope.Content)
-	// VRChat sends the notification as a JSON string holding JSON.
-	var inner string
-	if json.Unmarshal(content, &inner) == nil {
-		content = []byte(inner)
-	}
-	var n struct {
-		ID             string          `json:"id"`
-		Type           string          `json:"type"`
-		SenderUserID   string          `json:"senderUserId"`
-		SenderUsername string          `json:"senderUsername"`
-		Message        string          `json:"message"`
-		Details        json.RawMessage `json:"details"`
-		Created        string          `json:"created_at"`
-	}
-	if json.Unmarshal(content, &n) != nil || !notificationID.MatchString(n.ID) {
+	var n vrchat.NotificationEvent
+	if envelope.DecodeContent(&n) != nil || !notificationID.MatchString(n.ID) {
 		return nil, false
 	}
-	out = map[string]any{"id": n.ID, "type": n.Type, "senderUsername": n.SenderUsername, "message": n.Message, "created_at": n.Created}
+	out = map[string]any{"id": n.ID, "type": n.Type, "senderUsername": n.SenderUsername, "message": n.Message, "created_at": n.CreatedAt}
 	if userID.MatchString(n.SenderUserID) {
 		out["senderUserId"] = n.SenderUserID
-	}
-	details := []byte(n.Details)
-	if json.Unmarshal(details, &inner) == nil {
-		details = []byte(inner)
 	}
 	var d struct {
 		WorldName string `json:"worldName"`
 	}
-	if json.Unmarshal(details, &d) == nil && d.WorldName != "" {
+	if vrchat.DecodePipelineContent(n.Details, &d) == nil && d.WorldName != "" {
 		out["details"] = map[string]string{"worldName": d.WorldName}
 	}
 	return out, false

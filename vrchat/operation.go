@@ -47,7 +47,7 @@ func newOperation[T any](method, path string, pathParameters []pathParameter, pa
 	return Operation[T]{method: method, path: path, pathParameters: pathParameters, parameters: parameters, body: body}
 }
 
-func newEmptyOperation[T any](method, path string, pathParameters []pathParameter, parameters, body any) Operation[T] {
+func newOperationAllowingEmptyResponse[T any](method, path string, pathParameters []pathParameter, parameters, body any) Operation[T] {
 	op := newOperation[T](method, path, pathParameters, parameters, body)
 	op.allowEmptyResponse = true
 	return op

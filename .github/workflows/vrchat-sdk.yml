@@ -2,9 +2,11 @@ name: VRChat SDK
 
 on:
   push:
-    paths: ['vrchat/**', '.github/workflows/vrchat-sdk.yml']
+    paths:
+      ['vrchat/**', 'internal/server/**', 'companion/**/*.go', 'app/**', '.github/workflows/vrchat-sdk.yml']
   pull_request:
-    paths: ['vrchat/**', '.github/workflows/vrchat-sdk.yml']
+    paths:
+      ['vrchat/**', 'internal/server/**', 'companion/**/*.go', 'app/**', '.github/workflows/vrchat-sdk.yml']
 
 permissions:
   contents: read
@@ -23,7 +25,10 @@ jobs:
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
           go-version-file: vrchat/go.mod
-          cache-dependency-path: vrchat/go.sum
+          cache-dependency-path: |
+            vrchat/go.sum
+            go.sum
+            companion/go.sum
       - run: go test -race ./...
       - run: go vet ./...
       - name: Set up generator tools
@@ -43,3 +48,5 @@ jobs:
           git -C "$RUNNER_TEMP/vrchat-spec" checkout --detach FETCH_HEAD
           "$RUNNER_TEMP/vrchat-sdk-tools/bin/python" tools/generate.py --spec-dir "$RUNNER_TEMP/vrchat-spec"
           git diff --exit-code -- endpoints_generated.go models_generated.go coverage.json
+      - name: Check application VRChat boundary
+        run: go -C .. test ./internal/server -run '^TestVRChatRequestsUseSDK$' -count=1

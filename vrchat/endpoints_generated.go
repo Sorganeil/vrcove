@@ -27,7 +27,7 @@ type ConfirmEmailParams struct {
 
 // ConfirmEmail builds the request for GET /auth/confirmEmail.
 func ConfirmEmail(params ConfirmEmailParams) Operation[json.RawMessage] {
-	return newEmptyOperation[json.RawMessage]("GET", "/auth/confirmEmail", nil, params, nil)
+	return newOperationAllowingEmptyResponse[json.RawMessage]("GET", "/auth/confirmEmail", nil, params, nil)
 }
 
 // ConfirmEmail: Confirm Email.
@@ -292,7 +292,7 @@ type VerifyLoginPlaceParams struct {
 
 // VerifyLoginPlace builds the request for GET /auth/verifyLoginPlace.
 func VerifyLoginPlace(params VerifyLoginPlaceParams) Operation[json.RawMessage] {
-	return newEmptyOperation[json.RawMessage]("GET", "/auth/verifyLoginPlace", nil, params, nil)
+	return newOperationAllowingEmptyResponse[json.RawMessage]("GET", "/auth/verifyLoginPlace", nil, params, nil)
 }
 
 // VerifyLoginPlace: Verify Login Place.
@@ -515,7 +515,7 @@ func (c *Client) DeleteAvatar(ctx context.Context, tokens Tokens, avatarID strin
 
 // DeleteImpostor builds the request for DELETE /avatars/{avatarId}/impostor.
 func DeleteImpostor(avatarID string) Operation[json.RawMessage] {
-	return newEmptyOperation[json.RawMessage]("DELETE", "/avatars/{avatarId}/impostor", []pathParameter{{"avatarId", fmt.Sprint(avatarID)}}, nil, nil)
+	return newOperationAllowingEmptyResponse[json.RawMessage]("DELETE", "/avatars/{avatarId}/impostor", []pathParameter{{"avatarId", fmt.Sprint(avatarID)}}, nil, nil)
 }
 
 // DeleteImpostor: Delete generated Impostor.
@@ -762,7 +762,7 @@ func (c *Client) GetAdminTransaction(ctx context.Context, tokens Tokens, transac
 
 // UpdateAssetReviewNotes builds the request for PUT /assetReview/{assetReviewId}/notes.
 func UpdateAssetReviewNotes(assetReviewID string, body *UpdateAssetReviewNotesRequest) Operation[json.RawMessage] {
-	return newEmptyOperation[json.RawMessage]("PUT", "/assetReview/{assetReviewId}/notes", []pathParameter{{"assetReviewId", fmt.Sprint(assetReviewID)}}, nil, body)
+	return newOperationAllowingEmptyResponse[json.RawMessage]("PUT", "/assetReview/{assetReviewId}/notes", []pathParameter{{"assetReviewId", fmt.Sprint(assetReviewID)}}, nil, body)
 }
 
 // UpdateAssetReviewNotes: Update Asset Review Notes.
@@ -2044,7 +2044,7 @@ func (c *Client) JoinGroup(ctx context.Context, tokens Tokens, groupID string, p
 
 // LeaveGroup builds the request for POST /groups/{groupId}/leave.
 func LeaveGroup(groupID string) Operation[json.RawMessage] {
-	return newEmptyOperation[json.RawMessage]("POST", "/groups/{groupId}/leave", []pathParameter{{"groupId", fmt.Sprint(groupID)}}, nil, nil)
+	return newOperationAllowingEmptyResponse[json.RawMessage]("POST", "/groups/{groupId}/leave", []pathParameter{{"groupId", fmt.Sprint(groupID)}}, nil, nil)
 }
 
 // LeaveGroup: Leave Group.
@@ -2223,7 +2223,7 @@ func (c *Client) GetGroupRequests(ctx context.Context, tokens Tokens, groupID st
 
 // CancelGroupRequest builds the request for DELETE /groups/{groupId}/requests.
 func CancelGroupRequest(groupID string) Operation[json.RawMessage] {
-	return newEmptyOperation[json.RawMessage]("DELETE", "/groups/{groupId}/requests", []pathParameter{{"groupId", fmt.Sprint(groupID)}}, nil, nil)
+	return newOperationAllowingEmptyResponse[json.RawMessage]("DELETE", "/groups/{groupId}/requests", []pathParameter{{"groupId", fmt.Sprint(groupID)}}, nil, nil)
 }
 
 // CancelGroupRequest: Cancel Group Join Request.
@@ -2233,7 +2233,7 @@ func (c *Client) CancelGroupRequest(ctx context.Context, tokens Tokens, groupID 
 
 // RespondGroupJoinRequest builds the request for PUT /groups/{groupId}/requests/{userId}.
 func RespondGroupJoinRequestCall(groupID string, userID string, body RespondGroupJoinRequest) Operation[json.RawMessage] {
-	return newEmptyOperation[json.RawMessage]("PUT", "/groups/{groupId}/requests/{userId}", []pathParameter{{"groupId", fmt.Sprint(groupID)}, {"userId", fmt.Sprint(userID)}}, nil, body)
+	return newOperationAllowingEmptyResponse[json.RawMessage]("PUT", "/groups/{groupId}/requests/{userId}", []pathParameter{{"groupId", fmt.Sprint(groupID)}, {"userId", fmt.Sprint(userID)}}, nil, body)
 }
 
 // RespondGroupJoinRequest: Respond Group Join request.
@@ -2856,7 +2856,7 @@ func (c *Client) GetBeta(ctx context.Context, tokens Tokens, betaName string) (B
 
 // GetBetaRegistration builds the request for GET /beta/{betaName}/register.
 func GetBetaRegistration(betaName string) Operation[json.RawMessage] {
-	return newEmptyOperation[json.RawMessage]("GET", "/beta/{betaName}/register", []pathParameter{{"betaName", fmt.Sprint(betaName)}}, nil, nil)
+	return newOperationAllowingEmptyResponse[json.RawMessage]("GET", "/beta/{betaName}/register", []pathParameter{{"betaName", fmt.Sprint(betaName)}}, nil, nil)
 }
 
 // GetBetaRegistration: Get Beta Registration.
@@ -3217,7 +3217,7 @@ func (c *Client) GetPrint(ctx context.Context, tokens Tokens, printID string) (P
 
 // DeletePrint builds the request for DELETE /prints/{printId}.
 func DeletePrint(printID string) Operation[json.RawMessage] {
-	return newEmptyOperation[json.RawMessage]("DELETE", "/prints/{printId}", []pathParameter{{"printId", fmt.Sprint(printID)}}, nil, nil)
+	return newOperationAllowingEmptyResponse[json.RawMessage]("DELETE", "/prints/{printId}", []pathParameter{{"printId", fmt.Sprint(printID)}}, nil, nil)
 }
 
 // DeletePrint: Delete Print.
@@ -3274,7 +3274,7 @@ func (c *Client) UpdateProp(ctx context.Context, tokens Tokens, propID string, b
 
 // DeleteProp builds the request for DELETE /props/{propId}.
 func DeleteProp(propID string) Operation[json.RawMessage] {
-	return newEmptyOperation[json.RawMessage]("DELETE", "/props/{propId}", []pathParameter{{"propId", fmt.Sprint(propID)}}, nil, nil)
+	return newOperationAllowingEmptyResponse[json.RawMessage]("DELETE", "/props/{propId}", []pathParameter{{"propId", fmt.Sprint(propID)}}, nil, nil)
 }
 
 // DeleteProp: Delete Prop.
@@ -3465,7 +3465,7 @@ func (c *Client) AddTags(ctx context.Context, tokens Tokens, userID string, body
 
 // UpdateBadge builds the request for PUT /users/{userId}/badges/{badgeId}.
 func UpdateBadge(userID string, badgeID string, body UpdateUserBadgeRequest) Operation[json.RawMessage] {
-	return newEmptyOperation[json.RawMessage]("PUT", "/users/{userId}/badges/{badgeId}", []pathParameter{{"userId", fmt.Sprint(userID)}, {"badgeId", fmt.Sprint(badgeID)}}, nil, body)
+	return newOperationAllowingEmptyResponse[json.RawMessage]("PUT", "/users/{userId}/badges/{badgeId}", []pathParameter{{"userId", fmt.Sprint(userID)}, {"badgeId", fmt.Sprint(badgeID)}}, nil, body)
 }
 
 // UpdateBadge: Update User Badge.
@@ -3639,7 +3639,7 @@ func (c *Client) GetMutualGroups(ctx context.Context, tokens Tokens, userID stri
 
 // DeleteAllUserPersistenceData builds the request for DELETE /users/{userId}/persist.
 func DeleteAllUserPersistenceData(userID string) Operation[json.RawMessage] {
-	return newEmptyOperation[json.RawMessage]("DELETE", "/users/{userId}/persist", []pathParameter{{"userId", fmt.Sprint(userID)}}, nil, nil)
+	return newOperationAllowingEmptyResponse[json.RawMessage]("DELETE", "/users/{userId}/persist", []pathParameter{{"userId", fmt.Sprint(userID)}}, nil, nil)
 }
 
 // DeleteAllUserPersistenceData: Delete All User Persistence Data.
@@ -3707,7 +3707,7 @@ func (c *Client) ClearUserTutorials(ctx context.Context, tokens Tokens, userID s
 
 // DeleteUserPersistence builds the request for DELETE /users/{userId}/{worldId}/persist.
 func DeleteUserPersistence(userID string, worldID string) Operation[json.RawMessage] {
-	return newEmptyOperation[json.RawMessage]("DELETE", "/users/{userId}/{worldId}/persist", []pathParameter{{"userId", fmt.Sprint(userID)}, {"worldId", fmt.Sprint(worldID)}}, nil, nil)
+	return newOperationAllowingEmptyResponse[json.RawMessage]("DELETE", "/users/{userId}/{worldId}/persist", []pathParameter{{"userId", fmt.Sprint(userID)}, {"worldId", fmt.Sprint(worldID)}}, nil, nil)
 }
 
 // DeleteUserPersistence: Delete User Persistence.
@@ -3717,7 +3717,7 @@ func (c *Client) DeleteUserPersistence(ctx context.Context, tokens Tokens, userI
 
 // CheckUserPersistenceExists builds the request for GET /users/{userId}/{worldId}/persist/exists.
 func CheckUserPersistenceExists(userID string, worldID string) Operation[json.RawMessage] {
-	return newEmptyOperation[json.RawMessage]("GET", "/users/{userId}/{worldId}/persist/exists", []pathParameter{{"userId", fmt.Sprint(userID)}, {"worldId", fmt.Sprint(worldID)}}, nil, nil)
+	return newOperationAllowingEmptyResponse[json.RawMessage]("GET", "/users/{userId}/{worldId}/persist/exists", []pathParameter{{"userId", fmt.Sprint(userID)}, {"worldId", fmt.Sprint(worldID)}}, nil, nil)
 }
 
 // CheckUserPersistenceExists: Check User Persistence Exists.
@@ -3919,7 +3919,7 @@ func (c *Client) GetWorldMetadata(ctx context.Context, tokens Tokens, worldID st
 
 // DeleteWorldPlatform builds the request for DELETE /worlds/{worldId}/platform/{publishedPlatform}.
 func DeleteWorldPlatform(worldID string, publishedPlatform string) Operation[json.RawMessage] {
-	return newEmptyOperation[json.RawMessage]("DELETE", "/worlds/{worldId}/platform/{publishedPlatform}", []pathParameter{{"worldId", fmt.Sprint(worldID)}, {"publishedPlatform", fmt.Sprint(publishedPlatform)}}, nil, nil)
+	return newOperationAllowingEmptyResponse[json.RawMessage]("DELETE", "/worlds/{worldId}/platform/{publishedPlatform}", []pathParameter{{"worldId", fmt.Sprint(worldID)}, {"publishedPlatform", fmt.Sprint(publishedPlatform)}}, nil, nil)
 }
 
 // DeleteWorldPlatform: Delete World Platform.
@@ -3939,7 +3939,7 @@ func (c *Client) GetWorldPublishStatus(ctx context.Context, tokens Tokens, world
 
 // PublishWorld builds the request for PUT /worlds/{worldId}/publish.
 func PublishWorld(worldID string) Operation[json.RawMessage] {
-	return newEmptyOperation[json.RawMessage]("PUT", "/worlds/{worldId}/publish", []pathParameter{{"worldId", fmt.Sprint(worldID)}}, nil, nil)
+	return newOperationAllowingEmptyResponse[json.RawMessage]("PUT", "/worlds/{worldId}/publish", []pathParameter{{"worldId", fmt.Sprint(worldID)}}, nil, nil)
 }
 
 // PublishWorld: Publish World.
@@ -3949,7 +3949,7 @@ func (c *Client) PublishWorld(ctx context.Context, tokens Tokens, worldID string
 
 // UnpublishWorld builds the request for DELETE /worlds/{worldId}/publish.
 func UnpublishWorld(worldID string) Operation[json.RawMessage] {
-	return newEmptyOperation[json.RawMessage]("DELETE", "/worlds/{worldId}/publish", []pathParameter{{"worldId", fmt.Sprint(worldID)}}, nil, nil)
+	return newOperationAllowingEmptyResponse[json.RawMessage]("DELETE", "/worlds/{worldId}/publish", []pathParameter{{"worldId", fmt.Sprint(worldID)}}, nil, nil)
 }
 
 // UnpublishWorld: Unpublish World.

@@ -3,10 +3,11 @@ package history
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/Sorganeil/vrcove/vrchat"
 )
 
 var (
@@ -42,21 +43,7 @@ type FeedEntry struct {
 	WorldName string `json:"worldName,omitempty"`
 }
 
-type friendUser struct {
-	DisplayName       string `json:"displayName"`
-	Status            string `json:"status"`
-	StatusDescription string `json:"statusDescription"`
-}
-
-// decodeContent reads a pipeline message's content, which VRChat sends either
-// as JSON or as a JSON string holding JSON.
-func decodeContent(raw json.RawMessage, into any) error {
-	var inner string
-	if json.Unmarshal(raw, &inner) == nil {
-		raw = json.RawMessage(inner)
-	}
-	return json.Unmarshal(raw, into)
-}
+type friendUser = vrchat.FriendEventUser
 
 // Record stores friend activity from one VRChat pipeline message. It returns
 // the notification when the message is one, so the app can show it.
@@ -65,29 +52,20 @@ func (s *Store) Record(ctx context.Context, message []byte, now time.Time) (*Not
 }
 
 func (s *Store) RecordFor(ctx context.Context, owner string, message []byte, now time.Time) (*Note, error) {
-	var envelope struct {
-		Type    string          `json:"type"`
-		Content json.RawMessage `json:"content"`
-	}
-	if json.Unmarshal(message, &envelope) != nil {
+	envelope, err := vrchat.DecodePipelineMessage(message)
+	if err != nil || envelope.Err != "" {
 		return nil, nil
 	}
 	if envelope.Type == "notification" {
-		var n struct {
-			ID             string          `json:"id"`
-			Type           string          `json:"type"`
-			SenderUsername string          `json:"senderUsername"`
-			Message        string          `json:"message"`
-			Details        json.RawMessage `json:"details"`
-		}
-		if decodeContent(envelope.Content, &n) != nil || !notePattern.MatchString(n.ID) {
+		var n vrchat.NotificationEvent
+		if envelope.DecodeContent(&n) != nil || !notePattern.MatchString(n.ID) {
 			return nil, nil
 		}
 		note := &Note{ID: n.ID, Type: n.Type, SenderUsername: n.SenderUsername, Message: n.Message}
 		var d struct {
 			WorldName string `json:"worldName"`
 		}
-		if len(n.Details) > 0 && decodeContent(n.Details, &d) == nil {
+		if len(n.Details) > 0 && vrchat.DecodePipelineContent(n.Details, &d) == nil {
 			note.WorldName = d.WorldName
 		}
 		return note, nil
@@ -97,15 +75,8 @@ func (s *Store) RecordFor(ctx context.Context, owner string, message []byte, now
 	if !ok {
 		return nil, nil
 	}
-	var c struct {
-		UserID   string     `json:"userId"`
-		User     friendUser `json:"user"`
-		Location string     `json:"location"`
-		World    struct {
-			Name string `json:"name"`
-		} `json:"world"`
-	}
-	if decodeContent(envelope.Content, &c) != nil || !userIDPattern.MatchString(c.UserID) {
+	var c vrchat.FriendEvent
+	if envelope.DecodeContent(&c) != nil || !userIDPattern.MatchString(c.UserID) {
 		return nil, nil
 	}
 	s.mu.Lock()
@@ -116,7 +87,7 @@ func (s *Store) RecordFor(ctx context.Context, owner string, message []byte, now
 		Online   bool
 		Found    bool
 	}
-	err := s.db.QueryRowContext(ctx, `SELECT display_name, status, status_description, location, online FROM friends WHERE owner = ? AND user_id = ?`, owner, c.UserID).
+	err = s.db.QueryRowContext(ctx, `SELECT display_name, status, status_description, location, online FROM friends WHERE owner = ? AND user_id = ?`, owner, c.UserID).
 		Scan(&known.DisplayName, &known.Status, &known.StatusDescription, &known.Location, &known.Online)
 	if err != nil && err != sql.ErrNoRows {
 		return nil, err

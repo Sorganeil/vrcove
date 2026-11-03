@@ -3,6 +3,7 @@ module vrcove/companion
 go 1.26.0
 
 require (
+	github.com/Sorganeil/vrcove/vrchat v0.0.0
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/zalando/go-keyring v0.2.6
 	golang.org/x/sys v0.48.0
@@ -10,7 +11,6 @@ require (
 
 require (
 	git.sr.ht/~jackmordaunt/go-toast/v2 v2.0.3 // indirect
-	github.com/Sorganeil/vrcove/vrchat v0.0.0 // indirect
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
 )
 

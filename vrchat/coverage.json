@@ -765,6 +765,13 @@
       "category": "files"
     },
     {
+      "operation": "DownloadFileVersion",
+      "method": "GET",
+      "path": "/file/{fileId}/{versionId}",
+      "category": "files",
+      "implementation": "assets.go"
+    },
+    {
       "operation": "DeleteFileVersion",
       "method": "DELETE",
       "path": "/file/{fileId}/{versionId}",
@@ -1977,12 +1984,6 @@
       "reason": "Non-JSON request body",
       "method": "POST",
       "path": "/file/image"
-    },
-    {
-      "operation": "DownloadFileVersion",
-      "reason": "Non-JSON response body",
-      "method": "GET",
-      "path": "/file/{fileId}/{versionId}"
     },
     {
       "operation": "UploadGalleryImage",

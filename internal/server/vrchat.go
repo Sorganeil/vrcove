@@ -20,8 +20,6 @@ func vrchatTokens(session *Session) vrchat.Tokens {
 	return vrchat.Tokens{Auth: session.Auth, TwoFactorAuth: session.TwoFactorAuth}
 }
 
-func vrcCookie(session *Session) string { return vrchatTokens(session).Cookie() }
-
 func (s *Server) userAgent() string {
 	if s.cfg.Contact == "" {
 		return "VRCove/" + appVersion

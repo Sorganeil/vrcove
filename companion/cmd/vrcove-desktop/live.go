@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"slices"
@@ -10,6 +9,8 @@ import (
 	"time"
 
 	"vrcove/companion/internal/history"
+
+	"github.com/Sorganeil/vrcove/vrchat"
 )
 
 // runLive keeps a connection to VRChat's live feed while VRChat is signed in
@@ -92,10 +93,8 @@ func (d *desktop) listen(ctx context.Context) {
 		if current != version || ctx.Err() != nil {
 			return
 		}
-		var envelope struct {
-			Err string `json:"err"`
-		}
-		if json.Unmarshal(message, &envelope) == nil && envelope.Err != "" {
+		envelope, decodeErr := vrchat.DecodePipelineMessage(message)
+		if decodeErr == nil && envelope.Err != "" {
 			return
 		}
 		if d.history == nil {

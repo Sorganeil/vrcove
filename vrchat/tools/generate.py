@@ -292,6 +292,17 @@ def generate_operations(root, gen):
                 if op_name in names:
                     raise ValueError("Duplicate operation " + op_name)
                 names.add(op_name)
+                if op_name == "DownloadFileVersion":
+                    coverage.append(
+                        {
+                            "operation": op_name,
+                            "method": verb.upper(),
+                            "path": path,
+                            "category": pathfile.stem,
+                            "implementation": "assets.go",
+                        }
+                    )
+                    continue
                 request, requestbase = dereference(op.get("requestBody", {}), pathfile)
                 content = request.get("content", {})
                 if content and "application/json" not in content:
@@ -336,7 +347,9 @@ def generate_operations(root, gen):
                     if schema
                     else "json.RawMessage"
                 )
-                factory = "newOperation" if schema else "newEmptyOperation"
+                factory = (
+                    "newOperation" if schema else "newOperationAllowingEmptyResponse"
+                )
                 parameters = []
                 optional = []
                 param_fields = []
@@ -470,7 +483,7 @@ def write_files(output, methods, rendered, coverage, skipped):
         check=True,
     )
     print(
-        f"{len(coverage)} JSON operations, {len(rendered)} models, {len(skipped)} non-JSON operations excluded"
+        f"{len(coverage)} wrapped operations, {len(rendered)} models, {len(skipped)} non-JSON operations excluded"
     )
 
 
