@@ -27,7 +27,9 @@ test('mobile header controls do not overlap and dashboard cards fill the column'
   await expect(page.locator('.dashboard-aside > section')).toHaveCount(3);
   for (const width of [320, 360, 375, 390, 430, 650]) {
     await page.setViewportSize({ width, height: 844 });
-    expect((await page.locator('.topbar').boundingBox())!.height).toBe(62);
+    expect((await page.locator('.topbar').boundingBox())!.height).toBeLessThanOrEqual(102);
+    await expect(page.locator('.vrchat-account-label')).toHaveText('VRChat account');
+    await expect(page.locator('.vrchat-account-label')).toBeVisible();
     const controls = page.locator(
       '.mobile-menu, .topbar-home, .topbar .vrchat-account-switcher, .topbar .language-picker, .header-search, .account-chip',
     );
@@ -41,13 +43,22 @@ test('mobile header controls do not overlap and dashboard cards fill the column'
       expect(box.width).toBeGreaterThan(0);
       expect(box.x).toBeGreaterThanOrEqual(0);
       expect(box.x + box.width).toBeLessThanOrEqual(width);
-      expect(box.y + box.height / 2).toBeCloseTo(boxes[0].y + boxes[0].height / 2, 0);
+
       for (const other of boxes.slice(i + 1)) {
         const overlapX = Math.min(box.x + box.width, other.x + other.width) - Math.max(box.x, other.x);
         const overlapY = Math.min(box.y + box.height, other.y + other.height) - Math.max(box.y, other.y);
         expect(overlapX > 0 && overlapY > 0, `Header controls overlap at ${width}px`).toBe(false);
       }
     }
+    for (const control of await page
+      .locator('.mobile-menu, .topbar .language-picker, .header-search, .account-chip')
+      .all()) {
+      const box = await control.boundingBox();
+      expect(box!.width).toBeGreaterThanOrEqual(40);
+      expect(box!.height).toBeGreaterThanOrEqual(40);
+    }
+    const picker = await page.getByLabel('Active VRChat account', { exact: true }).boundingBox();
+    expect(picker!.x + picker!.width).toBeCloseTo(width - 16, 0);
     const aside = await page.locator('.dashboard-aside').boundingBox();
     for (const card of await page.locator('.dashboard-aside > section').all()) {
       const box = await card.boundingBox();
@@ -59,6 +70,13 @@ test('mobile header controls do not overlap and dashboard cards fill the column'
       await page.screenshot({ path: testInfo.outputPath('mobile-header.png') });
       await page.locator('.dashboard-aside').screenshot({ path: testInfo.outputPath('mobile-cards.png') });
     }
+  }
+  await page.setViewportSize({ width: 320, height: 844 });
+  for (const locale of ['es', 'fr', 'de', 'ja', 'ru', 'uk', 'zh-CN', 'ko', 'en']) {
+    await page.locator('.topbar .language-picker select').selectOption(locale);
+    await expect(page.locator('.vrchat-account-label')).toBeVisible();
+    await expect(page.locator('.vrchat-account-label')).toContainText('VRChat');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(320);
   }
   await page.getByRole('button', { name: 'Search', exact: true }).click();
   await expect(page.getByRole('dialog', { name: 'Search', exact: true })).toBeVisible();
