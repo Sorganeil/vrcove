@@ -16,7 +16,7 @@ export default function Topbar({
 }: {
   onMenu: () => void;
   onSearch: () => void;
-  /** The VRChat account picker, shown first among the actions. */
+  /** The VRChat account picker, placed on its own row on mobile. */
   accounts?: ReactNode;
 }) {
   useLocale();
@@ -48,8 +48,8 @@ export default function Topbar({
         <span>/</span>
         <strong>{tr(sectionLabels[section] || section)}</strong>
       </div>
+      {accounts}
       <div className="top-actions">
-        {accounts}
         <LanguagePicker compact />
         <button className="header-search" aria-label={tr('Search')} aria-haspopup="dialog" onClick={onSearch}>
           <SearchIcon size={15} />
@@ -58,7 +58,11 @@ export default function Topbar({
         </button>
         {coveAccount ? (
           <>
-            <button className="account-chip" onClick={() => navigate('Account')}>
+            <button
+              className="account-chip"
+              aria-label={coveAccount.username}
+              onClick={() => navigate('Account')}
+            >
               <CovePicture picture={coveAccount.picture} username={coveAccount.username} size={29} />
               <span className="account-name">{coveAccount.username}</span>
             </button>
