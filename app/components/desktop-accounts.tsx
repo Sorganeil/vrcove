@@ -46,6 +46,9 @@ export function DesktopAccounts({
   return (
     <label className="vrchat-account-switcher">
       <span className="sr-only">{tr('Active VRChat account')}</span>
+      <span className="vrchat-account-label" aria-hidden="true">
+        {tr('VRChat account')}
+      </span>
       <select
         aria-label={tr('Active VRChat account')}
         value={user?.id || ''}
