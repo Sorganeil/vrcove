@@ -11,7 +11,7 @@ import (
 )
 
 // Keep the User-Agent appVersion in step with package.json.
-const appVersion = "0.2.4"
+const appVersion = "0.2.5"
 
 func vrchatTokens(session *Session) vrchat.Tokens {
 	if session == nil {
