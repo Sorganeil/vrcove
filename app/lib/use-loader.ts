@@ -40,7 +40,7 @@ export function useLoader<T>(
     return () => {
       alive = false;
     };
-    // `load` is recreated every render; `deps` lists what it actually reads.
+    // `load` changes on every render. Use its declared dependencies to decide when to reload.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...deps, retries]);
 

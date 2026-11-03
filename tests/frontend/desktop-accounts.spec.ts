@@ -82,7 +82,7 @@ test('saved accounts switch, reconnect, add with 2FA and remove without a VRCove
   await expect(login.getByLabel('VRChat username', { exact: true })).toHaveValue('bob');
   await expect(picker).toHaveValue(alice.vrchatId);
   await login.getByRole('button', { name: 'Close dialog' }).click();
-  // Add and Manage live in the header picker's menu; the picker stays on the active account.
+  // Add and Manage open from the header picker without changing the selected account.
   await picker.selectOption('__add');
   await expect(picker).toHaveValue(alice.vrchatId);
   await expect(login.getByLabel('VRChat username', { exact: true })).toHaveValue('');

@@ -167,7 +167,7 @@ func (s *Server) sitemap(w http.ResponseWriter, r *http.Request, name string) bo
 	return true
 }
 
-// buildSitemap renders one sitemap; found is false when it has no entries.
+// buildSitemap renders one sitemap. It returns found=false when there are no entries.
 func (s *Server) buildSitemap(r *http.Request, name string) (body []byte, found bool, err error) {
 	var buf bytes.Buffer
 	buf.WriteString(`<?xml version="1.0" encoding="UTF-8"?>` + "\n")
@@ -200,8 +200,8 @@ func (s *Server) buildSitemap(r *http.Request, name string) (body []byte, found 
 		}
 		defer rows.Close()
 		buf.WriteString(`<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`)
-		// A range with rows stays a valid (possibly empty) sitemap, because the
-		// index lists it; only a range past the catalog's end is missing.
+		// Keep a range with rows as a valid, possibly empty sitemap because the
+		// index lists it. Only a range past the catalog's end is missing.
 		scanned := 0
 		for rows.Next() {
 			var id, name, updated, data string

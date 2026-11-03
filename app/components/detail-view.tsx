@@ -44,7 +44,7 @@ import {
 
 // VRChat reads the instance ID from launch links without decoding it, so the
 // ":" between world and instance must stay literal. The server already limits
-// locations to these characters; this keeps anything else out of the link.
+// locations to these characters. Reject anything else before building the link.
 const launchable = /^wrld_[a-f0-9-]{36}:[A-Za-z0-9~()_.-]{1,200}$/;
 export function DetailView({
   coveAccount,
@@ -82,7 +82,7 @@ export function DetailView({
     if (page && main.data) window.scrollTo(0, 0);
   }, [page, kind, id, !!main.data]);
   const data = main.data ? { ...main.data, ...patch } : null;
-  // Secondary data: the profile's current world everywhere; lists only on full pages.
+  // Load the profile's current world in both views. Load its lists only on full pages.
   const place = useLoad(
     kind === 'user' && data?.location?.startsWith('wrld_')
       ? '/account/world?id=' + data.location.split(':')[0]
@@ -97,7 +97,7 @@ export function DetailView({
   );
   const userGroups = useLoad(page && kind === 'user' && data ? '/account/user-groups?id=' + id : null, user);
   // The avatar they are wearing, found by its picture's file ID. Only public
-  // avatars in VRCove's catalog match; copies can share a picture.
+  // avatars in VRCove's catalog can match. Copies can share a picture.
   const wornFile =
     kind === 'user' && data
       ? String(data.currentAvatarImageUrl || data.currentAvatarThumbnailImageUrl || '').match(
@@ -426,7 +426,7 @@ export function DetailView({
           <div className="bio-links">
             {safeLinks(u.bioLinks).map((l) => (
               <a key={l} className="text-link" href={l} target="_blank" rel="noreferrer nofollow">
-                {l.replace(/^https:\/\/(www\.)?/, '').slice(0, 60)}
+                {l.replace(/^https?:\/\/(www\.)?/i, '').slice(0, 60)}
                 <ExternalLink size={12} />
               </a>
             ))}
@@ -682,7 +682,7 @@ export function DetailView({
           <div className="bio-links">
             {safeLinks(g.links).map((l) => (
               <a key={l} className="text-link" href={l} target="_blank" rel="noreferrer nofollow">
-                {l.replace(/^https:\/\/(www\.)?/, '').slice(0, 60)}
+                {l.replace(/^https?:\/\/(www\.)?/i, '').slice(0, 60)}
                 <ExternalLink size={12} />
               </a>
             ))}

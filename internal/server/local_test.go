@@ -60,7 +60,7 @@ func TestLocalModeSignsInWithoutVRCoveAccount(t *testing.T) {
 		t.Fatalf("local /account/me = %d %s", w.Code, w.Body)
 	}
 
-	// VRCove's own features go to the website; nothing about them runs here.
+	// Route VRCove's own features to the website.
 	for _, path := range []string{"/catalog?q=robot", "/cove/me", "/logger/known", "/stats"} {
 		if w := h.do(get(path)); !strings.Contains(w.Body.String(), `"remote":true`) {
 			t.Errorf("%s was not forwarded: %s", path, w.Body)

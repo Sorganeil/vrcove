@@ -28,8 +28,8 @@ import (
 //go:embed all:frontend
 var frontendFiles embed.FS
 
-// defaultSite is the VRCove website; VRCOVE_SITE points a development build
-// at a local server instead.
+// defaultSite is the VRCove website. Development builds can use a local
+// server through VRCOVE_SITE.
 const defaultSite = "https://vrcove.st"
 
 func main() {
@@ -157,7 +157,7 @@ func main() {
 	if icon != nil {
 		tray.SetIcon(icon)
 	}
-	// Linux trays show the label as the name; without it Wails says "Wails".
+	// Set the Linux tray label to VRCove. Wails otherwise uses its own name.
 	tray.SetLabel("VRCove")
 	tray.SetTooltip("VRCove")
 	menu := app.NewMenu()

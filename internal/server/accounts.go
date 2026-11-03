@@ -27,7 +27,7 @@ import (
 
 // VRCove accounts are separate from VRChat: a username and an Argon2id
 // password hash, nothing else. No email, IP address or user agent is stored.
-// They live in their own writable SQLite file; browsing uses a read-only catalog.
+// Accounts use a separate writable SQLite file. Browsing uses a read-only catalog.
 //
 // Linked VRChat accounts are private to their owner. The VRChat user ID is
 // stored only as an HMAC (for uniqueness and the self-review check) and as an
@@ -242,7 +242,7 @@ func (s *Server) readAccount(r *http.Request) (*account, error) {
 		return nil, nil
 	}
 	var a account
-	// Banned and suspended accounts are signed out by moderation; this check
+	// Moderation signs out banned and suspended accounts. This check
 	// also covers sessions created before a suspension started.
 	now := s.now().Unix()
 	err = s.accounts.QueryRowContext(r.Context(), `SELECT a.id, a.username, a.role FROM account_sessions s JOIN accounts a ON a.id = s.account_id
@@ -702,9 +702,9 @@ func (s *Server) changePassword(w http.ResponseWriter, r *http.Request, a *accou
 	return nil
 }
 
-// changeUsername renames the account after a password check. Reviews,
-// collections and links follow, because they refer to the account ID; the old
-// name is freed at once.
+// changeUsername checks the password before renaming the account. Reviews,
+// collections and links use the account ID, so they keep the same owner.
+// The old name becomes available immediately.
 func (s *Server) changeUsername(w http.ResponseWriter, r *http.Request, a *account) error {
 	if !s.limiter.allow(reauthKey(a), s.now()) {
 		return errStatus(http.StatusTooManyRequests, "Too many attempts. Wait 10 minutes.")

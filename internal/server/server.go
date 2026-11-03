@@ -27,8 +27,8 @@ import (
 	"github.com/Sorganeil/vrcove/vrchat"
 )
 
-// Config is the runtime configuration. SessionKey, Contact and the database
-// are optional; account features stay disabled without them.
+// Config holds runtime settings. Account features need SessionKey, Contact
+// and the database. They stay disabled if any are missing.
 type Config struct {
 	// PublicOrigin is the origin browsers use, e.g. https://vrcove.example.
 	// Behind a tunnel the server only sees plain HTTP, so the origin check and
@@ -46,7 +46,7 @@ type Config struct {
 	Accounts   *sql.DB
 	AccountKey []byte
 	// TurnstileSiteKey and TurnstileSecret enable Cloudflare Turnstile on
-	// registration. Both must be set; without them signup has no challenge.
+	// registration. Signup has a challenge only when both are set.
 	TurnstileSiteKey string
 	TurnstileSecret  string
 	// Logger is an optional, separately authenticated ingestion service. The
@@ -82,10 +82,10 @@ type Server struct {
 	// imageSlots bounds concurrent image fetches from VRChat.
 	imageSlots chan struct{}
 	// Client sends every upstream request. Redirects are never followed
-	// automatically; the image proxy re-validates each hop itself.
+	// automatically. The image proxy validates each hop itself.
 	Client *http.Client
 	now    func() time.Time
-	// live counts open live-notification relays; dialPipeline opens VRChat's
+	// live counts open notification relays. dialPipeline opens VRChat's
 	// pipeline and is replaced in tests.
 	live         liveStreams
 	dialPipeline func(ctx context.Context, auth string) (Pipeline, error)
@@ -273,7 +273,7 @@ func clientIP(r *http.Request) string {
 	return host
 }
 
-// clientKey identifies the client for rate limiting; see rateKey.
+// clientKey uses rateKey to identify a client for rate limiting.
 func clientKey(r *http.Request) string { return rateKey(clientIP(r)) }
 
 // queryInt mirrors the old clamp(Number(value)||0) parsing of numeric query parameters.

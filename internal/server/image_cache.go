@@ -21,8 +21,8 @@ const (
 
 // imageCache is a size-bounded LRU of proxied images that also merges
 // concurrent fetches of the same image. Images fetched without credentials are
-// shared by everyone; images fetched with a viewer's cookie are keyed by that
-// VRChat user and never served to anyone else.
+// shared by everyone. Images fetched with a viewer's cookie are cached for
+// that VRChat user and never served to anyone else.
 type imageCache struct {
 	mu      sync.Mutex
 	entries map[string]*list.Element
@@ -112,8 +112,8 @@ func (c *imageCache) remove(el *list.Element) {
 
 func entrySize(e *imageEntry) int { return len(e.key) + len(e.img.body) }
 
-// do runs fetch once per key at a time; concurrent callers wait for and share
-// the first caller's result. A waiter whose request ends stops waiting.
+// do runs one fetch per key at a time. Concurrent callers share its result
+// unless their own requests end first.
 func (c *imageCache) do(ctx context.Context, key string, fetch func() (imageResult, error)) (imageResult, error) {
 	c.mu.Lock()
 	if f := c.flights[key]; f != nil {

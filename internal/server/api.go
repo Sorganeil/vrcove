@@ -3,6 +3,7 @@ package server
 import (
 	"errors"
 	"net/http"
+	"net/url"
 	"regexp"
 	"slices"
 	"strings"
@@ -81,8 +82,8 @@ func (s *Server) handleAPI(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) route(w http.ResponseWriter, r *http.Request, p string) error {
 	post := r.Method == http.MethodPost
-	// On the device only VRChat routes and pictures run here; VRCove's own
-	// features, such as the catalog and accounts, stay on the website.
+	// In the desktop app, this server handles VRChat routes and pictures.
+	// The catalog and VRCove accounts stay on the website.
 	if s.cfg.Local && !strings.HasPrefix(p, "/account/") && p != "/image" {
 		s.cfg.Remote.ServeHTTP(w, r)
 		return nil
@@ -363,6 +364,7 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, sessi
 			return err
 		}
 		patch := map[string]string{}
+		profilePatch := &vrchat.UpdateProfileRequest{}
 		if v, present := input["status"]; present {
 			status, _ := v.(string)
 			if !slices.Contains([]string{"active", "join me", "ask me", "busy"}, status) {
@@ -384,7 +386,34 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, sessi
 				patch[f.key] = text
 			}
 		}
-		if len(patch) == 0 {
+		if v, present := input["bioLinks"]; present {
+			links, ok := v.([]any)
+			if !ok {
+				writeError(w, http.StatusBadRequest, "Invalid bioLinks")
+				return nil
+			}
+			bioLinks := make([]string, 0, len(links))
+			for _, v := range links {
+				link, ok := v.(string)
+				if !ok {
+					writeError(w, http.StatusBadRequest, "Invalid bioLinks")
+					return nil
+				}
+				link = strings.TrimSpace(link)
+				u, err := url.Parse(link)
+				if err != nil || u.Hostname() == "" || (u.Scheme != "http" && u.Scheme != "https") {
+					writeError(w, http.StatusBadRequest, "Enter a valid http:// or https:// URL for each social link.")
+					return nil
+				}
+				bioLinks = append(bioLinks, link)
+			}
+			profilePatch.BioLinks = &bioLinks
+		}
+		if bio, present := patch["bio"]; present {
+			profilePatch.Bio = vrchat.Ptr(bio)
+			delete(patch, "bio")
+		}
+		if len(patch) == 0 && profilePatch.Bio == nil && profilePatch.BioLinks == nil {
 			writeError(w, http.StatusBadRequest, "No profile changes supplied")
 			return nil
 		}
@@ -397,8 +426,6 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, sessi
 		if !userID.MatchString(id) {
 			return errStatus(http.StatusBadGateway, "VRChat returned an unexpected account.")
 		}
-		bio, hasBio := patch["bio"]
-		delete(patch, "bio")
 		if len(patch) > 0 {
 			result, updates, err = s.vrc(r.Context(), session, vrchat.UpdateUser(id, userPatch(patch)))
 			if err != nil {
@@ -407,8 +434,8 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, sessi
 			session.apply(updates)
 		}
 		out := publicUser(result)
-		if hasBio {
-			profile, updates, err := s.vrc(r.Context(), session, vrchat.UpdateProfile(id, &vrchat.UpdateProfileRequest{Bio: vrchat.Ptr(bio)}))
+		if profilePatch.Bio != nil || profilePatch.BioLinks != nil {
+			profile, updates, err := s.vrc(r.Context(), session, vrchat.UpdateProfile(id, profilePatch))
 			if err != nil {
 				return err
 			}

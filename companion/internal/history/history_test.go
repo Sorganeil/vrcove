@@ -63,7 +63,7 @@ func TestGameLogHistory(t *testing.T) {
 		t.Fatalf("people = %+v", v.People)
 	}
 
-	// The rest of the file arrives later; a second pass reads only new lines.
+	// Append the rest of the file and check that the second pass reads only new lines.
 	os.WriteFile(log, []byte(first+"ined Zoe ("+zoe+")\n2026.10.25 18:10:00 Log        -  [Behaviour] OnLeftRoom\n"), 0o600)
 	if err := s.ReadLogs(ctx, dir); err != nil {
 		t.Fatal(err)

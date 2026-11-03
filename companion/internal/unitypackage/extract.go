@@ -28,7 +28,7 @@ type Result struct {
 }
 
 // Extract uses a fresh directory inside destination. Partial output is removed
-// on failure. Packages are read as data; scripts and editor hooks never run.
+// on failure. Read packages as data without running scripts or editor hooks.
 func Extract(ctx context.Context, source, destination string, metadata bool) (result Result, err error) {
 	f, err := os.Open(source)
 	if err != nil {

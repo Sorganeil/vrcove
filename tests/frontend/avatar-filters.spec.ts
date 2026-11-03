@@ -88,6 +88,60 @@ test('a shared filtered search link opens with its filters', async ({ page }) =>
   await expect(page).toHaveURL(/\/avatars\?author=Kit\+Maker$/);
 });
 
+test('browse tags toggle without changing the rest of the search', async ({ page }) => {
+  const seen = await catalog(page);
+  await page.goto('/avatars?q=scout&author=Kit+Maker');
+  await page.getByRole('button', { name: /^Filters/ }).click();
+  await page.getByLabel('Performance rating').selectOption('Good+');
+  await page.getByLabel('Hide horror').check();
+  const tags = page.getByRole('group', { name: 'Browse by tag' });
+  const furry = tags.getByRole('button', { name: 'Furry', exact: true });
+  await furry.click();
+  await expect(furry).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByLabel('Filter by tag')).toHaveValue('furry');
+  await lastWith(
+    seen,
+    (p) =>
+      p.get('tag') === 'furry' &&
+      p.get('q') === 'scout' &&
+      p.get('author') === 'Kit Maker' &&
+      p.get('rating') === 'Good+' &&
+      p.get('hide') === 'horror',
+  );
+
+  const faceTracking = tags.getByRole('button', { name: 'Face tracking', exact: true });
+  await faceTracking.click();
+  await expect(furry).toHaveAttribute('aria-pressed', 'false');
+  await expect(faceTracking).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByLabel('Filter by tag')).toHaveValue('face tracking');
+  await expect(page).toHaveURL(/tag=face\+tracking/);
+  await page.reload();
+  await expect(faceTracking).toHaveAttribute('aria-pressed', 'true');
+  await faceTracking.click();
+  await expect(faceTracking).toHaveAttribute('aria-pressed', 'false');
+  await expect(page).not.toHaveURL(/tag=/);
+  await lastWith(seen, (p) => !p.has('tag') && p.get('q') === 'scout' && p.get('author') === 'Kit Maker');
+});
+
+test('tag browsing fits a narrow phone screen', async ({ page }) => {
+  await catalog(page);
+  await page.setViewportSize({ width: 320, height: 844 });
+  await page.goto('/avatars?tag=furry');
+  const tags = page.getByRole('group', { name: 'Browse by tag' });
+  await expect(tags.getByRole('button', { name: 'Furry', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  for (const button of await tags.getByRole('button').all()) {
+    await expect(button).toBeVisible();
+    const bounds = (await button.boundingBox())!;
+    expect(bounds.x).toBeGreaterThanOrEqual(0);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(320);
+    expect(bounds.height).toBeGreaterThanOrEqual(40);
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+});
+
 test('collection items open in the quick view instead of leaving the page', async ({ page }) => {
   await catalog(page);
   const id = 'AbCdEfGhIjKlMnOp';

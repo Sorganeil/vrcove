@@ -220,8 +220,8 @@ func Run(ctx context.Context, path string, s *logger.State, commands <-chan Comm
 				paused = true
 				s.Status = "Paused"
 			case "config":
-				// A new server or key gets a fresh start; other settings keep
-				// any rate-limit wait.
+				// Clear the rate-limit wait when the server or key changes.
+				// Keep it for other settings changes.
 				if c.Config.Server != s.Config.Server || c.Config.Token != s.Config.Token {
 					s.RetryAt, s.Failures, s.RetryReason = time.Time{}, 0, ""
 				}

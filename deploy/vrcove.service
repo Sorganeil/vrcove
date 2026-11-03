@@ -1,5 +1,5 @@
 # /etc/systemd/system/vrcove.service
-# Serves VRCove on a Unix socket only; cloudflared is the sole way in.
+# Serve VRCove on a Unix socket. All inbound requests go through cloudflared.
 [Unit]
 Description=VRCove
 After=network-online.target
@@ -8,7 +8,7 @@ Wants=network-online.target
 [Service]
 User=vrcove
 Group=vrcove
-# PUBLIC_ORIGIN, SESSION_KEY, VRC_CONTACT, ACCOUNT_KEY; chmod 600, owned by root.
+# Set PUBLIC_ORIGIN, SESSION_KEY, VRC_CONTACT and ACCOUNT_KEY. Use chmod 600 and root ownership.
 EnvironmentFile=/etc/vrcove/env
 Environment=LISTEN_ADDR=unix:/run/vrcove/vrcove.sock
 Environment=DATABASE_PATH=/var/lib/vrcove/catalog.sqlite
@@ -41,7 +41,7 @@ MemoryDenyWriteExecute=true
 CapabilityBoundingSet=
 SystemCallArchitectures=native
 SystemCallFilter=@system-service
-# Unix for the socket; INET/INET6 for outbound calls to VRChat.
+# Use Unix for the socket and INET/INET6 for outbound calls to VRChat.
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
 
 [Install]

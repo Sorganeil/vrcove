@@ -42,6 +42,15 @@ const sorts = [
   ['rating', 'Best performance'],
 ] as const;
 
+const browseTags = [
+  ['furry', 'Furry'],
+  ['anime', 'Anime'],
+  ['robot', 'Robots'],
+  ['protogen', 'Protogens'],
+  ['chibi', 'Chibi'],
+  ['face tracking', 'Face tracking'],
+] as const;
+
 // The last filters, restored when returning to avatar search during the visit.
 let remembered: Filters = defaults;
 
@@ -84,13 +93,19 @@ export default function AvatarResults({ input, setInput, query, submit }: Search
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
   const { platform, rating, author, tag, hide, fallbackOnly } = filters;
-  // Best match needs a search; without one the newest come first.
+  // Use best match for a search and newest first when browsing.
   const chosen = filters.sort ?? (query ? 'relevance' : 'newest');
   const sort = chosen === 'relevance' && !query ? 'newest' : chosen;
 
   function update(patch: Partial<Filters>) {
     setFilters((f) => ({ ...f, ...patch }));
     setPage(0);
+  }
+
+  function chooseTag(tag: string) {
+    const next = filters.tag === tag ? '' : tag;
+    setTagInput(next);
+    update({ tag: next });
   }
 
   // Creator and tag filters apply after a short pause.
@@ -303,6 +318,23 @@ export default function AvatarResults({ input, setInput, query, submit }: Search
           </button>
         </div>
       )}
+      <div className="avatar-tag-browse">
+        <span id="avatar-tag-label">{tr('Browse by tag')}</span>
+        <div className="chips" role="group" aria-labelledby="avatar-tag-label">
+          {browseTags.map(([tag, label]) => (
+            <button
+              key={tag}
+              type="button"
+              className={filters.tag === tag ? 'chosen' : ''}
+              aria-pressed={filters.tag === tag}
+              onClick={() => chooseTag(tag)}
+            >
+              {tr(label)}
+            </button>
+          ))}
+        </div>
+        <small>{tr('Tags come from creators and may be incomplete.')}</small>
+      </div>
       {(author || tag) && (
         <div className="active-filters">
           {author && (

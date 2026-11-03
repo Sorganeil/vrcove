@@ -82,7 +82,7 @@ export default function SessionNotices() {
   );
 }
 
-/** The active VRChat account picker in the header; Manage accounts is in the same menu. */
+/** Header account picker with a Manage accounts option. */
 export function AccountSwitcher({
   onSwitch,
   switching,

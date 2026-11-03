@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build/package by default; only --publish writes to GitHub. Never creates tags.
+# Build and package by default. Only --publish writes to GitHub. Never create tags.
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -47,7 +47,7 @@ go vet $packages
 command -v wails3 >/dev/null || { echo 'Release builds need the Wails CLI (wails3) matching go.mod.' >&2; exit 1; }
 bash build.sh linux
 SKIP_FRONTEND_BUILD=1 bash build.sh windows
-# This path must work headlessly; metadata is checked before packaging.
+# Check the embedded metadata without opening a window before packaging.
 desktop_version_output=$(dist/vrcove-desktop --version)
 [[ "$desktop_version_output" == "VRCove Desktop $tag ("* ]] || { echo 'Embedded desktop version did not match the release tag.' >&2; exit 1; }
 python3 package-release.py "$tag"

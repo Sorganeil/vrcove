@@ -29,11 +29,11 @@ export function appLink(path: string, before?: () => void) {
   };
 }
 
-// Avatar quick view from anywhere; Atlas looks up the avatar and opens its modal.
+// Ask Atlas to look up the avatar and open its quick view.
 export function openAvatar(id: string) {
   window.dispatchEvent(new CustomEvent<string>('vrcove:avatar', { detail: id }));
 }
-// Quick view for any catalog or VRChat entity; DetailHost and Atlas render the modals.
+// Open an entity through the quick views in Atlas and DetailHost.
 export function openQuickView(kind: EntityKind, id: string) {
   if (kind === 'avatar') openAvatar(id);
   else window.dispatchEvent(new CustomEvent('vrcove:detail', { detail: { kind, id } }));

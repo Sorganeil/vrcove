@@ -22,8 +22,8 @@ import (
 // be opened by its unguessable link either way, but it names its owner only
 // when the owner's profile is public. Linked VRChat accounts never appear.
 
-// accountMigrations run in order; PRAGMA user_version records how many have
-// been applied, so existing databases upgrade in place.
+// Apply accountMigrations in order. PRAGMA user_version records how many
+// have run so existing databases can upgrade in place.
 var accountMigrations = []string{
 	`ALTER TABLE accounts ADD COLUMN public INTEGER NOT NULL DEFAULT 0;
 	ALTER TABLE accounts ADD COLUMN bio TEXT NOT NULL DEFAULT '';
@@ -180,7 +180,7 @@ func (s *Server) targetName(ctx context.Context, kind, id, supplied string) stri
 	return name
 }
 
-// social routes the profile and collection endpoints; acct may be nil.
+// social routes profile and collection endpoints, including requests with a nil acct.
 func (s *Server) social(w http.ResponseWriter, r *http.Request, p string, acct *account) (bool, error) {
 	post := r.Method == http.MethodPost
 	switch {

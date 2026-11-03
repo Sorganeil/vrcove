@@ -75,7 +75,7 @@ func (s *Server) accountData(ctx context.Context, a *account) (map[string]any, e
 		picture = "data:image/png;base64," + base64.StdEncoding.EncodeToString(image)
 	}
 
-	// Linked VRChat accounts are sealed; their sessions refer to them by an HMAC.
+	// Linked VRChat accounts are encrypted. Sessions identify them by HMAC.
 	links, linkNames := []map[string]any{}, map[string]string{}
 	rows, err := db.QueryContext(ctx, "SELECT sealed, created FROM vrchat_links WHERE account_id = ? ORDER BY id", a.ID)
 	if err != nil {

@@ -1,6 +1,6 @@
 // Command vrcove serves the VRCove frontend and API from one binary.
 //
-// Configuration comes from the environment; see README.md.
+// Read configuration from the environment as described in README.md.
 package main
 
 import (
@@ -42,7 +42,7 @@ func listen(addr string, tunnelOnly bool) (net.Listener, error) {
 		if err != nil {
 			return nil, err
 		}
-		// Owner and group only; run cloudflared in the service's group.
+		// Allow only the owner and group. Run cloudflared in the service's group.
 		if err := os.Chmod(path, 0o660); err != nil {
 			ln.Close()
 			return nil, err

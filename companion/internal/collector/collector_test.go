@@ -75,8 +75,7 @@ func collectWhileBlocked(t *testing.T, stage string) {
 			t.Error(err)
 			return
 		}
-		// With burst pacing the next batch goes out at once; hold it so the
-		// later ID stays queued.
+		// Hold the next burst batch so the later ID stays queued.
 		if !slices.Equal(body.IDs, []string{first}) {
 			<-r.Context().Done()
 			return

@@ -1,6 +1,6 @@
 # Wails build configuration for VRCove Desktop. `wails3 build` runs the
 # `build` task for the target OS (GOOS=windows cross-builds from Linux).
-# LDFLAGS adds version details; companion/build.sh passes them.
+# companion/build.sh passes version details through LDFLAGS.
 version: '3'
 
 vars:

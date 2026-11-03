@@ -89,7 +89,7 @@ export function ReviewList({ kind, id, name }: ReviewTarget) {
       .catch((e) => {
         setError(e.status === 503 ? 'disabled' : e.message);
       });
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once per target; ReviewList is keyed by it
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once per target because ReviewList uses the target as its key
   useEffect(() => {
     load();
   }, []);

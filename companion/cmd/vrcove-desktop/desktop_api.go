@@ -126,8 +126,8 @@ func (d *desktop) hasHistory(w http.ResponseWriter) bool {
 	return d.history != nil
 }
 
-// analyticsFolder is VRChat's analytics folder as the logger has it; the log
-// and screenshot folders are found next to it.
+// analyticsFolder returns the logger's VRChat analytics folder. The log and
+// screenshot folders are next to it.
 func (d *desktop) analyticsFolder() string {
 	if d.logger != nil {
 		d.logger.mu.Lock()

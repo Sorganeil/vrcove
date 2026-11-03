@@ -11,7 +11,7 @@ const (
 	signInWindow   = 10 * time.Minute
 	// accountFailures is the per-username backstop against password spraying
 	// from many addresses. It is far above signInAttempts so a single client
-	// cannot lock someone out; that client hits its own limits first.
+	// cannot lock someone out. That client hits its own limits first.
 	accountFailures = 100
 	// maxBuckets bounds the limiter's memory whatever the key spread.
 	maxBuckets = 50000

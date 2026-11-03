@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS friends (owner TEXT NOT NULL DEFAULT '', user_id TEXT
 // Store is the local history database.
 type Store struct {
 	db *sql.DB
-	// mu serializes writers; SQLite allows one at a time anyway.
+	// mu serializes writes because SQLite allows only one writer at a time.
 	mu         sync.Mutex
 	legacyFeed bool
 }
@@ -153,7 +153,7 @@ type Encounter struct {
 	Avatar      string `json:"avatar,omitempty"`
 }
 
-// Visits lists visits that started before `before` (Unix ms; 0 for now),
+// Visits lists visits that started before `before` (Unix ms, or 0 for now),
 // newest first. q filters by world or person name.
 func (s *Store) Visits(ctx context.Context, before int64, q string, limit int) ([]Visit, error) {
 	if before <= 0 {

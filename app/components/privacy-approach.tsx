@@ -49,7 +49,7 @@ export default function PrivacyApproach() {
       </p>
       <p>
         {tr(
-          'VRCove reviews are public. Profiles start private; making one public shares your bio, reviews and public collections. Anyone with a public collection’s link can view it. Linked VRChat accounts stay private and encrypted, though the server operator can decrypt them. Choose an unrelated VRCove username to reduce correlation; this cannot guarantee anonymity.',
+          'VRCove reviews are public. Profiles start private. Making one public shares your bio, reviews and public collections. Anyone with a public collection’s link can view it. Linked VRChat accounts stay private and encrypted, though the server operator can decrypt them. Choose an unrelated VRCove username to reduce correlation. This cannot guarantee anonymity.',
         )}
       </p>
       <p className="privacy-source">

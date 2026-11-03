@@ -171,7 +171,7 @@ func TestReportsKeepEvidenceAndBannedContentDisappears(t *testing.T) {
 	if w := report(reporter, `{"kind":"profile","username":"REVIEW_AUTHOR","reason":"spam"}`); w.Code != 200 {
 		t.Fatalf("profile report: %d %s", w.Code, w.Body)
 	}
-	// The author edits the review; the report keeps what was reported.
+	// Keep the reported review text when the author edits the review.
 	h.do(as(post("/cove/review", jsonBody(`{"kind":"world","id":"`+testWorld+`","rating":1,"body":"edited","name":"Cabin"}`)), author))
 	var open struct {
 		Reports []struct {

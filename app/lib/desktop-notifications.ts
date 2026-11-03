@@ -78,7 +78,7 @@ function describe(n: VRChatNotification) {
   }
 }
 
-/** Shows one desktop notification; clicking it opens the Notifications page. */
+/** Show a desktop notification that opens the Notifications page when clicked. */
 export async function showDesktopNotification(title: string, body: string, tag: string) {
   const options = { body, tag, icon: '/icon-192.png' };
   try {
@@ -176,7 +176,7 @@ export function useDesktopNotifications(userId: string | undefined) {
         if (!stop.signal.aborted) await catchUp(userId).catch(() => undefined);
       }
     };
-    // Opens the live feed and resolves once it closes; true if it stayed up for a while.
+    // Resolve when the live feed closes, with true if it stayed connected long enough.
     const listen = () =>
       new Promise<boolean>((resolve) => {
         const opened = Date.now();

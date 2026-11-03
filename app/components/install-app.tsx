@@ -9,7 +9,7 @@ type PromptEvent = Event & {
 const standalone = () =>
   window.matchMedia?.('(display-mode: standalone)').matches ||
   (navigator as { standalone?: boolean }).standalone === true;
-// iPhone and iPad browsers have no install prompt; they use Add to Home Screen.
+// On iPhone and iPad, use Add to Home Screen to install the app.
 const appleMobile = () =>
   /iPad|iPhone|iPod/.test(navigator.userAgent) ||
   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);

@@ -5,7 +5,7 @@ import { t as tr, useLocale } from '../lib/i18n';
 import Modal from './modal';
 import type { VRChatUser } from '../lib/types';
 
-// Edits the VRChat status and bio of the connected account.
+// Edits the VRChat status, bio and social links of the connected account.
 export default function ProfileEditor({
   user,
   close,
@@ -17,6 +17,8 @@ export default function ProfileEditor({
 }) {
   useLocale();
   const [bio, setBio] = useState(user.bio || ''),
+    [links, setLinks] = useState(''),
+    [originalLinks, setOriginalLinks] = useState(''),
     [status, setStatus] = useState(
       ['active', 'join me', 'ask me', 'busy'].includes(user.status ?? '') ? user.status! : 'active',
     ),
@@ -30,6 +32,9 @@ export default function ProfileEditor({
       .then((profile) => {
         if (!alive) return;
         setBio(profile.bio || '');
+        const bioLinks = (profile.bioLinks || []).join('\n');
+        setLinks(bioLinks);
+        setOriginalLinks(bioLinks);
         setStatus(
           ['active', 'join me', 'ask me', 'busy'].includes(profile.status) ? profile.status : 'active',
         );
@@ -46,10 +51,33 @@ export default function ProfileEditor({
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!loaded) return;
+    const bioLinks = links
+      .split('\n')
+      .map((link) => link.trim())
+      .filter(Boolean);
+    if (
+      links !== originalLinks &&
+      bioLinks.some((link) => {
+        try {
+          const url = new URL(link);
+          return !['http:', 'https:'].includes(url.protocol) || !url.hostname;
+        } catch {
+          return true;
+        }
+      })
+    ) {
+      setError(tr('Enter a valid http:// or https:// URL for each social link.'));
+      return;
+    }
     setSaving(true);
     setError('');
     try {
-      const next = await api('/account/profile', { bio, status, statusDescription: description });
+      const next = await api('/account/profile', {
+        bio,
+        status,
+        statusDescription: description,
+        ...(links !== originalLinks ? { bioLinks } : {}),
+      });
       updated(next);
     } catch (e) {
       setError((e as Error).message);
@@ -98,6 +126,20 @@ export default function ProfileEditor({
               rows={5}
             />
             <small>{bio.length}/512</small>
+          </label>
+          <label className="notes-panel">
+            {tr('Social links')}
+            <textarea
+              value={links}
+              onChange={(e) => setLinks(e.target.value)}
+              disabled={saving || !loaded}
+              rows={3}
+              placeholder="https://example.com"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+            />
+            <small>{tr('One http:// or https:// link per line. Leave empty to remove all links.')}</small>
           </label>
           {error && (
             <div className="form-error" role="alert">

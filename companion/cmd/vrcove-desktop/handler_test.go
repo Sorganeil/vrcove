@@ -33,7 +33,7 @@ func newTestDesktop(t *testing.T, site *url.URL) *desktop {
 func do(d *desktop, method, path, body string) *httptest.ResponseRecorder {
 	r := httptest.NewRequest(method, "http://wails.localhost"+path, strings.NewReader(body))
 	r.Header.Set("Content-Type", "application/json")
-	// The window's own cookies are ignored; the app keeps its own.
+	// Ignore the window's cookies and use the app's cookie store.
 	r.AddCookie(&http.Cookie{Name: "atlas-vrc-local", Value: "from-the-window"})
 	w := httptest.NewRecorder()
 	d.ServeHTTP(w, r)
@@ -65,7 +65,7 @@ func TestDesktopKeepsVRChatOnTheDevice(t *testing.T) {
 			Body: io.NopCloser(strings.NewReader(`{"id":"usr_00000000-0000-0000-0000-000000000001","username":"tester","displayName":"Tester","releaseStatus":"public"}`))}, nil
 	})
 
-	// Pages fall back to the app shell; files are served as they are.
+	// Serve the app shell for pages and return files unchanged.
 	w := do(d, "GET", "/settings", "")
 	if !strings.Contains(w.Body.String(), "<title>VRCove") || !strings.Contains(w.Header().Get("Content-Security-Policy"), "script-src 'self'") {
 		t.Fatalf("page = %d %q csp=%q", w.Code, w.Body, w.Header().Get("Content-Security-Policy"))
