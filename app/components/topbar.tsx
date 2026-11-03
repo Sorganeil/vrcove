@@ -16,7 +16,7 @@ export default function Topbar({
 }: {
   onMenu: () => void;
   onSearch: () => void;
-  /** The VRChat account picker, placed on its own row on mobile. */
+  /** The VRChat account picker, sized to fit alongside the other controls. */
   accounts?: ReactNode;
 }) {
   useLocale();

@@ -25,8 +25,9 @@ test('mobile header controls do not overlap and dashboard cards fill the column'
   await page.route('**/api/catalog?*', (r) => r.fulfill({ json: { avatars: [], total: 0 } }));
   await page.goto('/');
   await expect(page.locator('.dashboard-aside > section')).toHaveCount(3);
-  for (const width of [320, 360, 390, 430, 650]) {
+  for (const width of [320, 360, 375, 390, 430, 650]) {
     await page.setViewportSize({ width, height: 844 });
+    expect((await page.locator('.topbar').boundingBox())!.height).toBe(62);
     const controls = page.locator(
       '.mobile-menu, .topbar-home, .topbar .vrchat-account-switcher, .topbar .language-picker, .header-search, .account-chip',
     );
@@ -40,6 +41,7 @@ test('mobile header controls do not overlap and dashboard cards fill the column'
       expect(box.width).toBeGreaterThan(0);
       expect(box.x).toBeGreaterThanOrEqual(0);
       expect(box.x + box.width).toBeLessThanOrEqual(width);
+      expect(box.y + box.height / 2).toBeCloseTo(boxes[0].y + boxes[0].height / 2, 0);
       for (const other of boxes.slice(i + 1)) {
         const overlapX = Math.min(box.x + box.width, other.x + other.width) - Math.max(box.x, other.x);
         const overlapY = Math.min(box.y + box.height, other.y + other.height) - Math.max(box.y, other.y);
