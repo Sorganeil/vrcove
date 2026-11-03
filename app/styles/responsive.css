@@ -342,7 +342,24 @@
     gap: 17px;
   }
   .dashboard-aside {
-    display: flex;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .status-editor input,
+  .status-editor select {
+    min-width: 0;
+    min-height: 44px;
+    font-size: 16px;
+  }
+  .status-editor .primary {
+    min-height: 44px;
+  }
+  .dash-self > div {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .dash-self > img,
+  .dash-self > .dash-photo-fallback {
+    flex-shrink: 0;
   }
   .panel-title {
     min-height: 48px;

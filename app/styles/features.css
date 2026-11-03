@@ -87,6 +87,35 @@
   display: none;
 }
 @media (max-width: 650px) {
+  .topbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    height: auto;
+    min-height: 62px;
+    padding: 10px 17px;
+  }
+  .topbar .breadcrumb {
+    gap: 4px;
+  }
+  .topbar > .vrchat-account-switcher {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    min-width: 0;
+  }
+  .topbar > .vrchat-account-switcher select {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    min-height: 44px;
+    font-size: 16px;
+    text-overflow: ellipsis;
+  }
+  .topbar .top-actions {
+    grid-column: 2;
+    grid-row: 1;
+    gap: 6px;
+  }
   .topbar-home {
     display: flex;
     align-items: center;
