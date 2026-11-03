@@ -26,3 +26,20 @@ jobs:
           cache-dependency-path: vrchat/go.sum
       - run: go test -race ./...
       - run: go vet ./...
+      - name: Set up generator tools
+        run: |
+          python3 -m venv "$RUNNER_TEMP/vrchat-sdk-tools"
+          "$RUNNER_TEMP/vrchat-sdk-tools/bin/pip" install -r tools/requirements.txt
+      - name: Test generator and source formatting
+        run: |
+          "$RUNNER_TEMP/vrchat-sdk-tools/bin/python" -m unittest discover -s tools -p test_generate.py
+          "$RUNNER_TEMP/vrchat-sdk-tools/bin/black" --check tools
+          test -z "$(gofmt -l .)"
+      - name: Check reproducible endpoint generation
+        run: |
+          git init "$RUNNER_TEMP/vrchat-spec"
+          git -C "$RUNNER_TEMP/vrchat-spec" remote add origin https://github.com/vrchatapi/specification.git
+          git -C "$RUNNER_TEMP/vrchat-spec" fetch --depth 1 origin 3656fce60438134a94f9cb9fff98608aacb250c9
+          git -C "$RUNNER_TEMP/vrchat-spec" checkout --detach FETCH_HEAD
+          "$RUNNER_TEMP/vrchat-sdk-tools/bin/python" tools/generate.py --spec-dir "$RUNNER_TEMP/vrchat-spec"
+          git diff --exit-code -- endpoints_generated.go models_generated.go coverage.json

@@ -34,11 +34,9 @@ func (s *Server) vrchatClient() (*vrchat.Client, error) {
 	return vrchat.New(vrchat.Config{HTTPClient: s.Client, UserAgent: s.userAgent()})
 }
 
-type vrcRequest = vrchat.Request
-
 // vrc applies VRCove's cooldown, session failure and persistence policies around
 // the reusable client. Upstream response bodies never reach browser errors.
-func (s *Server) vrc(ctx context.Context, path string, session *Session, req vrcRequest) (any, sessionUpdates, error) {
+func (s *Server) vrc(ctx context.Context, session *Session, call vrchat.Call) (any, sessionUpdates, error) {
 	var updates sessionUpdates
 	if s.cfg.Contact == "" {
 		return nil, updates, fmt.Errorf("VRChat connection needs a configured operator contact")
@@ -51,7 +49,7 @@ func (s *Server) vrc(ctx context.Context, path string, session *Session, req vrc
 	if err != nil {
 		return nil, updates, err
 	}
-	data, updates, err := client.Do(ctx, path, vrchatTokens(session), req)
+	data, updates, err := client.Call(ctx, vrchatTokens(session), call)
 	var apiErr *vrchat.APIError
 	if errors.As(err, &apiErr) {
 		msg := apiErr.Error()

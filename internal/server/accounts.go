@@ -21,6 +21,7 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/Sorganeil/vrcove/vrchat"
 	"golang.org/x/crypto/argon2"
 )
 
@@ -802,7 +803,7 @@ func (s *Server) linkVRChat(w http.ResponseWriter, r *http.Request, a *account) 
 		writeError(w, http.StatusUnauthorized, "Connect the VRChat account you want to link first.")
 		return nil
 	}
-	me, updates, err := s.vrc(r.Context(), "/auth/user", session, vrcRequest{})
+	me, updates, err := s.vrc(r.Context(), session, vrchat.GetCurrentUser())
 	if err != nil {
 		return err
 	}

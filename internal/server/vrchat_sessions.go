@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/Sorganeil/vrcove/vrchat"
 )
 
 // Each browser's VRChat connection normally lives in that browser's sealed
@@ -193,7 +195,7 @@ func (s *Server) endVRChatSession(w http.ResponseWriter, r *http.Request, a *acc
 			continue
 		}
 		if !loggedOut && session.Auth != "" && session.Expires > s.now().UnixMilli() {
-			s.vrc(r.Context(), "/logout", session, vrcRequest{Method: http.MethodPut})
+			s.vrc(r.Context(), session, vrchat.Logout())
 			loggedOut = true
 		}
 		s.clearNamedSession(w, c.Name)

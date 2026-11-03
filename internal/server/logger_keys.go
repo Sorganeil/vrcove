@@ -10,6 +10,8 @@ import (
 	"errors"
 	"net/http"
 	"regexp"
+
+	"github.com/Sorganeil/vrcove/vrchat"
 )
 
 var loggerKeyPattern = regexp.MustCompile(`^Bearer vrcove_logger_[A-Za-z0-9_-]{43}$`)
@@ -163,7 +165,7 @@ func (s *Server) loggerKeys(w http.ResponseWriter, r *http.Request, a *account) 
 	if !s.limiter.allow("logger-key-create:"+hex.EncodeToString(s.linkKey(session.UserID)), s.now()) {
 		return errStatus(429, "Too many API key requests. Try again later.")
 	}
-	me, updates, err := s.vrc(r.Context(), "/auth/user", session, vrcRequest{})
+	me, updates, err := s.vrc(r.Context(), session, vrchat.GetCurrentUser())
 	if err != nil {
 		return err
 	}

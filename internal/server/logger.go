@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/Sorganeil/vrcove/vrchat"
 )
 
 // LoggerConfig enables ingestion using session-bound, user-generated API keys.
@@ -82,7 +84,7 @@ func (s *Server) loggerAvatars(w http.ResponseWriter, r *http.Request) error {
 			results = append(results, loggerResult{id, "rejected"})
 			continue
 		}
-		data, updates, err := s.vrc(r.Context(), "/avatars/"+id, session, vrcRequest{})
+		data, updates, err := s.vrc(r.Context(), session, vrchat.GetAvatar(id))
 		session.apply(updates)
 		if err != nil {
 			var failure *sessionFailure

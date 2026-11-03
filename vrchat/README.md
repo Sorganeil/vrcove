@@ -1,26 +1,20 @@
-# VRChat Go client
+# VRChat Go SDK
 
-Use this Go module to call the VRChat API and read its live WebSocket pipeline.
-It handles JSON requests, login, two-factor verification, session cookie rotation,
-HTTP errors, and Retry-After parsing. It has no dependency on VRCove's server,
-database, frontend, or desktop app.
+Call VRChat through named Go methods with request models, response models, and
+query options. The SDK covers 327 JSON operations across 19 API categories.
+VRCove uses the same operations for its web server and desktop app.
 
-Module path: `github.com/Sorganeil/vrcove/vrchat` (Go 1.26+).
-
-## Local use
-
-Until this module has a release, another project can use a local checkout:
+## Install
 
 ```sh
-go mod edit -require=github.com/Sorganeil/vrcove/vrchat@v0.0.0
-go mod edit -replace=github.com/Sorganeil/vrcove/vrchat=/absolute/path/to/vrcove/vrchat
-go mod tidy
+go get github.com/Sorganeil/vrcove/vrchat@main
 ```
 
-The VRCove server and companion use local replacements. Versioned releases use
-`vrchat/vX.Y.Z` Git tags, independently of the application release tags.
+Requires Go 1.26+. The module has no dependency on VRCove's server, database, or
+frontend. Applications in this repository use local module replacements.
+Versioned SDK releases use `vrchat/vX.Y.Z` tags independently of app releases.
 
-## Requests and authentication
+## Authentication and requests
 
 ```go
 package main
@@ -46,57 +40,123 @@ func main() {
     if err != nil {
         log.Fatal(err)
     }
-    challenge, _ := user.(map[string]any)
-    if challenge["requiresTwoFactorAuth"] != nil {
-        // Obtain the required method and code from the user, then call
-        // VerifyTwoFactor(ctx, tokens, "totp" / "otp" / "emailotp", code).
-        // Apply its returned tokens and call CurrentUser before proceeding.
-        fmt.Println("Two-factor verification required")
-        return
+    if user.RequiresTwoFactorAuth != nil {
+        fmt.Println("Verification methods:", *user.RequiresTwoFactorAuth)
+        return // Ask the user for a code and complete verification first.
     }
-    friends, updates, err := client.Do(ctx, "/auth/user/friends?n=50", tokens, vrchat.Request{})
+
+    worlds, updates, err := client.SearchWorlds(ctx, tokens, vrchat.SearchWorldsParams{
+        Search:   vrchat.Ptr("cafe"),
+        Platform: vrchat.Ptr("android"),
+        N:        vrchat.Ptr(50),
+        Offset:   vrchat.Ptr(0),
+    })
     tokens.Apply(updates)
     if err != nil {
         log.Fatal(err)
     }
-    fmt.Println(friends)
+    for _, world := range worlds {
+        fmt.Println(world.ID, world.Name)
+    }
 }
 ```
 
-`Login` returns either the current user or a `requiresTwoFactorAuth` challenge.
-`VerifyTwoFactor` accepts `totp`, `otp` (recovery code), and `emailotp`. VRChat's
-challenge calls the email method `emailOtp`; pass `emailotp` to verification.
-`CurrentUser` retrieves the authenticated user and `Logout` ends the session.
-`BasicAuth` handles VRChat's credential encoding if you use `Do` for login.
+`Login` returns a typed `LoginResult`, the session tokens, and an error. When
+verification is required, call `VerifyTwoFactor(ctx, tokens, method, code)`, apply
+the returned tokens, check `result.Verified`, and call `CurrentUser`. Supported
+methods are `totp`, `otp` (a recovery code), and `emailOtp` or `emailotp`.
+`Logout` ends the VRChat session; discard your saved tokens afterwards.
 
-`Do` accepts any API path beginning with a single `/`, an optional HTTP method,
-JSON body, and headers. Decoded responses use `map[string]any`, `[]any`, and
-`json.Number` so large numeric values keep their precision.
-Build query strings with `net/url.Values`.
+Every endpoint method returns its typed result, rotated tokens, and an error.
+Keep the tokens and apply rotations after each call, including decoding errors.
+The client keeps credentials in memory for each request, disables cookie jars
+and redirects, and leaves persistence, retries, and cooldowns to your application.
 
-Tokens belong to the caller. Apply returned rotations after each call and store
-them according to your application's needs. The client keeps credentials in
-memory for each call. It copies a supplied HTTP client, disables redirects and
-its cookie jar, and leaves retries to the caller.
-It uses a 20-second API timeout and a 20 MB response limit by default; both are
-configurable. `BaseURL`, `PipelineURL`, and `HTTPClient` can be overridden for tests.
+## Endpoint coverage
 
-## Errors and cooldowns
+The complete list of methods, HTTP verbs, paths, and exclusions is in
+[coverage.json](coverage.json). Common operations include:
+
+- Users and profiles: `GetUser`, `SearchUsers`, `GetPublicProfile`, `UpdateUser`,
+  `UpdateProfile`, user notes, mutuals, groups, account settings, and verification.
+- Friends: `GetFriends`, `GetFriendStatus`, `Friend`, `DeleteFriendRequest`,
+  `Unfriend`, and `Boop`.
+- Avatars: search, favorites, upload metadata, create/update/delete, selection,
+  fallback selection, and impostor operations.
+- Worlds and instances: search, favorites, recent/active worlds, publishing,
+  instance creation, discovery, details, close, and short links.
+- Favorites: list/add/remove, favorite groups, group contents, limits, updates,
+  and clearing groups.
+- Groups: membership, invites, requests, roles, permissions, bans, galleries,
+  posts, announcements, audit logs, ownership transfer, and calendars.
+- Notifications and invites: both notification APIs, accepting/reading/hiding,
+  sending/responding to invites, self-invites, and invite message slots.
+- Player moderation, file metadata and upload negotiation, inventory, economy,
+  prints metadata, props, jams, configuration, and other JSON endpoints.
+
+The 12 operations with binary, multipart, text, or calendar-file bodies are
+listed as excluded. The SDK does not currently transfer file bytes or photo
+uploads. JSON file creation, versioning, upload URLs, completion, and status
+operations are included.
+
+The endpoint definitions and models come from the
+[community VRChat specification](https://github.com/vrchatapi/specification/tree/3656fce60438134a94f9cb9fff98608aacb250c9).
+This is a pinned community contract, not an official or live guarantee from
+VRChat. Tests check that contract using local fixtures; they do not exercise
+hundreds of live account actions.
+
+## Optional fields and pagination
+
+Parameter structs use pointers to distinguish an omitted value from explicit
+`false`, `0`, or an empty string. Use `vrchat.Ptr(value)`. Patch models also use
+pointers for optional arrays so an empty list can clear an existing value:
 
 ```go
-var apiErr *vrchat.APIError
-if errors.As(err, &apiErr) && apiErr.StatusCode == http.StatusTooManyRequests {
-    wait := apiErr.RetryDelay(time.Now(), 10*time.Minute)
-    // Pause this account's requests for wait before making another call.
-    _ = wait
-}
+profile, updates, err := client.UpdateProfile(ctx, tokens, userID, &vrchat.UpdateProfileRequest{
+    Bio:      vrchat.Ptr(""),
+    BioLinks: vrchat.Ptr([]string{}),
+})
+tokens.Apply(updates)
 ```
 
-HTTP errors expose the status and Retry-After header, without upstream response
-bodies. `errors.Is(err, vrchat.ErrResponseTooLarge)` identifies oversized JSON.
-Transport and decoding errors are returned to the caller; avoid logging request
-headers, credentials, or user data. Cooldowns and session invalidation remain the
-application's responsibility.
+List methods expose the documented `N`, `Offset`, or cursor options for that
+endpoint. Fetch subsequent pages explicitly so your application controls request
+volume. Required query parameters and empty or unsafe path components are
+checked locally. Other field constraints and permissions are enforced upstream.
+
+Avatar search accepts either an avatar array or a metadata result. Both decode
+into `SearchAvatarsResult.Avatars`; metadata responses also set `TotalCount` and
+`HasNext`. Discriminated object responses expose a combined set of fields.
+Heterogeneous values that cannot share a Go scalar or struct use
+`json.RawMessage` to preserve their JSON.
+
+## Complete response access
+
+Each endpoint has a matching operation constructor. Use `Client.Call` when you
+need the full JSON, including new fields that the current model does not know:
+
+```go
+record, updates, err := client.Call(ctx, tokens, vrchat.GetAvatar(avatarID))
+tokens.Apply(updates)
+```
+
+`Call` uses `map[string]any`, `[]any`, and `json.Number`. VRCove uses this form
+before applying its own privacy filters. `Execute(ctx, client, tokens, operation)`
+returns the constructor's typed result. `Do` remains available for JSON paths
+not yet present in the pinned specification.
+
+## Errors and transport settings
+
+HTTP failures return `*vrchat.APIError` with `StatusCode` and `RetryAfter`.
+`apiErr.RetryDelay(time.Now(), 10*time.Minute)` parses the cooldown.
+Upstream error bodies are excluded from errors. Transport and decoding errors
+are returned to the caller; avoid logging credentials, headers, or user data.
+
+The API request timeout defaults to 20 seconds and the response limit to 20 MB.
+`Config.Timeout`, `MaxResponseBytes`, `HTTPClient`, `BaseURL`, and `PipelineURL`
+can override these settings. Use `errors.Is(err, vrchat.ErrResponseTooLarge)` to
+identify oversized responses. Supplied HTTP clients are copied before redirect
+and cookie-jar settings are changed.
 
 ## Live events
 
@@ -110,17 +170,32 @@ message, err := pipe.Read(ctx)
 ```
 
 `Read` returns raw event envelopes, limited to 1 MiB per message. The caller owns
-event interpretation, connection deadlines, and reconnection. Pipeline dial
-errors omit the URL containing the auth token.
+event interpretation, connection deadlines, and reconnection. Dial errors omit
+the URL containing the auth token.
 
-## Development
+## Tests and regeneration
 
-Run from this directory:
+From this directory:
 
 ```sh
 go test -race ./...
 go vet ./...
 ```
 
-The tests use stub transports and a local WebSocket server; they never contact
-VRChat. The parent module's `go test ./...` does not traverse this module.
+Tests use stub transports and a local WebSocket server. The parent module's
+`go test ./...` does not traverse this module.
+
+Generated methods and models are checked in. To reproduce them, use the pinned
+specification and the Python development dependencies:
+
+```sh
+python3 -m venv /tmp/vrchat-sdk-tools
+/tmp/vrchat-sdk-tools/bin/pip install -r tools/requirements.txt
+git clone https://github.com/vrchatapi/specification.git /tmp/vrchat-spec
+git -C /tmp/vrchat-spec checkout 3656fce60438134a94f9cb9fff98608aacb250c9
+/tmp/vrchat-sdk-tools/bin/python tools/generate.py --spec-dir /tmp/vrchat-spec
+/tmp/vrchat-sdk-tools/bin/python -m unittest discover -s tools -p test_generate.py
+```
+
+The generator rejects another revision or modified specification files. Upstream
+schema attribution is retained in [LICENSE.specification](LICENSE.specification).

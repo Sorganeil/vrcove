@@ -95,10 +95,11 @@ Set `ACCOUNT_KEY` to enable VRCove accounts. Add `SESSION_KEY` and `VRC_CONTACT`
 
 ### VRChat SDK
 
-The API client is a standalone Go module in [vrchat/](vrchat/). Both the server
-and desktop app use it through local module replacements. See its
-[README](vrchat/README.md) for authentication, API requests, live events, and
-use from another project. Run its tests separately with `cd vrchat && go test -race ./...`.
+The standalone Go SDK in [vrchat/](vrchat/) provides named methods, typed request
+and response models, and query options for 327 JSON operations. The server and
+desktop app use these operations through local module replacements. See the
+[SDK guide](vrchat/README.md) for coverage, authentication, pagination, and use from
+another project. Run its tests separately with `cd vrchat && go test -race ./...`.
 
 ## Production
 

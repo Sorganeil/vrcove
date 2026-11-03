@@ -95,25 +95,54 @@ func encodeURIComponent(s string) string {
 
 // Login returns the current user or a requiresTwoFactorAuth challenge. Apply
 // the returned tokens even when a two-factor challenge is still outstanding.
-func (c *Client) Login(ctx context.Context, username, password string) (any, Tokens, error) {
-	return c.Do(ctx, "/auth/user", Tokens{}, Request{Header: http.Header{"Authorization": {BasicAuth(username, password)}}})
+func (c *Client) Login(ctx context.Context, username, password string) (LoginResult, Tokens, error) {
+	return Execute(ctx, c, Tokens{}, Login(username, password))
 }
 
 // CurrentUser retrieves the authenticated user, including any rotated tokens.
-func (c *Client) CurrentUser(ctx context.Context, tokens Tokens) (any, Tokens, error) {
-	return c.Do(ctx, "/auth/user", tokens, Request{})
+func (c *Client) CurrentUser(ctx context.Context, tokens Tokens) (LoginResult, Tokens, error) {
+	return Execute(ctx, c, tokens, GetCurrentUser())
 }
 
 // VerifyTwoFactor accepts totp, otp (recovery code), or emailotp. After a
 // successful verification, apply the tokens and call CurrentUser.
-func (c *Client) VerifyTwoFactor(ctx context.Context, tokens Tokens, method, code string) (any, Tokens, error) {
-	if method != "totp" && method != "otp" && method != "emailotp" {
-		return nil, Tokens{}, errors.New("unsupported VRChat two-factor method")
-	}
-	return c.Do(ctx, "/auth/twofactorauth/"+method+"/verify", tokens, Request{Method: http.MethodPost, Body: map[string]string{"code": code}})
+func (c *Client) VerifyTwoFactor(ctx context.Context, tokens Tokens, method, code string) (TwoFactorVerification, Tokens, error) {
+	return Execute(ctx, c, tokens, VerifyTwoFactor(method, code))
 }
 
 // Logout ends the VRChat session. The caller should then discard its tokens.
-func (c *Client) Logout(ctx context.Context, tokens Tokens) (any, Tokens, error) {
-	return c.Do(ctx, "/logout", tokens, Request{Method: http.MethodPut})
+func (c *Client) Logout(ctx context.Context, tokens Tokens) (Success, Tokens, error) {
+	return Execute(ctx, c, tokens, Logout())
+}
+
+// Login builds an authenticated current-user request using VRChat's credential encoding.
+func Login(username, password string) Operation[InlineGetCurrentUserResponse] {
+	op := GetCurrentUser()
+	op.header = http.Header{"Authorization": {BasicAuth(username, password)}}
+	return op
+}
+
+// VerifyTwoFactor builds a verification request for a method returned at login.
+// The emailOtp challenge uses emailotp in the verification URL.
+func VerifyTwoFactor(method, code string) Operation[TwoFactorVerification] {
+	if method == "emailOtp" {
+		method = "emailotp"
+	}
+	op := newOperation[TwoFactorVerification](http.MethodPost, "/auth/twofactorauth/"+method+"/verify", nil, nil, TwoFactorAuthCode{Code: code})
+	if method != "totp" && method != "otp" && method != "emailotp" {
+		op.err = errors.New("unsupported VRChat two-factor method")
+	}
+	return op
+}
+
+// LoginResult contains the current user or a requiresTwoFactorAuth challenge.
+type LoginResult = InlineGetCurrentUserResponse
+
+// User is the profile returned by GetUser, including fields VRChat returns for
+// the currently authenticated user when it requests its own record.
+type User = InlineGetUserResponse
+
+// TwoFactorVerification reports whether VRChat accepted the verification code.
+type TwoFactorVerification struct {
+	Verified bool `json:"verified"`
 }

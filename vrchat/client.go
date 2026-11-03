@@ -103,9 +103,10 @@ func validEndpoint(value, secureScheme, plainScheme string) bool {
 // Request describes an API call. Method defaults to GET; Body is JSON encoded.
 // Header can carry Basic authentication for login and is never modified.
 type Request struct {
-	Method string
-	Body   any
-	Header http.Header
+	Method             string
+	Body               any
+	Header             http.Header
+	allowEmptyResponse bool
 }
 
 // APIError reports an upstream HTTP failure without exposing its response body.
@@ -118,10 +119,7 @@ type APIError struct {
 
 func (e *APIError) Error() string { return fmt.Sprintf("VRChat request failed (%d).", e.StatusCode) }
 
-// Do calls a path relative to the API root, e.g. "/users/usr_...?n=50".
-// JSON numbers use json.Number. Rotated tokens are returned separately, including
-// when a successful HTTP response contains malformed or oversized JSON.
-func (c *Client) Do(ctx context.Context, path string, tokens Tokens, req Request) (any, Tokens, error) {
+func (c *Client) do(ctx context.Context, path string, tokens Tokens, req Request) ([]byte, Tokens, error) {
 	var updates Tokens
 	u, err := url.Parse(path)
 	if err != nil || !strings.HasPrefix(path, "/") || strings.HasPrefix(path, "//") || u.IsAbs() || u.Host != "" || u.Fragment != "" {
@@ -178,10 +176,21 @@ func (c *Client) Do(ctx context.Context, path string, tokens Tokens, req Request
 	if int64(len(raw)) > c.maxResponseBytes {
 		return nil, updates, ErrResponseTooLarge
 	}
+	return raw, updates, nil
+}
+
+// Do calls a path relative to the API root, e.g. "/users/usr_...?n=50".
+// JSON numbers use json.Number. Rotated tokens are returned separately, including
+// when a successful HTTP response contains malformed or oversized JSON.
+func (c *Client) Do(ctx context.Context, path string, tokens Tokens, req Request) (any, Tokens, error) {
+	raw, updates, err := c.do(ctx, path, tokens, req)
+	if err != nil || raw == nil || (len(raw) == 0 && req.allowEmptyResponse) {
+		return nil, updates, err
+	}
 	var data any
-	dec := json.NewDecoder(bytes.NewReader(raw))
-	dec.UseNumber()
-	if err := dec.Decode(&data); err != nil {
+	decoder := json.NewDecoder(bytes.NewReader(raw))
+	decoder.UseNumber()
+	if err := decoder.Decode(&data); err != nil {
 		return nil, updates, err
 	}
 	return data, updates, nil
