@@ -426,7 +426,7 @@ export function DetailView({
           <div className="bio-links">
             {safeLinks(u.bioLinks).map((l) => (
               <a key={l} className="text-link" href={l} target="_blank" rel="noreferrer nofollow">
-                {l.replace(/^https:\/\/(www\.)?/, '').slice(0, 60)}
+                {l.replace(/^https?:\/\/(www\.)?/i, '').slice(0, 60)}
                 <ExternalLink size={12} />
               </a>
             ))}
@@ -682,7 +682,7 @@ export function DetailView({
           <div className="bio-links">
             {safeLinks(g.links).map((l) => (
               <a key={l} className="text-link" href={l} target="_blank" rel="noreferrer nofollow">
-                {l.replace(/^https:\/\/(www\.)?/, '').slice(0, 60)}
+                {l.replace(/^https?:\/\/(www\.)?/i, '').slice(0, 60)}
                 <ExternalLink size={12} />
               </a>
             ))}

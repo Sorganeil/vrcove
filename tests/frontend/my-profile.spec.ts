@@ -6,6 +6,7 @@ const group = 'grp_00000000-0000-0000-0000-000000000003';
 
 test('my profile shows the full VRChat profile and refreshes after editing', async ({ page }, testInfo) => {
   let bio = 'My complete VRChat biography';
+  let bioLinks = ['https://example.com/profile', 'javascript:alert(1)'];
   await page.route('**/api/cove/me', (r) =>
     r.fulfill({ json: { username: 'tester', links: [{ vrchatId: id }] } }),
   );
@@ -19,7 +20,7 @@ test('my profile shows the full VRChat profile and refreshes after editing', asy
         displayName: 'Tester',
         bio,
         pronouns: 'they/them',
-        bioLinks: ['https://example.com/profile', 'javascript:alert(1)'],
+        bioLinks,
         tags: ['system_trust_veteran'],
         status: 'active',
         statusDescription: 'Exploring worlds',
@@ -40,10 +41,12 @@ test('my profile shows the full VRChat profile and refreshes after editing', asy
     }),
   );
   await page.route('**/api/account/profile', async (r) => {
-    bio = r.request().postDataJSON().bio;
-    await r.fulfill({ json: { id, displayName: 'Tester', bio, status: 'active' } });
+    const patch = r.request().postDataJSON();
+    bio = patch.bio;
+    if ('bioLinks' in patch) bioLinks = patch.bioLinks;
+    await r.fulfill({ json: { id, displayName: 'Tester', bio, bioLinks, status: 'active' } });
   });
-  await page.goto('/#profile');
+  await page.goto('/profile');
   await expect(page.getByRole('heading', { name: 'Tester', exact: true })).toBeVisible();
   await expect(page.locator('.entity-main .description')).toHaveText(bio);
   await expect(page.locator('.entity-hero-copy')).toContainText('they/them');
@@ -71,8 +74,38 @@ test('my profile shows the full VRChat profile and refreshes after editing', asy
   await page.getByRole('button', { name: 'Edit profile', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Edit profile', exact: true });
   await expect(dialog.getByRole('textbox', { name: /^Bio/ })).toHaveValue(bio);
+  const links = dialog.getByRole('textbox', { name: /^Social links/ });
+  await expect(links).toHaveValue(bioLinks.join('\n'));
+  await page.screenshot({ path: testInfo.outputPath('profile-editor.png'), fullPage: true });
+  expect(await dialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
   await dialog.getByRole('textbox', { name: /^Bio/ }).fill('Updated biography');
   await dialog.getByRole('button', { name: 'Save changes', exact: true }).click();
   await expect(dialog).toBeHidden();
   await expect(page.locator('.entity-main .description')).toHaveText('Updated biography');
+  expect(bioLinks).toEqual(['https://example.com/profile', 'javascript:alert(1)']);
+
+  await page.getByRole('button', { name: 'Edit profile', exact: true }).click();
+  await links.fill('javascript:alert(1)');
+  await dialog.getByRole('button', { name: 'Save changes', exact: true }).click();
+  await expect(dialog.getByRole('alert')).toContainText('Enter a valid http:// or https:// URL');
+  expect(bioLinks).toEqual(['https://example.com/profile', 'javascript:alert(1)']);
+  await links.fill('  https://example.com/new-profile  \n\nhttp://example.org/social\n');
+  await dialog.getByRole('button', { name: 'Save changes', exact: true }).click();
+  await expect(dialog).toBeHidden();
+  expect(bioLinks).toEqual(['https://example.com/new-profile', 'http://example.org/social']);
+  await expect(page.getByRole('link', { name: 'example.com/new-profile' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'example.org/social' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'example.com/profile', exact: true })).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Edit profile', exact: true }).click();
+  await expect(links).toHaveValue(bioLinks.join('\n'));
+  await links.fill('');
+  await dialog.getByRole('button', { name: 'Save changes', exact: true }).click();
+  await expect(dialog).toBeHidden();
+  expect(bioLinks).toEqual([]);
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Tester', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'example.com/new-profile' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Edit profile', exact: true }).click();
+  await expect(links).toHaveValue('');
 });

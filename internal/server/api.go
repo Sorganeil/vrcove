@@ -355,6 +355,7 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, sessi
 			return err
 		}
 		patch := map[string]string{}
+		profilePatch := map[string]any{}
 		if v, present := input["status"]; present {
 			status, _ := v.(string)
 			if !slices.Contains([]string{"active", "join me", "ask me", "busy"}, status) {
@@ -376,7 +377,34 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, sessi
 				patch[f.key] = text
 			}
 		}
-		if len(patch) == 0 {
+		if v, present := input["bioLinks"]; present {
+			links, ok := v.([]any)
+			if !ok {
+				writeError(w, http.StatusBadRequest, "Invalid bioLinks")
+				return nil
+			}
+			bioLinks := make([]string, 0, len(links))
+			for _, v := range links {
+				link, ok := v.(string)
+				if !ok {
+					writeError(w, http.StatusBadRequest, "Invalid bioLinks")
+					return nil
+				}
+				link = strings.TrimSpace(link)
+				u, err := url.Parse(link)
+				if err != nil || u.Hostname() == "" || (u.Scheme != "http" && u.Scheme != "https") {
+					writeError(w, http.StatusBadRequest, "Enter a valid http:// or https:// URL for each social link.")
+					return nil
+				}
+				bioLinks = append(bioLinks, link)
+			}
+			profilePatch["bioLinks"] = bioLinks
+		}
+		if bio, present := patch["bio"]; present {
+			profilePatch["bio"] = bio
+			delete(patch, "bio")
+		}
+		if len(patch) == 0 && len(profilePatch) == 0 {
 			writeError(w, http.StatusBadRequest, "No profile changes supplied")
 			return nil
 		}
@@ -389,8 +417,6 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, sessi
 		if !userID.MatchString(id) {
 			return errStatus(http.StatusBadGateway, "VRChat returned an unexpected account.")
 		}
-		bio, hasBio := patch["bio"]
-		delete(patch, "bio")
 		if len(patch) > 0 {
 			result, updates, err = s.vrc(r.Context(), "/users/"+id, session, vrcRequest{Method: http.MethodPut, Body: patch})
 			if err != nil {
@@ -399,8 +425,8 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, sessi
 			session.apply(updates)
 		}
 		out := publicUser(result)
-		if hasBio {
-			profile, updates, err := s.vrc(r.Context(), "/profile/"+id, session, vrcRequest{Method: http.MethodPut, Body: map[string]string{"bio": bio}})
+		if len(profilePatch) > 0 {
+			profile, updates, err := s.vrc(r.Context(), "/profile/"+id, session, vrcRequest{Method: http.MethodPut, Body: profilePatch})
 			if err != nil {
 				return err
 			}
