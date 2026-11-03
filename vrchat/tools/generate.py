@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Generate named JSON operations and models from a pinned VRChat specification."""
+
 import argparse
 import functools
 import json
