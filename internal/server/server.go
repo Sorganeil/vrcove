@@ -79,6 +79,7 @@ type Server struct {
 	pictureSlots chan struct{}
 	loggerSlot   chan struct{}
 	sitemaps     sitemapStore
+	tags         tagStore
 	// imageSlots bounds concurrent image fetches from VRChat.
 	imageSlots chan struct{}
 	// Client sends every upstream request. Redirects are never followed
