@@ -3,14 +3,14 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
-	"net/url"
 	"strconv"
 	"sync"
 	"time"
 
-	"github.com/coder/websocket"
+	"github.com/Sorganeil/vrcove/vrchat"
 )
 
 // Live notifications: while a browser keeps /account/live open, the server
@@ -21,7 +21,6 @@ import (
 // hour, when the browser reconnects with its cookie checked again.
 
 const (
-	vrchatPipeline    = "wss://pipeline.vrchat.cloud/"
 	liveHeartbeat     = 25 * time.Second
 	liveRecheck       = 5 * time.Minute
 	liveLifetime      = time.Hour
@@ -33,10 +32,7 @@ const (
 )
 
 // Pipeline is one open connection to VRChat's live feed.
-type Pipeline interface {
-	Read(ctx context.Context) ([]byte, error)
-	Close() error
-}
+type Pipeline = vrchat.Pipeline
 
 // liveStreams counts open relays, in total and per VRCove account.
 type liveStreams struct {
@@ -68,30 +64,25 @@ func (l *liveStreams) release(account int64) {
 	}
 }
 
-type wsPipeline struct{ c *websocket.Conn }
-
-func (p wsPipeline) Read(ctx context.Context) ([]byte, error) {
-	_, b, err := p.c.Read(ctx)
-	return b, err
-}
-func (p wsPipeline) Close() error { return p.c.CloseNow() }
-
 func (s *Server) dialVRChatPipeline(ctx context.Context, auth string) (Pipeline, error) {
-	c, resp, err := websocket.Dial(ctx, vrchatPipeline+"?authToken="+url.QueryEscape(auth), &websocket.DialOptions{
-		HTTPClient: s.Client,
-		HTTPHeader: http.Header{"User-Agent": {s.userAgent()}},
-	})
+	client, err := s.vrchatClient()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusTooManyRequests {
-			return nil, rateLimitedError()
-		}
-		if resp != nil && resp.StatusCode == http.StatusUnauthorized {
-			return nil, invalidVRChatSession()
+		return nil, err
+	}
+	pipe, err := client.DialPipeline(ctx, auth)
+	if err != nil {
+		var apiErr *vrchat.APIError
+		if errors.As(err, &apiErr) {
+			switch apiErr.StatusCode {
+			case http.StatusTooManyRequests:
+				return nil, rateLimitedError()
+			case http.StatusUnauthorized:
+				return nil, invalidVRChatSession()
+			}
 		}
 		return nil, errStatus(http.StatusBadGateway, "VRChat live updates are unavailable right now.")
 	}
-	c.SetReadLimit(1 << 20)
-	return wsPipeline{c}, nil
+	return pipe, nil
 }
 
 // liveNotification picks the fields VRCove shows from one pipeline message,

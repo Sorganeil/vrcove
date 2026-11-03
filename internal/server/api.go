@@ -1,7 +1,6 @@
 package server
 
 import (
-	"encoding/base64"
 	"errors"
 	"net/http"
 	"net/url"
@@ -11,6 +10,8 @@ import (
 	"strings"
 	"time"
 	"unicode/utf16"
+
+	"github.com/Sorganeil/vrcove/vrchat"
 )
 
 var (
@@ -217,8 +218,7 @@ func (s *Server) login(w http.ResponseWriter, r *http.Request, acct *account) er
 			return errStatus(http.StatusForbidden, "Choose one of your linked VRChat accounts.")
 		}
 	}
-	basic := base64.StdEncoding.EncodeToString([]byte(encodeURIComponent(username) + ":" + encodeURIComponent(password)))
-	data, updates, err := s.vrc(r.Context(), "/auth/user", nil, vrcRequest{Header: http.Header{"Authorization": {"Basic " + basic}}})
+	data, updates, err := s.vrc(r.Context(), "/auth/user", nil, vrcRequest{Header: http.Header{"Authorization": {vrchat.BasicAuth(username, password)}}})
 	if err != nil {
 		return err
 	}

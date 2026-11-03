@@ -23,6 +23,8 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
+
+	"github.com/Sorganeil/vrcove/vrchat"
 )
 
 // Config is the runtime configuration. SessionKey, Contact and the database
@@ -96,7 +98,7 @@ func New(cfg Config, db *sql.DB, static fs.FS) (*Server, error) {
 	}
 	cfg.PublicOrigin = u.Scheme + "://" + u.Host
 	cfg.Contact = strings.TrimSpace(cfg.Contact)
-	if cfg.Contact != "" && !validContact(cfg.Contact) {
+	if cfg.Contact != "" && !vrchat.ValidContact(cfg.Contact) {
 		return nil, errors.New("VRC_CONTACT must be an email address or http(s) URL in printable ASCII, without parentheses")
 	}
 	if cfg.Local && (cfg.Accounts != nil || cfg.Logger != nil || cfg.Remote == nil) {

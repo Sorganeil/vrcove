@@ -1,0 +1,28 @@
+name: VRChat SDK
+
+on:
+  push:
+    paths: ['vrchat/**', '.github/workflows/vrchat-sdk.yml']
+  pull_request:
+    paths: ['vrchat/**', '.github/workflows/vrchat-sdk.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: vrchat
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: vrchat/go.mod
+          cache-dependency-path: vrchat/go.sum
+      - run: go test -race ./...
+      - run: go vet ./...

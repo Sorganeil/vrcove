@@ -1,4 +1,5 @@
 # VRCove
+
 VRCove is a private VRChat web frontend with built-in avatar search. It works in a browser on your computer, phone or tablet.
 
 [Website](https://vrcove.st) -
@@ -91,6 +92,13 @@ Open `http://localhost:5173`. The server creates an empty catalog at `.data/cata
 Export the settings from [.env.example](.env.example) in the server's environment. The server doesn't read `.env` files automatically.
 
 Set `ACCOUNT_KEY` to enable VRCove accounts. Add `SESSION_KEY` and `VRC_CONTACT` to enable VRChat login. Use a different base64-encoded 32-byte value for each key. With those settings in place, `LOGGER_ENABLED=true` lets the server accept desktop logger submissions.
+
+### VRChat SDK
+
+The API client is a standalone Go module in [vrchat/](vrchat/). Both the server
+and desktop app use it through local module replacements. See its
+[README](vrchat/README.md) for authentication, API requests, live events, and
+use from another project. Run its tests separately with `cd vrchat && go test -race ./...`.
 
 ## Production
 

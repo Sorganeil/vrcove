@@ -1,62 +1,27 @@
 package server
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
+	"errors"
 	"fmt"
-	"io"
 	"net/http"
-	"net/url"
-	"regexp"
-	"strings"
 	"time"
+
+	"github.com/Sorganeil/vrcove/vrchat"
 )
 
-const (
-	vrchatAPI = "https://api.vrchat.cloud/api/1"
-	// appVersion is reported in the User-Agent; keep it in step with package.json.
-	appVersion = "0.2.4"
-)
+// Keep the User-Agent appVersion in step with package.json.
+const appVersion = "0.2.4"
 
-var (
-	setCookieToken = regexp.MustCompile(`^(auth|twoFactorAuth)=([^;]*)`)
-	tokenValue     = regexp.MustCompile(`^[a-zA-Z0-9_.-]{1,512}$`)
-	contactEmail   = regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
-)
-
-func vrcCookie(s *Session) string {
-	var parts []string
-	if s != nil && s.Auth != "" {
-		parts = append(parts, "auth="+s.Auth)
+func vrchatTokens(session *Session) vrchat.Tokens {
+	if session == nil {
+		return vrchat.Tokens{}
 	}
-	if s != nil && s.TwoFactorAuth != "" {
-		parts = append(parts, "twoFactorAuth="+s.TwoFactorAuth)
-	}
-	return strings.Join(parts, "; ")
+	return vrchat.Tokens{Auth: session.Auth, TwoFactorAuth: session.TwoFactorAuth}
 }
 
-// validContact reports whether c is an email address or http(s) URL that can
-// sit inside a User-Agent comment: printable ASCII with no parentheses or
-// backslashes, which would end or escape the comment.
-func validContact(c string) bool {
-	if c == "" || len(c) > 200 || strings.ContainsAny(c, "()\\") {
-		return false
-	}
-	for _, r := range c {
-		if r <= ' ' || r > '~' {
-			return false
-		}
-	}
-	if contactEmail.MatchString(c) {
-		return true
-	}
-	u, err := url.Parse(c)
-	return err == nil && (u.Scheme == "https" || u.Scheme == "http") && u.Host != "" && u.User == nil
-}
+func vrcCookie(session *Session) string { return vrchatTokens(session).Cookie() }
 
-// userAgent identifies VRCove to VRChat as "VRCove/<version> (<contact>)",
-// as VRChat asks of API clients. New rejects contacts that would break it.
 func (s *Server) userAgent() string {
 	if s.cfg.Contact == "" {
 		return "VRCove/" + appVersion
@@ -64,102 +29,57 @@ func (s *Server) userAgent() string {
 	return "VRCove/" + appVersion + " (" + s.cfg.Contact + ")"
 }
 
-// vrcRequest is one call to the VRChat API. Header is only used for login.
-type vrcRequest struct {
-	Method string
-	Body   any
-	Header http.Header
+// Construct from the current transport so embedders can replace Server.Client.
+func (s *Server) vrchatClient() (*vrchat.Client, error) {
+	return vrchat.New(vrchat.Config{HTTPClient: s.Client, UserAgent: s.userAgent()})
 }
 
-// vrc calls the VRChat API and returns the decoded JSON plus any rotated
-// session tokens. Upstream error bodies are never surfaced.
+type vrcRequest = vrchat.Request
+
+// vrc applies VRCove's cooldown, session failure and persistence policies around
+// the reusable client. Upstream response bodies never reach browser errors.
 func (s *Server) vrc(ctx context.Context, path string, session *Session, req vrcRequest) (any, sessionUpdates, error) {
 	var updates sessionUpdates
 	if s.cfg.Contact == "" {
 		return nil, updates, fmt.Errorf("VRChat connection needs a configured operator contact")
 	}
-	method := req.Method
-	if method == "" {
-		method = http.MethodGet
-	}
 	key := backoffKey(session)
 	if s.backoff.coolingDown(key, s.now()) {
 		return nil, updates, rateLimitedError()
 	}
-	var body io.Reader
-	if req.Body != nil {
-		encoded, err := json.Marshal(req.Body)
-		if err != nil {
-			return nil, updates, err
-		}
-		body = bytes.NewReader(encoded)
-	}
-	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
-	defer cancel()
-	r, err := http.NewRequestWithContext(ctx, method, vrchatAPI+path, body)
+	client, err := s.vrchatClient()
 	if err != nil {
 		return nil, updates, err
 	}
-	for k, v := range req.Header {
-		r.Header[k] = v
-	}
-	r.Header.Set("User-Agent", s.userAgent())
-	r.Header.Set("Accept", "application/json")
-	if session != nil && session.Auth != "" {
-		r.Header.Set("Cookie", vrcCookie(session))
-	}
-	if body != nil {
-		r.Header.Set("Content-Type", "application/json")
-	}
-	resp, err := s.Client.Do(r)
-	if err != nil {
-		return nil, updates, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		msg := fmt.Sprintf("VRChat request failed (%d).", resp.StatusCode)
-		switch resp.StatusCode {
-		case 401:
+	data, updates, err := client.Do(ctx, path, vrchatTokens(session), req)
+	var apiErr *vrchat.APIError
+	if errors.As(err, &apiErr) {
+		msg := apiErr.Error()
+		switch apiErr.StatusCode {
+		case http.StatusUnauthorized:
 			if session != nil && session.Pending == nil && session.AccountID != 0 {
 				return nil, updates, invalidVRChatSession()
 			}
 			msg = "VRChat could not authenticate this request. Sign in again."
-		case 403:
+		case http.StatusForbidden:
 			msg = "VRChat denied this action. The avatar or account may be restricted."
-		case 429:
-			now := s.now()
-			wait := retryAfter(resp.Header, now)
+		case http.StatusTooManyRequests:
+			now, limit := s.now(), maxRetryAfter
 			if s.cfg.Local {
-				wait = retryAfterMax(resp.Header, now, 24*time.Hour)
+				limit = 24 * time.Hour
 			}
-			s.backoff.limited(key, wait, now)
+			s.backoff.limited(key, apiErr.RetryDelay(now, limit), now)
 			return nil, updates, rateLimitedError()
 		}
-		return nil, updates, errStatus(resp.StatusCode, msg)
+		return nil, updates, errStatus(apiErr.StatusCode, msg)
 	}
-	for _, c := range resp.Header.Values("Set-Cookie") {
-		if m := setCookieToken.FindStringSubmatch(c); m != nil && tokenValue.MatchString(m[2]) {
-			if m[1] == "auth" {
-				updates.Auth = m[2]
-			} else {
-				updates.TwoFactorAuth = m[2]
-			}
-		}
+	if syncErr := s.syncLoggerSession(ctx, session, updates); syncErr != nil {
+		return nil, updates, syncErr
 	}
-	if err := s.syncLoggerSession(ctx, session, updates); err != nil {
-		return nil, updates, err
+	if errors.Is(err, vrchat.ErrResponseTooLarge) {
+		return nil, updates, errStatus(http.StatusRequestEntityTooLarge, "VRChat response too large.")
 	}
-	raw, err := readBounded(resp.Body, 20_000_000, "VRChat response too large.")
-	if err != nil {
-		return nil, updates, err
-	}
-	var data any
-	dec := json.NewDecoder(bytes.NewReader(raw))
-	dec.UseNumber()
-	if err := dec.Decode(&data); err != nil {
-		return nil, updates, err
-	}
-	return data, updates, nil
+	return data, updates, err
 }
 
 var publicUserFields = []string{"id", "displayName", "bio", "status", "statusDescription",
@@ -202,19 +122,4 @@ func field(data any, key string) string {
 		}
 	}
 	return ""
-}
-
-// encodeURIComponent matches JavaScript's escaping, which VRChat expects
-// inside the Basic credentials.
-func encodeURIComponent(s string) string {
-	const unreserved = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.!~*'()"
-	var b strings.Builder
-	for i := 0; i < len(s); i++ {
-		if c := s[i]; strings.IndexByte(unreserved, c) >= 0 {
-			b.WriteByte(c)
-		} else {
-			fmt.Fprintf(&b, "%%%02X", c)
-		}
-	}
-	return b.String()
 }

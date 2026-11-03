@@ -173,6 +173,11 @@ func (c *Checker) run(ctx context.Context, check Check) {
 			c.mu.Unlock()
 			reply := check(ctx, name)
 			c.mu.Lock()
+			// Request preparation and network time can vary. Space the next
+			// check from completion so upstream calls stay at least interval apart.
+			if next := c.now().Add(interval); next.After(c.next) {
+				c.next = next
+			}
 			// Keep an upstream cooldown even if Stop arrived during the request.
 			if reply.RetryAt.After(c.next) {
 				c.next = reply.RetryAt

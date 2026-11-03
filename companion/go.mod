@@ -10,6 +10,7 @@ require (
 
 require (
 	git.sr.ht/~jackmordaunt/go-toast/v2 v2.0.3 // indirect
+	github.com/Sorganeil/vrcove/vrchat v0.0.0 // indirect
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
 )
 
@@ -38,3 +39,5 @@ require (
 )
 
 replace vrcove => ../
+
+replace github.com/Sorganeil/vrcove/vrchat => ../vrchat
