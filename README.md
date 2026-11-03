@@ -126,7 +126,7 @@ We're proud of what we build, and we understand if you'd prefer a project develo
 
 ## Contact
 
-VRChat staff, or anyone else who wants to get in touch, can email [vrcove-contact.overbid399@passmail.net](mailto:vrcove-contact.overbid399@passmail.net) or [open an issue](https://github.com/Sorganeil/vrcove/issues).
+VRChat staff, or anyone else who wants to get in touch, can email [admin@vrcove.st](mailto:admin@vrcove.st) or [open an issue](https://github.com/Sorganeil/vrcove/issues).
 
 ## License
 
