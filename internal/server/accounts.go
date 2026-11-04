@@ -337,10 +337,6 @@ func (s *Server) cove(w http.ResponseWriter, r *http.Request, p string) error {
 		return s.report(w, r, acct)
 	case p == "removal-request" && post:
 		return s.requestRemoval(w, r, acct)
-	case p == "logger-keys":
-		return s.loggerKeys(w, r, acct)
-	case p == "logger-keys/revoke" && post:
-		return s.revokeLoggerKey(w, r, acct)
 	case p == "picture" && post:
 		return s.saveAccountPicture(w, r, acct)
 	case p == "picture/remove" && post:

@@ -17,9 +17,10 @@ Setup and details: https://vrcove.st/companion
 2. Sign in to VRChat in the app. Your password goes to VRChat and isn't saved.
    The app saves your session in an encrypted file, with its key in Windows
    Credential Manager or your Linux keyring.
-3. To contribute avatars to VRCove's search, link VRChat on your VRCove
-   account page on the website and generate an API key. Paste it into
-   Avatar logger in the app. This step is optional.
+3. To contribute avatars to VRCove's search, open Avatar logger in the app
+   and press Start. This step is optional and needs no VRCove account. The
+   app checks each avatar with your VRChat session, then sends only the
+   avatar IDs. VRCove checks them again with its own VRChat account.
 
 The app keeps running in the tray when you close its window. On Linux, you
 need a tray host such as KDE Plasma or a GNOME tray extension. You can install

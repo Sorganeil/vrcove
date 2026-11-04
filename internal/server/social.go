@@ -65,6 +65,11 @@ var accountMigrations = []string{
 	CREATE TABLE avatar_blacklist (avatar_id TEXT PRIMARY KEY, request_id INTEGER, added INTEGER NOT NULL);
 	CREATE TABLE moderation_log (id INTEGER PRIMARY KEY, actor_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL, actor TEXT NOT NULL,
 		action TEXT NOT NULL, target TEXT NOT NULL, created INTEGER NOT NULL);`,
+	// Logger submissions are checked by the bot account, so no user's VRChat
+	// session is kept for them any more.
+	`DROP TABLE logger_keys;
+	ALTER TABLE vrchat_sessions DROP COLUMN sealed;
+	CREATE TABLE bot_session (id INTEGER PRIMARY KEY CHECK (id = 1), sealed TEXT NOT NULL, updated INTEGER NOT NULL);`,
 }
 
 func migrateAccounts(db *sql.DB) error {

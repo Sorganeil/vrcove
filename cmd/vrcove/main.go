@@ -4,6 +4,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"encoding/base64"
 	"errors"
@@ -78,6 +79,12 @@ func main() {
 		fmt.Printf("%s is now %s\n", os.Args[2], os.Args[3])
 		return
 	}
+	// vrcove bot-login signs the logger's bot account in to VRChat, asking for
+	// the email or authenticator code, and stores its session for the server.
+	if len(os.Args) > 1 && os.Args[1] == "bot-login" {
+		botLogin()
+		return
+	}
 	addr := env("LISTEN_ADDR", "127.0.0.1:8080")
 	cfg := server.Config{
 		PublicOrigin: env("PUBLIC_ORIGIN", "http://localhost:5173"),
@@ -129,7 +136,7 @@ func main() {
 			log.Fatal("could not open the logger catalog writer")
 		}
 		defer writer.Close()
-		cfg.Logger = &server.LoggerConfig{Catalog: writer}
+		cfg.Logger = &server.LoggerConfig{Catalog: writer, Bot: botConfig()}
 	}
 
 	srv, err := server.New(cfg, db, web.Dist())
@@ -175,4 +182,49 @@ func main() {
 	if err := httpServer.Serve(ln); !errors.Is(err, http.ErrServerClosed) {
 		log.Fatal(err)
 	}
+}
+
+func botConfig() server.BotConfig {
+	bot := server.BotConfig{Username: os.Getenv("BOT_USERNAME"), Password: os.Getenv("BOT_PASSWORD")}
+	if bot.Username == "" || bot.Password == "" {
+		log.Fatal("the logger needs BOT_USERNAME and BOT_PASSWORD for its VRChat bot account")
+	}
+	return bot
+}
+
+// botLogin runs vrcove bot-login with the server's own environment.
+func botLogin() {
+	key, err := base64.StdEncoding.DecodeString(os.Getenv("ACCOUNT_KEY"))
+	if err != nil || len(key) == 0 {
+		log.Fatal("bot-login stores the bot session with VRCove accounts: set ACCOUNT_KEY")
+	}
+	accounts, err := server.OpenAccounts(env("ACCOUNTS_PATH", ".data/accounts.sqlite"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer accounts.Close()
+	srv, err := server.New(server.Config{
+		PublicOrigin: env("PUBLIC_ORIGIN", "http://localhost:5173"),
+		Contact:      os.Getenv("VRC_CONTACT"),
+		Accounts:     accounts,
+		AccountKey:   key,
+	}, nil, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	bot := botConfig()
+	input := bufio.NewReader(os.Stdin)
+	name, err := srv.BotLogin(context.Background(), bot.Username, bot.Password, func(method string) (string, error) {
+		if method == "emailOtp" {
+			fmt.Print("VRChat emailed a code to the bot account. Code: ")
+		} else {
+			fmt.Print("Code from the bot account's authenticator app: ")
+		}
+		line, err := input.ReadString('\n')
+		return strings.TrimSpace(line), err
+	})
+	if err != nil {
+		log.Fatalf("bot sign-in failed: %v", err)
+	}
+	fmt.Printf("Signed in as %s. The server uses this session for logger checks.\n", name)
 }

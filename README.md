@@ -13,7 +13,7 @@ VRCove is a private VRChat web frontend with built-in avatar search. It works in
 - Account pages load when you open or refresh them. If you turn on notifications, VRCove also listens for live updates and checks periodically when a live connection isn't available.
 - Bookmarks and notes stay in your browser. Export a backup to save them or move them to another browser.
 
-When you link VRChat on the website, your login passes through VRCove's server to VRChat. Session tokens and linked-account details are encrypted, and the server decrypts them when needed to make requests. Creating a desktop logger API key also saves encrypted session credentials on the server so it can verify avatars. See **Privacy & settings** for what gets stored and shared.
+When you link VRChat on the website, your login passes through VRCove's server to VRChat. Session tokens and linked-account details are encrypted, and the server decrypts them when needed to make requests. The desktop avatar logger sends only avatar IDs. VRCove checks them with a VRChat account it owns, so the server stores no VRChat credentials of yours for the logger. See **Privacy & settings** for what gets stored and shared.
 
 ## On your phone
 
@@ -55,7 +55,7 @@ For Windows and Linux, [download the latest release](https://github.com/Sorganei
 
 When you sign in to VRChat in the app, your password and session go straight to VRChat. Saved sessions are encrypted, with the key in Windows Credential Manager or your Linux keyring. If the keyring isn't available, you'll need to sign in again after quitting the app.
 
-You can search avatars and use the local VRChat tools without a VRCove account. The catalog, reviews and collections still come from vrcove.st. To post reviews, manage collections or get a logger API key, you'll need a VRCove account with VRChat linked on the website. That separate website login passes through VRCove's server, as described under Privacy.
+You can search avatars and use the local VRChat tools without a VRCove account. The catalog, reviews and collections still come from vrcove.st. To post reviews or manage collections, you'll need a VRCove account with VRChat linked on the website. That separate website login passes through VRCove's server, as described under Privacy.
 
 The app also has:
 
@@ -64,14 +64,14 @@ The app also has:
 - A friend activity feed.
 - Screenshots with the world and people who were there.
 - Desktop notifications that keep working when you close the window and leave the app running in the tray.
-- An avatar logger that reads avatar IDs from VRChat's local analytics cache. It checks public avatars using your local VRChat session, then sends them to VRCove for another check before adding them to search.
+- An avatar logger that reads avatar IDs from VRChat's local analytics cache. It checks public avatars using your local VRChat session, then sends only their IDs to VRCove, which checks them again with its own VRChat account before adding them to search.
 - A username checker, OSC chatbox and Unity package extractor.
 - Saved VRChat accounts with account switching.
 - Updates you can install in the app after it checks that the download's checksum matches the release.
 
 Your history, game logs, activity feed and screenshots stay on your computer.
 
-For logger uploads, generate an API key on your VRCove account page on the website. The key expires when its linked website session ends.
+Logger uploads don't need a VRCove account or API key.
 
 It's built with Go and Wails and shares frontend and server code with the website. Source and build instructions are in [companion/](companion/). On Linux, you'll need GTK 4, WebKitGTK 6 and a tray host such as KDE Plasma or a GNOME tray extension.
 
@@ -91,7 +91,7 @@ Open `http://localhost:5173`. The server creates an empty catalog at `.data/cata
 
 Export the settings from [.env.example](.env.example) in the server's environment. The server doesn't read `.env` files automatically.
 
-Set `ACCOUNT_KEY` to enable VRCove accounts. Add `SESSION_KEY` and `VRC_CONTACT` to enable VRChat login. Use a different base64-encoded 32-byte value for each key. With those settings in place, `LOGGER_ENABLED=true` lets the server accept desktop logger submissions.
+Set `ACCOUNT_KEY` to enable VRCove accounts. Add `SESSION_KEY` and `VRC_CONTACT` to enable VRChat login. Use a different base64-encoded 32-byte value for each key. `LOGGER_ENABLED=true` lets the server accept desktop logger submissions. It needs `ACCOUNT_KEY`, `VRC_CONTACT`, and `BOT_USERNAME` and `BOT_PASSWORD` for a VRChat account the operator owns. The server checks submissions with that account. Run `vrcove bot-login` once with the same environment to enter the code VRChat sends. The bot's session is stored encrypted under `ACCOUNT_KEY`, and the server signs in again on its own when the session ends. If VRChat asks for a new code, logger checks pause until you run `vrcove bot-login` again.
 
 ### VRChat SDK
 

@@ -77,7 +77,7 @@ func newDesktop(st *store, site *url.URL, assets fs.FS) (*desktop, error) {
 	api, err := server.New(server.Config{
 		PublicOrigin: apiOrigin,
 		SessionKey:   st.SessionKey,
-		Contact:      site.Scheme + "://" + site.Host,
+		Contact:      contact,
 		Local:        true,
 		Remote:       d.remote,
 	}, nil, nil)
@@ -87,6 +87,10 @@ func newDesktop(st *store, site *url.URL, assets fs.FS) (*desktop, error) {
 	d.api = api
 	return d, nil
 }
+
+// contact goes in the User-Agent of VRChat requests, so VRChat can reach
+// VRCove's operator.
+const contact = "admin@vrcove.st"
 
 func userAgent() string { return "VRCoveDesktop/" + buildinfo.Version }
 

@@ -49,8 +49,8 @@ type Config struct {
 	// registration. Signup has a challenge only when both are set.
 	TurnstileSiteKey string
 	TurnstileSecret  string
-	// Logger is an optional, separately authenticated ingestion service. The
-	// desktop receives only its API key, never VRChat credentials.
+	// Logger is an optional ingestion service. The desktop sends only avatar
+	// IDs, which the operator's bot account checks with VRChat.
 	Logger *LoggerConfig
 	// Local runs the VRChat routes for one person on their own device, as the
 	// desktop app does: no VRCove account is needed and VRChat requests go
@@ -78,6 +78,7 @@ type Server struct {
 	// pictureSlots bounds concurrent avatar picture decodes.
 	pictureSlots chan struct{}
 	loggerSlot   chan struct{}
+	bot          botState
 	sitemaps     sitemapStore
 	tags         tagStore
 	// imageSlots bounds concurrent image fetches from VRChat.
@@ -108,8 +109,8 @@ func New(cfg Config, db *sql.DB, static fs.FS) (*Server, error) {
 	if cfg.SessionKey != nil && len(cfg.SessionKey) != 32 {
 		return nil, errors.New("SESSION_KEY must be a base64-encoded 32-byte key")
 	}
-	if cfg.Logger != nil && (cfg.Logger.Catalog == nil || cfg.Accounts == nil || len(cfg.SessionKey) != 32 || cfg.Contact == "") {
-		return nil, errors.New("logger ingestion needs accounts, session encryption, a writable catalog and operator contact")
+	if cfg.Logger != nil && (cfg.Logger.Catalog == nil || cfg.Accounts == nil || cfg.Contact == "" || cfg.Logger.Bot.Username == "" || cfg.Logger.Bot.Password == "") {
+		return nil, errors.New("logger ingestion needs accounts, a writable catalog, operator contact and a bot account")
 	}
 	var keys accountKeys
 	if cfg.Accounts != nil {

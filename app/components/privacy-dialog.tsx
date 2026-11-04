@@ -43,7 +43,7 @@ export default function PrivacyDialog({ close }: { close: () => void }) {
         </p>
         <p>
           {tr(
-            'If you generate a desktop companion API key, encrypted VRChat credentials are also stored in the existing server-side session record so the server can verify avatar submissions while your browser is closed. The desktop receives only the API key. The key expires with its linked session. Signing out, ending that session or unlinking the account invalidates it.',
+            'VRCove Desktop’s avatar logger sends only avatar IDs. The server checks them with a VRChat account VRCove owns, so it stores none of your VRChat credentials for the logger.',
           )}
         </p>
         <h3>{tr('What stays here')}</h3>

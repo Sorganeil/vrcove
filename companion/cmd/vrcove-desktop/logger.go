@@ -19,7 +19,7 @@ import (
 
 // avatarLogger runs the shared collector inside the desktop app. It checks
 // avatars with the VRChat session signed in on this device, through the same
-// local API the window uses, and uploads with the VRCove API key.
+// local API the window uses, and uploads only the avatar IDs to VRCove.
 type avatarLogger struct {
 	d        *desktop
 	commands chan collector.Command
@@ -29,7 +29,7 @@ type avatarLogger struct {
 }
 
 func isEmptyLoggerState(s *logger.State) bool {
-	return len(s.Seen) == 0 && s.Added == 0 && s.Existing == 0 && s.Rejected == 0 && len(s.Pending) == 0 && s.Config.Token == ""
+	return len(s.Seen) == 0 && s.Added == 0 && s.Existing == 0 && s.Rejected == 0 && len(s.Pending) == 0
 }
 
 func startLogger(ctx context.Context, d *desktop, dir string, site string) (*avatarLogger, error) {
@@ -74,7 +74,6 @@ func (l *avatarLogger) serve(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		var body struct {
 			Action    string  `json:"action"`
-			Token     *string `json:"token"`
 			Folder    *string `json:"folder"`
 			Server    *string `json:"server"`
 			AutoStart *bool   `json:"autoStart"`
@@ -116,9 +115,6 @@ func (l *avatarLogger) serve(w http.ResponseWriter, r *http.Request) {
 		}
 		l.mu.Lock()
 		next := l.config
-		if body.Token != nil {
-			next.Token = strings.TrimSpace(*body.Token)
-		}
 		if body.Folder != nil {
 			next.Folder = verifiedFolder
 		}
@@ -164,7 +160,7 @@ func (l *avatarLogger) serve(w http.ResponseWriter, r *http.Request) {
 	resp := map[string]any{
 		"status": snap.Status, "paused": snap.Paused, "detected": snap.Detected, "added": snap.Added,
 		"existing": snap.Existing, "rejected": snap.Rejected, "pending": snap.Pending, "events": events,
-		"folder": config.Folder, "server": config.Server, "autoStart": config.AutoStart, "hasKey": config.Token != "",
+		"folder": config.Folder, "server": config.Server, "autoStart": config.AutoStart,
 	}
 	if message != "" {
 		resp["message"] = message

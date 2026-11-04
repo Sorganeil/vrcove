@@ -31,7 +31,6 @@ import { desktop, openExternal } from '../lib/platform';
 import { covePath, appLink } from '../lib/routes';
 import { CovePicture } from '../components/cove-picture';
 import PictureCropper from '../components/picture-cropper';
-import LoggerApiKeys from '../components/logger-api-keys';
 import { day } from '../lib/dates';
 import type { VRChatUser } from '../lib/types';
 type Me = {
@@ -899,13 +898,6 @@ export default function AccountPage({
             </p>
           </details>
         </div>
-        <LoggerApiKeys
-          key={`${me.username}:${user?.id || ''}`}
-          currentId={user?.id}
-          connected={!!user && !connection.issue && !!connection.expiresAt && connection.expiresAt > now}
-          links={me.links}
-          notify={notify}
-        />
         <div className="cove-panel login-content">
           <div className="eyebrow">{tr('SECURITY')}</div>
           <div className="account-row">

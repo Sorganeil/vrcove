@@ -11,7 +11,7 @@ import (
 )
 
 // Keep the User-Agent appVersion in step with package.json.
-const appVersion = "0.2.6"
+const appVersion = "0.2.7"
 
 func vrchatTokens(session *Session) vrchat.Tokens {
 	if session == nil {
@@ -68,9 +68,6 @@ func (s *Server) vrc(ctx context.Context, session *Session, call vrchat.Call) (a
 			return nil, updates, rateLimitedError()
 		}
 		return nil, updates, errStatus(apiErr.StatusCode, msg)
-	}
-	if syncErr := s.syncLoggerSession(ctx, session, updates); syncErr != nil {
-		return nil, updates, syncErr
 	}
 	if errors.Is(err, vrchat.ErrResponseTooLarge) {
 		return nil, updates, errStatus(http.StatusRequestEntityTooLarge, "VRChat response too large.")

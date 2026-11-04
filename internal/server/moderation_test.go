@@ -217,7 +217,7 @@ func TestReportsKeepEvidenceAndBannedContentDisappears(t *testing.T) {
 }
 
 func TestRemovalRequestsBlockAvatarsAfterApproval(t *testing.T) {
-	h, browser, key := newLoggerHarness(t)
+	h, browser := newLinkedLoggerHarness(t)
 	writer := h.srv.cfg.Logger.Catalog
 	h.srv.db = writer
 	mine, other := "avtr_00000000-0000-0000-0000-0000000000a1", "avtr_00000000-0000-0000-0000-0000000000a2"
@@ -283,18 +283,18 @@ func TestRemovalRequestsBlockAvatarsAfterApproval(t *testing.T) {
 	privateUpstream(h)
 	before := h.fetches.Load()
 	var known struct{ Existing []string }
-	json.Unmarshal(loggerPost(h, "/logger/known", key, mine).Body.Bytes(), &known)
+	json.Unmarshal(loggerPost(h, "/logger/known", mine).Body.Bytes(), &known)
 	if len(known.Existing) != 1 {
 		t.Errorf("known = %v", known.Existing)
 	}
-	w = loggerPost(h, "/logger/avatars", key, mine)
+	w = loggerPost(h, "/logger/avatars", mine)
 	if w.Code != 200 || !strings.Contains(w.Body.String(), `"rejected"`) || h.fetches.Load() != before {
 		t.Errorf("ingestion of removed avatar: %d %s, fetches %d", w.Code, w.Body, h.fetches.Load()-before)
 	}
 }
 
 func TestStaffRemoveAvatarsDirectly(t *testing.T) {
-	h, browser, key := newLoggerHarness(t)
+	h, browser := newLinkedLoggerHarness(t)
 	writer := h.srv.cfg.Logger.Catalog
 	h.srv.db = writer
 	spam, requested := "avtr_00000000-0000-0000-0000-0000000000b1", "avtr_00000000-0000-0000-0000-0000000000b2"
@@ -349,7 +349,7 @@ func TestStaffRemoveAvatarsDirectly(t *testing.T) {
 	if action != "removed avatar (Advertises a website)" {
 		t.Errorf("log action = %q", action)
 	}
-	if w := loggerPost(h, "/logger/avatars", key, spam); !strings.Contains(w.Body.String(), `"rejected"`) {
+	if w := loggerPost(h, "/logger/avatars", spam); !strings.Contains(w.Body.String(), `"rejected"`) {
 		t.Errorf("removed avatar re-added: %s", w.Body)
 	}
 }

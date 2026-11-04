@@ -103,9 +103,6 @@ func Run(ctx context.Context, path string, s *logger.State, commands <-chan Comm
 		case submitting:
 			s.Status = "Checking and uploading avatars · collecting locally"
 			return
-		case s.Config.Token == "":
-			s.Status = "Collecting locally · add an API key in Settings to upload"
-			return
 		case s.Verifier == nil || !s.Verifier.Ready():
 			s.Status = "Collecting locally · sign in to VRChat in Settings to upload"
 			return
@@ -151,7 +148,7 @@ func Run(ctx context.Context, path string, s *logger.State, commands <-chan Comm
 			batch := result.state
 			// A response from an old connection must not remove IDs intended for
 			// the newly configured server.
-			if batch.Config.Server != s.Config.Server || batch.Config.Token != s.Config.Token {
+			if batch.Config.Server != s.Config.Server {
 				continue
 			}
 			for id, status := range batch.Seen {
@@ -220,9 +217,9 @@ func Run(ctx context.Context, path string, s *logger.State, commands <-chan Comm
 				paused = true
 				s.Status = "Paused"
 			case "config":
-				// Clear the rate-limit wait when the server or key changes.
-				// Keep it for other settings changes.
-				if c.Config.Server != s.Config.Server || c.Config.Token != s.Config.Token {
+				// Clear the rate-limit wait when the server changes. Keep it
+				// for other settings changes.
+				if c.Config.Server != s.Config.Server {
 					s.RetryAt, s.Failures, s.RetryReason = time.Time{}, 0, ""
 				}
 				s.Config = c.Config

@@ -143,7 +143,7 @@ func (s *Server) readSession(r *http.Request) *Session {
 	if !s.sessionLive(r.Context(), session) {
 		return nil
 	}
-	return s.hydrateLoggerSession(r.Context(), session)
+	return session
 }
 
 // sessionCookie builds a Set-Cookie value. A nil session clears the cookie.

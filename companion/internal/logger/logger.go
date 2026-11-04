@@ -41,7 +41,6 @@ const (
 type Config struct {
 	Folder string `json:"folder"`
 	Server string `json:"server"`
-	Token  string `json:"token,omitempty"`
 	// AutoStart starts collecting as soon as the app opens.
 	AutoStart bool `json:"autoStart,omitempty"`
 }
@@ -208,8 +207,8 @@ type Result struct {
 //     use ingestion quota). Those are marked existing without asking VRChat.
 //  2. Check the rest with this PC's VRChat login. Private, missing or invalid
 //     avatars are rejected locally and never sent.
-//  3. Send only IDs that passed. The server verifies each one again with its
-//     own session before adding it.
+//  3. Send only IDs that passed. The server verifies each one again with
+//     VRCove's own bot account before adding it.
 //
 // Rate limits, connection problems and expired logins leave unfinished IDs
 // queued and set RetryAt. Collection continues while uploads wait.
@@ -219,10 +218,6 @@ func (s *State) Submit(ctx context.Context, client *http.Client) error {
 	}
 	if time.Now().Before(s.RetryAt) {
 		s.Status = s.WaitingStatus()
-		return nil
-	}
-	if s.Config.Token == "" {
-		s.Status = "Collecting locally · add an API key in Settings to upload"
 		return nil
 	}
 	if s.Verifier == nil || !s.Verifier.Ready() {
@@ -383,7 +378,7 @@ func (s *State) known(ctx context.Context, client *http.Client, origin string, i
 	return existing, nil
 }
 
-// post sends IDs with the API key. VRChat credentials never go to VRCove.
+// post sends only IDs. VRChat credentials never go to VRCove.
 func (s *State) post(ctx context.Context, client *http.Client, url string, ids []string) (*http.Response, error) {
 	body, _ := json.Marshal(map[string]any{"ids": ids})
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
@@ -391,7 +386,6 @@ func (s *State) post(ctx context.Context, client *http.Client, url string, ids [
 		return nil, err
 	}
 	origin, _ := ValidateServer(s.Config.Server)
-	req.Header.Set("Authorization", "Bearer "+s.Config.Token)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Origin", origin)
 	req.Header.Set("User-Agent", buildinfo.UserAgent())
@@ -405,8 +399,8 @@ func responseError(resp *http.Response, action string) error {
 		return nil
 	case http.StatusTooManyRequests:
 		return limit(resp)
-	case http.StatusUnauthorized:
-		return errors.New("API key expired or revoked · generate a new key on VRCove")
+	case http.StatusServiceUnavailable:
+		return errors.New("VRCove paused avatar checks · uploads will retry")
 	default:
 		return fmt.Errorf("%s returned %d · will retry", action, resp.StatusCode)
 	}

@@ -35,7 +35,7 @@ export default function PrivacyApproach() {
       </div>
       <p>
         {tr(
-          'Generating a desktop companion API key enables encrypted credential storage on your existing VRChat session record on the server. This lets the server fetch avatar metadata while your browser is closed. The companion receives only the API key, which expires when the linked session expires or ends.',
+          'VRCove Desktop’s avatar logger sends only avatar IDs. The server checks them with a VRChat account VRCove owns, so it stores none of your VRChat credentials for the logger.',
         )}
       </p>
       <p className="privacy-source">

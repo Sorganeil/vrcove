@@ -93,8 +93,7 @@ func (s *Server) accountBlock(ctx context.Context, id int64) (string, error) {
 	return "", nil
 }
 
-// signOutEverywhere ends every VRCove and VRChat session of an account. Its
-// companion API keys go with the VRChat sessions.
+// signOutEverywhere ends every VRCove and VRChat session of an account.
 func (s *Server) signOutEverywhere(ctx context.Context, tx *sql.Tx, id int64) error {
 	if _, err := tx.ExecContext(ctx, "DELETE FROM account_sessions WHERE account_id = ?", id); err != nil {
 		return err

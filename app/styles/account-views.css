@@ -227,18 +227,6 @@
 .settings-content > p {
   margin-bottom: 17px;
 }
-.logger-steps {
-  margin: 0 0 17px;
-  padding-left: 19px;
-  list-style: decimal;
-}
-.logger-steps li::marker {
-  color: var(--accent);
-  font-weight: 600;
-}
-.logger-steps li + li {
-  margin-top: 6px;
-}
 .settings-actions {
   display: flex;
   align-items: center;

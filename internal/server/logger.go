@@ -14,17 +14,22 @@ import (
 	"github.com/Sorganeil/vrcove/vrchat"
 )
 
-// LoggerConfig enables ingestion using session-bound, user-generated API keys.
+// LoggerConfig enables anonymous ingestion. Submissions are checked with the
+// operator's bot account, never a user's VRChat session.
 type LoggerConfig struct {
 	Catalog *sql.DB
+	Bot     BotConfig
 }
 
 const (
 	// loggerBatches ingestion requests of up to loggerBatchSize IDs are accepted
-	// per VRChat account in each rate-limit window (ten minutes). Requests that
+	// per client address in each rate-limit window (ten minutes). Requests that
 	// reach verification count even when every ID is rejected.
 	loggerBatches   = 40
 	loggerBatchSize = 5
+	// loggerBotBatches caps every client's requests together, so the bot stays
+	// a low-volume VRChat account however many addresses submit.
+	loggerBotBatches = 240
 	// loggerChecks bounds the catalog-only preflight, which never contacts
 	// VRChat and does not consume ingestion quota.
 	loggerChecks = 600
@@ -48,10 +53,6 @@ func (s *Server) loggerAvatars(w http.ResponseWriter, r *http.Request) error {
 	if cfg == nil {
 		return errStatus(http.StatusServiceUnavailable, "Logger ingestion is not enabled.")
 	}
-	key, session, err := s.authenticateLoggerKey(r)
-	if err != nil {
-		return err
-	}
 	ids, err := loggerIDs(r)
 	if err != nil {
 		return err
@@ -64,9 +65,13 @@ func (s *Server) loggerAvatars(w http.ResponseWriter, r *http.Request) error {
 		loggerRetry(w, "vrcove", loggerBusyWait)
 		return errStatus(http.StatusTooManyRequests, "Logger verification is busy. Try again later.")
 	}
-	if wait := s.limiter.allowN("logger-ingestion:"+string(s.linkKey(session.UserID)), loggerBatches, s.now()); wait > 0 {
+	if wait := s.limiter.allowN("logger-ingestion:"+clientKey(r), loggerBatches, s.now()); wait > 0 {
 		loggerRetry(w, "vrcove", wait)
 		return errStatus(http.StatusTooManyRequests, "Logger submission limit reached. Try again later.")
+	}
+	if wait := s.limiter.allowN("logger-bot", loggerBotBatches, s.now()); wait > 0 {
+		loggerRetry(w, "vrcove", wait)
+		return errStatus(http.StatusTooManyRequests, "VRCove is checking many avatars right now. Try again later.")
 	}
 	results := []loggerResult{}
 	seen := map[string]bool{}
@@ -84,19 +89,13 @@ func (s *Server) loggerAvatars(w http.ResponseWriter, r *http.Request) error {
 			results = append(results, loggerResult{id, "rejected"})
 			continue
 		}
-		data, updates, err := s.vrc(r.Context(), session, vrchat.GetAvatar(id))
-		session.apply(updates)
+		data, err := s.botCall(r.Context(), vrchat.GetAvatar(id))
 		if err != nil {
-			var failure *sessionFailure
-			if errors.As(err, &failure) {
-				_ = s.forgetSession(r.Context(), session)
-				return invalidLoggerKey()
-			}
 			var he *httpError
 			// VRChat limited the server's verification: tell the desktop when to
 			// retry, whether or not earlier IDs in this batch completed.
 			if errors.As(err, &he) && he.status == http.StatusTooManyRequests {
-				loggerRetry(w, "vrchat", s.backoff.remaining(backoffKey(session), s.now()))
+				loggerRetry(w, "vrchat", s.botWait())
 			}
 			if errors.As(err, &he) && (he.status == 404 || he.status == 403) {
 				results = append(results, loggerResult{id, "rejected"})
@@ -113,9 +112,6 @@ func (s *Server) loggerAvatars(w http.ResponseWriter, r *http.Request) error {
 		if !ok || field(a, "id") != id || field(a, "releaseStatus") != "public" {
 			results = append(results, loggerResult{id, "rejected"})
 			continue
-		}
-		if !s.loggerKeyLive(r.Context(), key, session) {
-			return invalidLoggerKey()
 		}
 		// Verify validity/public visibility BEFORE checking for an existing row.
 		var exists int
@@ -228,15 +224,11 @@ func (s *Server) loggerKnown(w http.ResponseWriter, r *http.Request) error {
 	if cfg == nil {
 		return errStatus(http.StatusServiceUnavailable, "Logger ingestion is not enabled.")
 	}
-	_, session, err := s.authenticateLoggerKey(r)
-	if err != nil {
-		return err
-	}
 	ids, err := loggerIDs(r)
 	if err != nil {
 		return err
 	}
-	if wait := s.limiter.allowN("logger-known:"+string(s.linkKey(session.UserID)), loggerChecks, s.now()); wait > 0 {
+	if wait := s.limiter.allowN("logger-known:"+clientKey(r), loggerChecks, s.now()); wait > 0 {
 		loggerRetry(w, "vrcove", wait)
 		return errStatus(http.StatusTooManyRequests, "Catalog check limit reached. Try again later.")
 	}

@@ -99,7 +99,7 @@ func collectWhileBlocked(t *testing.T, stage string) {
 		verifier.block = first
 	}
 	state := logger.New()
-	state.Config = logger.Config{Folder: folder, Server: server.URL, Token: "test-only"}
+	state.Config = logger.Config{Folder: folder, Server: server.URL}
 	state.Verifier = verifier
 	path := filepath.Join(t.TempDir(), "state.json")
 	ctx, cancel := context.WithCancel(context.Background())
@@ -233,7 +233,7 @@ func TestAutoStartCollectsAsSoonAsTheWorkerStarts(t *testing.T) {
 	}
 }
 
-func TestOnlyServerOrKeyChangesResetRateLimitWait(t *testing.T) {
+func TestOnlyServerChangesResetRateLimitWait(t *testing.T) {
 	until := time.Now().Add(5 * time.Minute).Truncate(time.Second)
 	for _, tc := range []struct {
 		name  string
@@ -241,11 +241,11 @@ func TestOnlyServerOrKeyChangesResetRateLimitWait(t *testing.T) {
 		reset bool
 	}{
 		{"auto-start", func(c *logger.Config) { c.AutoStart = true }, false},
-		{"api key", func(c *logger.Config) { c.Token = "other-key" }, true},
+		{"server", func(c *logger.Config) { c.Server = "https://other.example" }, true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			state := logger.New()
-			state.Config = logger.Config{Folder: t.TempDir(), Server: "https://vrcove.example", Token: "test-only"}
+			state.Config = logger.Config{Folder: t.TempDir(), Server: "https://vrcove.example"}
 			state.RetryAt = until
 			path := filepath.Join(t.TempDir(), "state.json")
 			ctx, cancel := context.WithCancel(context.Background())
