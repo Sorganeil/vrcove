@@ -52,6 +52,10 @@ type Config struct {
 	// Logger is an optional ingestion service. The desktop sends only avatar
 	// IDs, which the operator's bot account checks with VRChat.
 	Logger *LoggerConfig
+	// Bot is a VRChat account the operator owns. It checks logger
+	// submissions and reads the codes people put in their VRChat profile to
+	// prove they own an account they link.
+	Bot BotConfig
 	// Local runs the VRChat routes for one person on their own device, as the
 	// desktop app does: no VRCove account is needed and VRChat requests go
 	// straight from the device. Remote then serves every other API route,
@@ -84,6 +88,7 @@ type Server struct {
 	pictureSlots chan struct{}
 	loggerSlot   chan struct{}
 	bot          botState
+	linkCodes    linkCodes
 	sitemaps     sitemapStore
 	tags         tagStore
 	// imageSlots bounds concurrent image fetches from VRChat.
@@ -124,7 +129,7 @@ func New(cfg Config, db *sql.DB, static fs.FS) (*Server, error) {
 	if cfg.SessionKey != nil && len(cfg.SessionKey) != 32 {
 		return nil, errors.New("SESSION_KEY must be a base64-encoded 32-byte key")
 	}
-	if cfg.Logger != nil && (cfg.Logger.Catalog == nil || cfg.Accounts == nil || cfg.Contact == "" || cfg.Logger.Bot.Username == "" || cfg.Logger.Bot.Password == "") {
+	if cfg.Logger != nil && (cfg.Logger.Catalog == nil || cfg.Accounts == nil || cfg.Contact == "" || cfg.Bot.Username == "" || cfg.Bot.Password == "") {
 		return nil, errors.New("logger ingestion needs accounts, a writable catalog, operator contact and a bot account")
 	}
 	var keys accountKeys

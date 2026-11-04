@@ -112,7 +112,7 @@ func (s *Server) botReady(ctx context.Context) error {
 		return errBotUnavailable
 	}
 	s.bot.loginAfter = s.now().Add(botLoginGap)
-	bot := s.cfg.Logger.Bot
+	bot := s.cfg.Bot
 	pending, err := s.botLogin(ctx, bot.Username, bot.Password)
 	if err != nil {
 		log.Printf("VRChat bot sign-in failed: %v", err)

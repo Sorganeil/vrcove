@@ -15,10 +15,9 @@ import (
 )
 
 // LoggerConfig enables anonymous ingestion. Submissions are checked with the
-// operator's bot account, never a user's VRChat session.
+// operator's bot account (Config.Bot), never a user's VRChat session.
 type LoggerConfig struct {
 	Catalog *sql.DB
-	Bot     BotConfig
 }
 
 const (

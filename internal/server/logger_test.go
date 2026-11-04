@@ -24,7 +24,8 @@ func newLoggerHarness(t *testing.T) *harness {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { writer.Close() })
-	h.srv.cfg.Logger = &LoggerConfig{Catalog: writer, Bot: BotConfig{Username: "vrcove_bot", Password: "synthetic bot password"}}
+	h.srv.cfg.Logger = &LoggerConfig{Catalog: writer}
+	h.srv.cfg.Bot = BotConfig{Username: "vrcove_bot", Password: "synthetic bot password"}
 	return h
 }
 
@@ -40,7 +41,8 @@ func newLinkedLoggerHarness(t *testing.T) (*harness, *accountBrowser) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { writer.Close() })
-	h.srv.cfg.Logger = &LoggerConfig{Catalog: writer, Bot: BotConfig{Username: "vrcove_bot", Password: "synthetic bot password"}}
+	h.srv.cfg.Logger = &LoggerConfig{Catalog: writer}
+	h.srv.cfg.Bot = BotConfig{Username: "vrcove_bot", Password: "synthetic bot password"}
 	signInBot(t, h)
 	return h, browser
 }

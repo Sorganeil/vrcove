@@ -380,6 +380,10 @@ func (s *Server) cove(w http.ResponseWriter, r *http.Request, p string) error {
 		return s.exportAccount(w, r, acct)
 	case p == "link" && post:
 		return s.linkVRChat(w, r, acct)
+	case p == "link/challenge" && post:
+		return s.linkChallenge(w, r, acct)
+	case p == "link/verify" && post:
+		return s.verifyLinkProof(w, r, acct)
 	case p == "unlink" && post:
 		return s.unlinkVRChat(w, r, acct)
 	case p == "review" && post:
@@ -848,50 +852,9 @@ func (s *Server) storeVRChatLink(w http.ResponseWriter, r *http.Request, a *acco
 		s.writeWithSession(w, result, session)
 		return nil
 	}
-	plain, _ := json.Marshal(linkRecord{VRChatID: vrcID, DisplayName: field(me, "displayName"), Username: username})
-	sealed, err := sealBytes(s.keys.linkSeal, plain, linkAAD)
-	if err != nil {
-		return err
-	}
-	key := s.linkKey(vrcID)
 	ctx := r.Context()
-	var owner int64
-	switch err := s.accounts.QueryRowContext(ctx, "SELECT account_id FROM vrchat_links WHERE vrc_key = ?", key).Scan(&owner); {
-	case err == nil && owner != a.ID:
-		writeError(w, http.StatusConflict, "This VRChat account is already linked to a different VRCove account.")
-		return nil
-	case err == nil:
-		// Already linked here: refresh the stored account names.
-		if _, err := s.accounts.ExecContext(ctx, "UPDATE vrchat_links SET sealed = ? WHERE vrc_key = ?", sealed, key); err != nil {
-			return err
-		}
-	case errors.Is(err, sql.ErrNoRows):
-		var n int
-		if err := s.accounts.QueryRowContext(ctx, "SELECT count(*) FROM vrchat_links WHERE account_id = ?", a.ID).Scan(&n); err != nil {
-			return err
-		}
-		if n >= maxLinksPerAccount {
-			writeError(w, http.StatusBadRequest, fmt.Sprintf("You can link up to %d VRChat accounts.", maxLinksPerAccount))
-			return nil
-		}
-		// An overlapping request (a double tap, another tab) may link it first, so insert only if
-		// still unlinked and then check who owns it rather than assuming someone else does.
-		if _, err := s.accounts.ExecContext(ctx, "INSERT INTO vrchat_links (account_id, vrc_key, sealed, created) VALUES (?, ?, ?, ?) ON CONFLICT (vrc_key) DO NOTHING",
-			a.ID, key, sealed, s.day(s.now())); err != nil {
-			return err
-		}
-		if err := s.accounts.QueryRowContext(ctx, "SELECT account_id FROM vrchat_links WHERE vrc_key = ?", key).Scan(&owner); err != nil {
-			return err
-		}
-		if owner != a.ID {
-			writeError(w, http.StatusConflict, "This VRChat account is already linked to a different VRCove account.")
-			return nil
-		}
-	default:
-		return err
-	}
-	if _, err := s.accounts.ExecContext(ctx, "UPDATE accounts SET link_reminder_seen = 1 WHERE id = ?", a.ID); err != nil {
-		return err
+	if refused, err := s.saveLink(ctx, a, vrcID, field(me, "displayName"), username); err != nil || refused != nil {
+		return cmpOr(err, refused)
 	}
 	similar := similarNames(a.Username, field(me, "displayName")) || similarNames(a.Username, field(me, "username"))
 	if old := s.readSession(r); old != nil && old.AccountID == a.ID && old.UserID != "" && old.UserID != vrcID && old.Pending == nil {
@@ -960,5 +923,62 @@ func (s *Server) unlinkVRChat(w http.ResponseWriter, r *http.Request, a *account
 		return err
 	}
 	writeJSON(w, http.StatusOK, map[string]bool{"ok": true})
+	return nil
+}
+
+// saveLink records that VRChat account vrcID belongs to a, after the caller
+// proved it. refused explains why it could not be linked.
+func (s *Server) saveLink(ctx context.Context, a *account, vrcID, displayName, username string) (refused error, err error) {
+	plain, _ := json.Marshal(linkRecord{VRChatID: vrcID, DisplayName: displayName, Username: username})
+	sealed, err := sealBytes(s.keys.linkSeal, plain, linkAAD)
+	if err != nil {
+		return nil, err
+	}
+	key := s.linkKey(vrcID)
+	var owner int64
+	switch err := s.accounts.QueryRowContext(ctx, "SELECT account_id FROM vrchat_links WHERE vrc_key = ?", key).Scan(&owner); {
+	case err == nil && owner != a.ID:
+		return errStatus(http.StatusConflict, "This VRChat account is already linked to a different VRCove account."), nil
+	case err == nil:
+		// Already linked here: refresh the stored account names.
+		if _, err := s.accounts.ExecContext(ctx, "UPDATE vrchat_links SET sealed = ? WHERE vrc_key = ?", sealed, key); err != nil {
+			return nil, err
+		}
+	case errors.Is(err, sql.ErrNoRows):
+		var n int
+		if err := s.accounts.QueryRowContext(ctx, "SELECT count(*) FROM vrchat_links WHERE account_id = ?", a.ID).Scan(&n); err != nil {
+			return nil, err
+		}
+		if n >= maxLinksPerAccount {
+			return errStatus(http.StatusBadRequest, fmt.Sprintf("You can link up to %d VRChat accounts.", maxLinksPerAccount)), nil
+		}
+		// An overlapping request (a double tap, another tab) may link it first, so insert only if
+		// still unlinked and then check who owns it rather than assuming someone else does.
+		if _, err := s.accounts.ExecContext(ctx, "INSERT INTO vrchat_links (account_id, vrc_key, sealed, created) VALUES (?, ?, ?, ?) ON CONFLICT (vrc_key) DO NOTHING",
+			a.ID, key, sealed, s.day(s.now())); err != nil {
+			return nil, err
+		}
+		if err := s.accounts.QueryRowContext(ctx, "SELECT account_id FROM vrchat_links WHERE vrc_key = ?", key).Scan(&owner); err != nil {
+			return nil, err
+		}
+		if owner != a.ID {
+			return errStatus(http.StatusConflict, "This VRChat account is already linked to a different VRCove account."), nil
+		}
+	default:
+		return nil, err
+	}
+	if _, err := s.accounts.ExecContext(ctx, "UPDATE accounts SET link_reminder_seen = 1 WHERE id = ?", a.ID); err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
+
+// cmpOr returns the first non-nil error.
+func cmpOr(errs ...error) error {
+	for _, err := range errs {
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }

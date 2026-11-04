@@ -197,8 +197,15 @@ func (s *Server) requestRemoval(w http.ResponseWriter, r *http.Request, a *accou
 	}
 	var avatar struct{ Name, AuthorID string }
 	json.Unmarshal([]byte(data), &avatar)
-	session := s.readSession(r)
-	verified := session != nil && session.AccountID == a.ID && session.Pending == nil && session.UserID != "" && session.UserID == avatar.AuthorID
+	// A linked VRChat account proves ownership without any session here.
+	verified := false
+	if avatar.AuthorID != "" {
+		linked, err := s.hasVRChatLink(r, a, avatar.AuthorID)
+		if err != nil {
+			return err
+		}
+		verified = linked
+	}
 	if !verified && jsLength(proof) < minRemovalProof {
 		return errStatus(http.StatusBadRequest, "Explain how you can prove you own this avatar, for example a link to where you publish it. Or connect the VRChat account that uploaded it.")
 	}

@@ -27,7 +27,8 @@ import {
   Pencil,
   ExternalLink,
 } from 'lucide-react';
-import { desktop, openExternal } from '../lib/platform';
+import { desktop, openExternal, vrchatInBrowser } from '../lib/platform';
+import { proveVRChatLink } from '../lib/link-proof';
 import { covePath, appLink } from '../lib/routes';
 import { CovePicture } from '../components/cove-picture';
 import PictureCropper from '../components/picture-cropper';
@@ -239,6 +240,13 @@ export default function AccountPage({
       if (s.current) onDisconnected?.();
       updateMe(r);
       notify(tr(s.current ? 'Disconnected from VRChat' : 'Session ended'));
+    });
+  // With the VRChat worker, linking proves ownership with a code in the bio.
+  const proveLink = (u: VRChatUser) =>
+    run('prove:' + u.id, async () => {
+      await proveVRChatLink(u.id);
+      await load();
+      notify(tr('VRChat account linked'));
     });
   const unlink = (id: number) =>
     run('unlink:' + id, async () => {
@@ -858,6 +866,19 @@ export default function AccountPage({
               </time>
               .
             </p>
+          )}
+          {vrchatInBrowser && user && !me.links.some((l) => l.vrchatId === user.id) && (
+            <>
+              <button className="standard-button" disabled={!!busy} onClick={() => proveLink(user)}>
+                <Link2 size={14} />
+                {tr('Link {name} to this VRCove account', { name: user.displayName })}
+              </button>
+              <p className="fineprint">
+                {tr(
+                  'VRCove puts a short code in your VRChat bio for a few seconds, checks it from its own VRChat account, then puts your bio back.',
+                )}
+              </p>
+            </>
           )}
           {!user && me.links.length > 0 && (
             <p className="fineprint">

@@ -91,6 +91,9 @@ func main() {
 		Contact:      os.Getenv("VRC_CONTACT"),
 		VRChatWorker: os.Getenv("VRCHAT_WORKER"),
 	}
+	if os.Getenv("BOT_USERNAME") != "" || os.Getenv("LOGGER_ENABLED") == "true" {
+		cfg.Bot = botConfig()
+	}
 	if site, secret := os.Getenv("TURNSTILE_SITE_KEY"), os.Getenv("TURNSTILE_SECRET_KEY"); site != "" && secret != "" {
 		cfg.TurnstileSiteKey, cfg.TurnstileSecret = site, secret
 	} else if site != "" || secret != "" {
@@ -137,7 +140,7 @@ func main() {
 			log.Fatal("could not open the logger catalog writer")
 		}
 		defer writer.Close()
-		cfg.Logger = &server.LoggerConfig{Catalog: writer, Bot: botConfig()}
+		cfg.Logger = &server.LoggerConfig{Catalog: writer}
 	}
 
 	srv, err := server.New(cfg, db, web.Dist())

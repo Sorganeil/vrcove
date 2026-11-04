@@ -884,7 +884,10 @@
     "Each avatar is checked with your VRChat sign-in, then again by VRCove’s own VRChat account. No API key or VRCove account is needed.": "Cada avatar se comprueba con tu sesión de VRChat y luego otra vez con la propia cuenta de VRChat de VRCove. No hace falta clave de API ni cuenta de VRCove.",
     "Optional, to add avatars to the search: open Avatar logger in the app and press Start. No VRCove account is needed.": "Opcional, para añadir avatares a la búsqueda: abre Registro de avatares en la app y pulsa Iniciar. No hace falta cuenta de VRCove.",
     "VRCove Desktop’s avatar logger sends only avatar IDs. The server checks them with a VRChat account VRCove owns, so it stores none of your VRChat credentials for the logger.": "El registro de avatares de VRCove Desktop solo envía ID de avatar. El servidor los comprueba con una cuenta de VRChat propiedad de VRCove, así que no guarda ninguna de tus credenciales de VRChat para el registro.",
-    "Your password goes from this browser to VRChat over an encrypted connection that VRCove only relays and cannot read. Your session stays in this browser, encrypted.": "Tu contraseña va de este navegador a VRChat por una conexión cifrada que VRCove solo retransmite y no puede leer. Tu sesión se queda en este navegador, cifrada."
+    "Your password goes from this browser to VRChat over an encrypted connection that VRCove only relays and cannot read. Your session stays in this browser, encrypted.": "Tu contraseña va de este navegador a VRChat por una conexión cifrada que VRCove solo retransmite y no puede leer. Tu sesión se queda en este navegador, cifrada.",
+    "Link {name} to this VRCove account": "Vincular {name} a esta cuenta de VRCove",
+    "VRCove puts a short code in your VRChat bio for a few seconds, checks it from its own VRChat account, then puts your bio back.": "VRCove pone un código corto en tu biografía de VRChat durante unos segundos, lo comprueba desde su propia cuenta de VRChat y luego restaura tu biografía.",
+    "VRChat account linked": "Cuenta de VRChat vinculada"
   },
   "fr": {
     "VRChat account": "Compte VRChat",
@@ -1771,7 +1774,10 @@
     "Each avatar is checked with your VRChat sign-in, then again by VRCove’s own VRChat account. No API key or VRCove account is needed.": "Chaque avatar est vérifié avec votre connexion VRChat, puis à nouveau par le compte VRChat de VRCove. Aucune clé d’API ni compte VRCove n’est nécessaire.",
     "Optional, to add avatars to the search: open Avatar logger in the app and press Start. No VRCove account is needed.": "Facultatif, pour ajouter des avatars à la recherche : ouvrez Collecteur d’avatars dans l’application et appuyez sur Démarrer. Aucun compte VRCove n’est nécessaire.",
     "VRCove Desktop’s avatar logger sends only avatar IDs. The server checks them with a VRChat account VRCove owns, so it stores none of your VRChat credentials for the logger.": "Le collecteur d’avatars de VRCove Desktop n’envoie que des ID d’avatar. Le serveur les vérifie avec un compte VRChat appartenant à VRCove, il ne stocke donc aucun de vos identifiants VRChat pour le collecteur.",
-    "Your password goes from this browser to VRChat over an encrypted connection that VRCove only relays and cannot read. Your session stays in this browser, encrypted.": "Votre mot de passe va de ce navigateur à VRChat par une connexion chiffrée que VRCove relaie seulement et ne peut pas lire. Votre session reste dans ce navigateur, chiffrée."
+    "Your password goes from this browser to VRChat over an encrypted connection that VRCove only relays and cannot read. Your session stays in this browser, encrypted.": "Votre mot de passe va de ce navigateur à VRChat par une connexion chiffrée que VRCove relaie seulement et ne peut pas lire. Votre session reste dans ce navigateur, chiffrée.",
+    "Link {name} to this VRCove account": "Associer {name} à ce compte VRCove",
+    "VRCove puts a short code in your VRChat bio for a few seconds, checks it from its own VRChat account, then puts your bio back.": "VRCove ajoute un court code à votre bio VRChat pendant quelques secondes, le vérifie depuis son propre compte VRChat, puis remet votre bio.",
+    "VRChat account linked": "Compte VRChat associé"
   },
   "de": {
     "VRChat account": "VRChat-Konto",
@@ -2658,7 +2664,10 @@
     "Each avatar is checked with your VRChat sign-in, then again by VRCove’s own VRChat account. No API key or VRCove account is needed.": "Jeder Avatar wird mit deiner VRChat-Anmeldung und danach erneut mit VRCoves eigenem VRChat-Konto geprüft. Weder API-Schlüssel noch VRCove-Konto sind nötig.",
     "Optional, to add avatars to the search: open Avatar logger in the app and press Start. No VRCove account is needed.": "Optional, um Avatare zur Suche hinzuzufügen: Öffne in der App den Avatar-Logger und drücke Starten. Ein VRCove-Konto ist nicht nötig.",
     "VRCove Desktop’s avatar logger sends only avatar IDs. The server checks them with a VRChat account VRCove owns, so it stores none of your VRChat credentials for the logger.": "Der Avatar-Logger von VRCove Desktop sendet nur Avatar-IDs. Der Server prüft sie mit einem VRChat-Konto, das VRCove gehört, und speichert für den Logger keine deiner VRChat-Zugangsdaten.",
-    "Your password goes from this browser to VRChat over an encrypted connection that VRCove only relays and cannot read. Your session stays in this browser, encrypted.": "Dein Passwort geht von diesem Browser über eine verschlüsselte Verbindung an VRChat, die VRCove nur weiterleitet und nicht lesen kann. Deine Sitzung bleibt verschlüsselt in diesem Browser."
+    "Your password goes from this browser to VRChat over an encrypted connection that VRCove only relays and cannot read. Your session stays in this browser, encrypted.": "Dein Passwort geht von diesem Browser über eine verschlüsselte Verbindung an VRChat, die VRCove nur weiterleitet und nicht lesen kann. Deine Sitzung bleibt verschlüsselt in diesem Browser.",
+    "Link {name} to this VRCove account": "{name} mit diesem VRCove-Konto verknüpfen",
+    "VRCove puts a short code in your VRChat bio for a few seconds, checks it from its own VRChat account, then puts your bio back.": "VRCove setzt für ein paar Sekunden einen kurzen Code in deine VRChat-Bio, prüft ihn mit seinem eigenen VRChat-Konto und stellt deine Bio dann wieder her.",
+    "VRChat account linked": "VRChat-Konto verknüpft"
   },
   "ja": {
     "VRChat account": "VRChatアカウント",
@@ -3545,7 +3554,10 @@
     "Each avatar is checked with your VRChat sign-in, then again by VRCove’s own VRChat account. No API key or VRCove account is needed.": "各アバターは VRChat のサインインで確認され、さらに VRCove 自身の VRChat アカウントでも確認されます。API キーや VRCove アカウントは不要です。",
     "Optional, to add avatars to the search: open Avatar logger in the app and press Start. No VRCove account is needed.": "任意：アバターを検索に追加するには、アプリでアバターロガーを開いて「開始」を押します。VRCove アカウントは不要です。",
     "VRCove Desktop’s avatar logger sends only avatar IDs. The server checks them with a VRChat account VRCove owns, so it stores none of your VRChat credentials for the logger.": "VRCove Desktop のアバターロガーが送信するのはアバター ID だけです。サーバーは VRCove が所有する VRChat アカウントでそれを確認するため、ロガーのためにあなたの VRChat 認証情報を保存することはありません。",
-    "Your password goes from this browser to VRChat over an encrypted connection that VRCove only relays and cannot read. Your session stays in this browser, encrypted.": "パスワードはこのブラウザーから VRChat へ暗号化された接続で送られます。VRCove はその接続を中継するだけで、内容を読むことはできません。セッションは暗号化されてこのブラウザーに保存されます。"
+    "Your password goes from this browser to VRChat over an encrypted connection that VRCove only relays and cannot read. Your session stays in this browser, encrypted.": "パスワードはこのブラウザーから VRChat へ暗号化された接続で送られます。VRCove はその接続を中継するだけで、内容を読むことはできません。セッションは暗号化されてこのブラウザーに保存されます。",
+    "Link {name} to this VRCove account": "{name} をこの VRCove アカウントにリンク",
+    "VRCove puts a short code in your VRChat bio for a few seconds, checks it from its own VRChat account, then puts your bio back.": "VRCove は VRChat の自己紹介に短いコードを数秒だけ追加し、自身の VRChat アカウントから確認したあと、自己紹介を元に戻します。",
+    "VRChat account linked": "VRChat アカウントをリンクしました"
   },
   "ru": {
     "VRChat account": "Аккаунт VRChat",
@@ -4432,7 +4444,10 @@
     "Each avatar is checked with your VRChat sign-in, then again by VRCove’s own VRChat account. No API key or VRCove account is needed.": "Каждый аватар проверяется с вашим входом в VRChat, а затем ещё раз собственной учётной записью VRChat у VRCove. Ключ API и аккаунт VRCove не нужны.",
     "Optional, to add avatars to the search: open Avatar logger in the app and press Start. No VRCove account is needed.": "Необязательно, чтобы добавлять аватары в поиск: откройте в приложении «Сборщик аватаров» и нажмите «Запустить». Аккаунт VRCove не нужен.",
     "VRCove Desktop’s avatar logger sends only avatar IDs. The server checks them with a VRChat account VRCove owns, so it stores none of your VRChat credentials for the logger.": "Сборщик аватаров в VRCove Desktop отправляет только ID аватаров. Сервер проверяет их учётной записью VRChat, принадлежащей VRCove, поэтому не хранит для сборщика никаких ваших учётных данных VRChat.",
-    "Your password goes from this browser to VRChat over an encrypted connection that VRCove only relays and cannot read. Your session stays in this browser, encrypted.": "Ваш пароль идёт из этого браузера в VRChat по зашифрованному соединению, которое VRCove только передаёт и не может прочитать. Ваша сессия остаётся в этом браузере в зашифрованном виде."
+    "Your password goes from this browser to VRChat over an encrypted connection that VRCove only relays and cannot read. Your session stays in this browser, encrypted.": "Ваш пароль идёт из этого браузера в VRChat по зашифрованному соединению, которое VRCove только передаёт и не может прочитать. Ваша сессия остаётся в этом браузере в зашифрованном виде.",
+    "Link {name} to this VRCove account": "Привязать {name} к этому аккаунту VRCove",
+    "VRCove puts a short code in your VRChat bio for a few seconds, checks it from its own VRChat account, then puts your bio back.": "VRCove на несколько секунд добавляет короткий код в вашу биографию VRChat, проверяет его со своей учётной записи VRChat и затем возвращает биографию.",
+    "VRChat account linked": "Аккаунт VRChat привязан"
   },
   "uk": {
     "VRChat account": "Обліковий запис VRChat",
@@ -5319,7 +5334,10 @@
     "Each avatar is checked with your VRChat sign-in, then again by VRCove’s own VRChat account. No API key or VRCove account is needed.": "Кожен аватар перевіряється з вашим входом у VRChat, а потім ще раз власним обліковим записом VRChat від VRCove. Ключ API та акаунт VRCove не потрібні.",
     "Optional, to add avatars to the search: open Avatar logger in the app and press Start. No VRCove account is needed.": "Необовʼязково, щоб додавати аватари до пошуку: відкрийте в застосунку «Збирач аватарів» і натисніть «Запустити». Акаунт VRCove не потрібен.",
     "VRCove Desktop’s avatar logger sends only avatar IDs. The server checks them with a VRChat account VRCove owns, so it stores none of your VRChat credentials for the logger.": "Збирач аватарів у VRCove Desktop надсилає лише ID аватарів. Сервер перевіряє їх обліковим записом VRChat, що належить VRCove, тож не зберігає для збирача жодних ваших облікових даних VRChat.",
-    "Your password goes from this browser to VRChat over an encrypted connection that VRCove only relays and cannot read. Your session stays in this browser, encrypted.": "Ваш пароль іде з цього браузера до VRChat зашифрованим з’єднанням, яке VRCove лише передає й не може прочитати. Ваша сесія лишається в цьому браузері в зашифрованому вигляді."
+    "Your password goes from this browser to VRChat over an encrypted connection that VRCove only relays and cannot read. Your session stays in this browser, encrypted.": "Ваш пароль іде з цього браузера до VRChat зашифрованим з’єднанням, яке VRCove лише передає й не може прочитати. Ваша сесія лишається в цьому браузері в зашифрованому вигляді.",
+    "Link {name} to this VRCove account": "Прив’язати {name} до цього акаунта VRCove",
+    "VRCove puts a short code in your VRChat bio for a few seconds, checks it from its own VRChat account, then puts your bio back.": "VRCove на кілька секунд додає короткий код у вашу біографію VRChat, перевіряє його зі свого облікового запису VRChat, а потім повертає біографію.",
+    "VRChat account linked": "Акаунт VRChat прив’язано"
   },
   "zh-CN": {
     "VRChat account": "VRChat 账号",
@@ -6206,7 +6224,10 @@
     "Each avatar is checked with your VRChat sign-in, then again by VRCove’s own VRChat account. No API key or VRCove account is needed.": "每个模型都会先用你的 VRChat 登录检查，再由 VRCove 自己的 VRChat 账户检查一次。不需要 API 密钥或 VRCove 账户。",
     "Optional, to add avatars to the search: open Avatar logger in the app and press Start. No VRCove account is needed.": "可选，如需将模型添加到搜索：在应用中打开模型记录器并点击“开始”。不需要 VRCove 账户。",
     "VRCove Desktop’s avatar logger sends only avatar IDs. The server checks them with a VRChat account VRCove owns, so it stores none of your VRChat credentials for the logger.": "VRCove Desktop 的模型记录器只发送模型 ID。服务器使用 VRCove 拥有的 VRChat 账户检查这些 ID，因此不会为记录器保存你的任何 VRChat 凭据。",
-    "Your password goes from this browser to VRChat over an encrypted connection that VRCove only relays and cannot read. Your session stays in this browser, encrypted.": "你的密码通过加密连接从此浏览器发送到 VRChat，VRCove 只负责转发，无法读取。你的会话以加密形式保存在此浏览器中。"
+    "Your password goes from this browser to VRChat over an encrypted connection that VRCove only relays and cannot read. Your session stays in this browser, encrypted.": "你的密码通过加密连接从此浏览器发送到 VRChat，VRCove 只负责转发，无法读取。你的会话以加密形式保存在此浏览器中。",
+    "Link {name} to this VRCove account": "将 {name} 关联到此 VRCove 账户",
+    "VRCove puts a short code in your VRChat bio for a few seconds, checks it from its own VRChat account, then puts your bio back.": "VRCove 会在你的 VRChat 简介中临时加入一段短代码几秒钟，用它自己的 VRChat 账户确认后再恢复你的简介。",
+    "VRChat account linked": "已关联 VRChat 账户"
   },
   "ko": {
     "VRChat account": "VRChat 계정",
@@ -7093,6 +7114,9 @@
     "Each avatar is checked with your VRChat sign-in, then again by VRCove’s own VRChat account. No API key or VRCove account is needed.": "각 아바타는 VRChat 로그인으로 확인한 뒤 VRCove 자체 VRChat 계정으로 다시 확인합니다. API 키나 VRCove 계정은 필요 없습니다.",
     "Optional, to add avatars to the search: open Avatar logger in the app and press Start. No VRCove account is needed.": "선택 사항, 아바타를 검색에 추가하려면: 앱에서 아바타 로거를 열고 시작을 누르세요. VRCove 계정은 필요 없습니다.",
     "VRCove Desktop’s avatar logger sends only avatar IDs. The server checks them with a VRChat account VRCove owns, so it stores none of your VRChat credentials for the logger.": "VRCove Desktop의 아바타 로거는 아바타 ID만 전송합니다. 서버는 VRCove 소유의 VRChat 계정으로 이를 확인하므로, 로거를 위해 사용자의 VRChat 자격 증명을 저장하지 않습니다.",
-    "Your password goes from this browser to VRChat over an encrypted connection that VRCove only relays and cannot read. Your session stays in this browser, encrypted.": "비밀번호는 이 브라우저에서 VRChat으로 암호화된 연결을 통해 전송되며, VRCove는 이를 중계만 할 뿐 읽을 수 없습니다. 세션은 암호화되어 이 브라우저에 저장됩니다."
+    "Your password goes from this browser to VRChat over an encrypted connection that VRCove only relays and cannot read. Your session stays in this browser, encrypted.": "비밀번호는 이 브라우저에서 VRChat으로 암호화된 연결을 통해 전송되며, VRCove는 이를 중계만 할 뿐 읽을 수 없습니다. 세션은 암호화되어 이 브라우저에 저장됩니다.",
+    "Link {name} to this VRCove account": "{name}을(를) 이 VRCove 계정에 연결",
+    "VRCove puts a short code in your VRChat bio for a few seconds, checks it from its own VRChat account, then puts your bio back.": "VRCove는 VRChat 소개에 짧은 코드를 몇 초 동안 넣고, 자체 VRChat 계정으로 확인한 뒤 소개를 원래대로 되돌립니다.",
+    "VRChat account linked": "VRChat 계정이 연결되었습니다"
   }
 }
