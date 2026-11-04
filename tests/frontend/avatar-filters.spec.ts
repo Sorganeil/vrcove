@@ -16,9 +16,22 @@ const avatar = {
   created: '2026-01-01T00:00:00Z',
 };
 
+const tagCounts = [
+  { tag: 'furry', count: 1900 },
+  { tag: 'face tracking', count: 900 },
+  { tag: 'anime', count: 600 },
+  { tag: 'robot', count: 400 },
+  { tag: 'cat', count: 350 },
+  { tag: 'dragon', count: 290 },
+  { tag: 'meme', count: 270 },
+  { tag: 'fox', count: 180 },
+  { tag: 'cat ears', count: 40 },
+];
+
 // Answers every catalog request with the avatar and records the query parameters.
 async function catalog(page: Page) {
   const seen: URLSearchParams[] = [];
+  await page.route('**/api/catalog/tags', (r) => r.fulfill({ json: { tags: tagCounts } }));
   await page.route('**/api/catalog?*', (r) => {
     seen.push(new URL(r.request().url()).searchParams);
     return r.fulfill({ json: { avatars: [avatar], total: 1, page: 0 } });
@@ -80,12 +93,95 @@ test('a shared filtered search link opens with its filters', async ({ page }) =>
   const seen = await catalog(page);
   await page.goto('/avatars?tag=face+tracking&author=Kit+Maker');
   await lastWith(seen, (p) => p.get('tag') === 'face tracking' && p.get('author') === 'Kit Maker');
-  await expect(page.locator('.active-filters')).toContainText('Tag: face tracking');
-  await page
-    .locator('.active-filters')
-    .getByRole('button', { name: /face tracking/ })
-    .click();
+  const chosen = page
+    .getByRole('group', { name: 'Tags', exact: true })
+    .getByRole('button', { name: 'face tracking' });
+  await expect(chosen).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.active-filters')).toContainText('Creator: Kit Maker');
+  await chosen.click();
   await expect(page).toHaveURL(/\/avatars\?author=Kit\+Maker$/);
+});
+
+test('tags toggle without changing the rest of the search', async ({ page }) => {
+  const seen = await catalog(page);
+  await page.goto('/avatars?q=scout&author=Kit+Maker');
+  await page.getByRole('button', { name: /^Filters/ }).click();
+  await page.getByLabel('Performance rating').selectOption('Good+');
+  await page.getByLabel('Hide horror').check();
+  const tags = page.getByRole('group', { name: 'Tags', exact: true });
+  const furry = tags.getByRole('button', { name: 'furry', exact: true });
+  await furry.click();
+  await expect(furry).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByLabel('Filter by tag')).toHaveValue('furry');
+  await lastWith(
+    seen,
+    (p) =>
+      p.get('tag') === 'furry' &&
+      p.get('q') === 'scout' &&
+      p.get('author') === 'Kit Maker' &&
+      p.get('rating') === 'Good+' &&
+      p.get('hide') === 'horror',
+  );
+
+  const faceTracking = tags.getByRole('button', { name: 'face tracking', exact: true });
+  await faceTracking.click();
+  await expect(furry).toHaveAttribute('aria-pressed', 'false');
+  await expect(faceTracking).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByLabel('Filter by tag')).toHaveValue('face tracking');
+  await expect(page).toHaveURL(/tag=face\+tracking/);
+  await page.reload();
+  await expect(faceTracking).toHaveAttribute('aria-pressed', 'true');
+  await faceTracking.click();
+  await expect(faceTracking).toHaveAttribute('aria-pressed', 'false');
+  await expect(page).not.toHaveURL(/tag=/);
+  await lastWith(seen, (p) => !p.has('tag') && p.get('q') === 'scout' && p.get('author') === 'Kit Maker');
+});
+
+test('tag browsing fits a narrow phone screen', async ({ page }) => {
+  await catalog(page);
+  await page.setViewportSize({ width: 320, height: 844 });
+  await page.goto('/avatars?tag=furry');
+  const tags = page.getByRole('group', { name: 'Tags', exact: true });
+  await expect(tags.getByRole('button', { name: 'furry', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  for (const button of await tags.getByRole('button').all()) {
+    await expect(button).toBeVisible();
+    const bounds = (await button.boundingBox())!;
+    expect(bounds.x).toBeGreaterThanOrEqual(0);
+    expect(bounds.x + bounds.width).toBeLessThanOrEqual(320);
+    expect(bounds.height).toBeGreaterThanOrEqual(40);
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+});
+
+test('the tag row shows the eight most used and all tags can be searched', async ({ page }) => {
+  const seen = await catalog(page);
+  await page.goto('/avatars');
+  const popular = page.getByRole('group', { name: 'Tags', exact: true });
+  await expect(popular.getByRole('button', { name: 'fox', exact: true })).toBeVisible();
+  await expect(popular.getByRole('button', { name: 'cat ears', exact: true })).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Browse all tags' }).click();
+  const browser = page.getByRole('dialog', { name: 'All tags' });
+  await expect(browser.getByText('9 tags')).toBeVisible();
+  await browser.getByLabel('Search tags').fill('cat');
+  await expect(browser.getByRole('listitem')).toHaveCount(2);
+  await browser.getByRole('button', { name: 'A–Z' }).click();
+  await expect(browser.getByRole('listitem').first()).toContainText('cat');
+  await browser.getByRole('button', { name: /^cat ears/ }).click();
+  await expect(browser).toHaveCount(0);
+  // A chosen tag outside the eight most used joins the row so it can be cleared there.
+  await expect(popular.getByRole('button', { name: 'cat ears', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  await lastWith(seen, (p) => p.get('tag') === 'cat ears');
+
+  await page.getByRole('button', { name: 'Browse all tags' }).click();
+  await browser.getByLabel('Search tags').fill('zzz');
+  await expect(browser.getByText('No tags match your search.')).toBeVisible();
 });
 
 test('collection items open in the quick view instead of leaving the page', async ({ page }) => {

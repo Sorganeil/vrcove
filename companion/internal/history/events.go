@@ -35,9 +35,9 @@ const gameLogQuery = `SELECT at, kind, world_id, world_name, location, user_id, 
 		FROM videos m JOIN visits v ON v.id = m.visit_id
 ) WHERE at < ?`
 
-// GameLog lists game log events before `before` (Unix ms; 0 for now), newest
-// first. kinds is a comma-separated list of kinds to include (all when empty);
-// q matches world, person, avatar or video.
+// GameLog lists events newest first, before a Unix millisecond timestamp.
+// A zero timestamp means now. kinds lists event kinds separated by commas,
+// or all kinds when empty. q matches a world, person, avatar or video.
 func (s *Store) GameLog(ctx context.Context, before int64, kinds, q string, limit int) ([]LogEntry, error) {
 	if before <= 0 {
 		before = time.Now().UnixMilli() + 1

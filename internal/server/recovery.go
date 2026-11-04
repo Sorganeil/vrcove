@@ -12,7 +12,7 @@ import (
 const recoveryCodeCount = 10
 
 // Each code has 128 random bits. Only a domain-separated SHA-256 digest is
-// persisted; formatting and letter case do not affect redemption.
+// stored. Formatting and letter case do not affect redemption.
 func recoveryHash(code string) []byte {
 	code = strings.ToLower(strings.ReplaceAll(strings.TrimSpace(code), "-", ""))
 	raw, err := hex.DecodeString(code)

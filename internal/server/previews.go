@@ -10,6 +10,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/Sorganeil/vrcove/vrchat"
 )
 
 type linkPreview struct{ Title, Description, Image string }
@@ -159,7 +161,16 @@ func (s *Server) pagePreview(r *http.Request) (linkPreview, string) {
 		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
 		defer cancel()
 		// Never use visitor credentials for a crawler's public preview.
-		result, _, err := s.vrc(ctx, "/"+kind+"s/"+id, nil, vrcRequest{})
+		var call vrchat.Call
+		switch kind {
+		case "world":
+			call = vrchat.GetWorld(id)
+		case "group":
+			call = vrchat.GetGroup(id, vrchat.GetGroupParams{})
+		case "user":
+			call = vrchat.GetUser(id)
+		}
+		result, _, err := s.vrc(ctx, nil, call)
 		if err == nil {
 			s.cachePreview(kind, id, result)
 			if public, ok := publicPreview(kind, result); ok {

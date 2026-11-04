@@ -80,7 +80,7 @@ func reply(status int, body string, header ...string) *http.Response {
 
 func (f *fakeVRCove) client() *http.Client {
 	return &http.Client{Transport: transport(func(r *http.Request) (*http.Response, error) {
-		if r.Header.Get("Cookie") != "" || r.Header.Get("Authorization") != "Bearer test-key" {
+		if r.Header.Get("Cookie") != "" || r.Header.Get("Authorization") != "" {
 			f.t.Fatalf("VRCove request carried unexpected credentials: %v", r.Header)
 		}
 		var body struct{ IDs []string }
@@ -119,7 +119,6 @@ func (f *fakeVRCove) client() *http.Client {
 
 func pipeline(t *testing.T, ids ...string) (*State, *fakeVerifier, *fakeVRCove) {
 	s := New()
-	s.Config.Token = "test-key"
 	s.Pending = append(s.Pending, ids...)
 	for _, id := range ids {
 		s.Seen[id] = "queued"
@@ -285,28 +284,15 @@ func TestRateLimitsKeepQueueAndNameTheirSource(t *testing.T) {
 	}
 }
 
-func TestUploadsNeedBothLogins(t *testing.T) {
-	for _, tc := range []struct {
-		name  string
-		token string
-		ready bool
-		want  string
-	}{
-		{"no API key", "", true, "add an API key"},
-		{"no VRChat login", "test-key", false, "sign in to VRChat"},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			s, v, f := pipeline(t, public)
-			s.Config.Token, v.ready = tc.token, tc.ready
-			client := &http.Client{Transport: transport(func(*http.Request) (*http.Response, error) {
-				t.Fatal("network request without both logins")
-				return nil, nil
-			})}
-			if err := s.Submit(context.Background(), client); err != nil || !strings.Contains(s.Status, tc.want) || len(s.Pending) != 1 {
-				t.Fatalf("err=%v status=%q", err, s.Status)
-			}
-			_ = f
-		})
+func TestUploadsNeedVRChatLogin(t *testing.T) {
+	s, v, _ := pipeline(t, public)
+	v.ready = false
+	client := &http.Client{Transport: transport(func(*http.Request) (*http.Response, error) {
+		t.Fatal("network request without a VRChat login")
+		return nil, nil
+	})}
+	if err := s.Submit(context.Background(), client); err != nil || !strings.Contains(s.Status, "sign in to VRChat") || len(s.Pending) != 1 {
+		t.Fatalf("err=%v status=%q", err, s.Status)
 	}
 }
 

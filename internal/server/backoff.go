@@ -2,10 +2,10 @@ package server
 
 import (
 	"net/http"
-	"strconv"
-	"strings"
 	"sync"
 	"time"
+
+	"github.com/Sorganeil/vrcove/vrchat"
 )
 
 const (
@@ -88,14 +88,7 @@ func retryAfter(h http.Header, now time.Time) time.Duration {
 }
 
 func retryAfterMax(h http.Header, now time.Time, limit time.Duration) time.Duration {
-	v := strings.TrimSpace(h.Get("Retry-After"))
-	wait := defaultRetryAfter
-	if n, err := strconv.Atoi(v); err == nil {
-		wait = time.Duration(min(max(n, 1), int(limit/time.Second))) * time.Second
-	} else if t, err := http.ParseTime(v); err == nil {
-		wait = t.Sub(now)
-	}
-	return min(max(wait, time.Second), limit)
+	return vrchat.RetryDelay(h.Get("Retry-After"), now, limit)
 }
 
 func rateLimitedError() error {

@@ -1,0 +1,2043 @@
+{
+  "specification": "https://github.com/vrchatapi/specification",
+  "revision": "3656fce60438134a94f9cb9fff98608aacb250c9",
+  "operations": [
+    {
+      "operation": "VerifyAuthToken",
+      "method": "GET",
+      "path": "/auth",
+      "category": "authentication"
+    },
+    {
+      "operation": "ConfirmEmail",
+      "method": "GET",
+      "path": "/auth/confirmEmail",
+      "category": "authentication"
+    },
+    {
+      "operation": "ApproveDeviceAuth",
+      "method": "POST",
+      "path": "/auth/device/approve",
+      "category": "authentication"
+    },
+    {
+      "operation": "CreateDeviceCode",
+      "method": "POST",
+      "path": "/auth/device/code",
+      "category": "authentication"
+    },
+    {
+      "operation": "GetDeviceAuthInfo",
+      "method": "GET",
+      "path": "/auth/device/info",
+      "category": "authentication"
+    },
+    {
+      "operation": "CheckDeviceCode",
+      "method": "POST",
+      "path": "/auth/device/status",
+      "category": "authentication"
+    },
+    {
+      "operation": "CheckUserExists",
+      "method": "GET",
+      "path": "/auth/exists",
+      "category": "authentication"
+    },
+    {
+      "operation": "ResetPassword",
+      "method": "PUT",
+      "path": "/auth/password",
+      "category": "authentication"
+    },
+    {
+      "operation": "RegisterUserAccount",
+      "method": "POST",
+      "path": "/auth/register",
+      "category": "authentication"
+    },
+    {
+      "operation": "Disable2FA",
+      "method": "DELETE",
+      "path": "/auth/twofactorauth",
+      "category": "authentication"
+    },
+    {
+      "operation": "Verify2FAEmailCode",
+      "method": "POST",
+      "path": "/auth/twofactorauth/emailotp/verify",
+      "category": "authentication"
+    },
+    {
+      "operation": "VerifyRecoveryCode",
+      "method": "POST",
+      "path": "/auth/twofactorauth/otp/verify",
+      "category": "authentication"
+    },
+    {
+      "operation": "CancelPending2FA",
+      "method": "DELETE",
+      "path": "/auth/twofactorauth/totp/pending",
+      "category": "authentication"
+    },
+    {
+      "operation": "Enable2FA",
+      "method": "POST",
+      "path": "/auth/twofactorauth/totp/pending",
+      "category": "authentication"
+    },
+    {
+      "operation": "VerifyPending2FA",
+      "method": "POST",
+      "path": "/auth/twofactorauth/totp/pending/verify",
+      "category": "authentication"
+    },
+    {
+      "operation": "Verify2FA",
+      "method": "POST",
+      "path": "/auth/twofactorauth/totp/verify",
+      "category": "authentication"
+    },
+    {
+      "operation": "GetCurrentUser",
+      "method": "GET",
+      "path": "/auth/user",
+      "category": "authentication"
+    },
+    {
+      "operation": "GetAccountStanding",
+      "method": "GET",
+      "path": "/auth/user/accountStanding",
+      "category": "authentication"
+    },
+    {
+      "operation": "DeleteGlobalAvatarModeration",
+      "method": "DELETE",
+      "path": "/auth/user/avatarmoderations",
+      "category": "authentication"
+    },
+    {
+      "operation": "GetGlobalAvatarModerations",
+      "method": "GET",
+      "path": "/auth/user/avatarmoderations",
+      "category": "authentication"
+    },
+    {
+      "operation": "CreateGlobalAvatarModeration",
+      "method": "POST",
+      "path": "/auth/user/avatarmoderations",
+      "category": "authentication"
+    },
+    {
+      "operation": "GetInterestsAndPreferences",
+      "method": "GET",
+      "path": "/auth/user/interestsAndPreferences",
+      "category": "authentication"
+    },
+    {
+      "operation": "UpdateInterestsAndPreferences",
+      "method": "PUT",
+      "path": "/auth/user/interestsAndPreferences",
+      "category": "authentication"
+    },
+    {
+      "operation": "ResendEmailConfirmation",
+      "method": "POST",
+      "path": "/auth/user/resendEmail",
+      "category": "authentication"
+    },
+    {
+      "operation": "GetRecoveryCodes",
+      "method": "GET",
+      "path": "/auth/user/twofactorauth/otp",
+      "category": "authentication"
+    },
+    {
+      "operation": "VerifyLoginPlace",
+      "method": "GET",
+      "path": "/auth/verifyLoginPlace",
+      "category": "authentication"
+    },
+    {
+      "operation": "Logout",
+      "method": "PUT",
+      "path": "/logout",
+      "category": "authentication"
+    },
+    {
+      "operation": "GetModerationReports",
+      "method": "GET",
+      "path": "/moderationReports",
+      "category": "authentication"
+    },
+    {
+      "operation": "SubmitModerationReport",
+      "method": "POST",
+      "path": "/moderationReports",
+      "category": "authentication"
+    },
+    {
+      "operation": "DeleteModerationReport",
+      "method": "DELETE",
+      "path": "/moderationReports/{moderationReportId}",
+      "category": "authentication"
+    },
+    {
+      "operation": "GetOAuthRedirectCode",
+      "method": "GET",
+      "path": "/oauth/redirectCode",
+      "category": "authentication"
+    },
+    {
+      "operation": "GetSsoToken",
+      "method": "GET",
+      "path": "/sso/{provider}",
+      "category": "authentication"
+    },
+    {
+      "operation": "DeleteUser",
+      "method": "PUT",
+      "path": "/users/{userId}/delete",
+      "category": "authentication"
+    },
+    {
+      "operation": "GetAvatarStyles",
+      "method": "GET",
+      "path": "/avatarStyles",
+      "category": "avatars"
+    },
+    {
+      "operation": "SearchAvatars",
+      "method": "GET",
+      "path": "/avatars",
+      "category": "avatars"
+    },
+    {
+      "operation": "CreateAvatar",
+      "method": "POST",
+      "path": "/avatars",
+      "category": "avatars"
+    },
+    {
+      "operation": "GetFavoritedAvatars",
+      "method": "GET",
+      "path": "/avatars/favorites",
+      "category": "avatars"
+    },
+    {
+      "operation": "GetImpostorQueueStats",
+      "method": "GET",
+      "path": "/avatars/impostor/queue/stats",
+      "category": "avatars"
+    },
+    {
+      "operation": "GetLicensedAvatars",
+      "method": "GET",
+      "path": "/avatars/licensed",
+      "category": "avatars"
+    },
+    {
+      "operation": "GetAvatar",
+      "method": "GET",
+      "path": "/avatars/{avatarId}",
+      "category": "avatars"
+    },
+    {
+      "operation": "UpdateAvatar",
+      "method": "PUT",
+      "path": "/avatars/{avatarId}",
+      "category": "avatars"
+    },
+    {
+      "operation": "DeleteAvatar",
+      "method": "DELETE",
+      "path": "/avatars/{avatarId}",
+      "category": "avatars"
+    },
+    {
+      "operation": "DeleteImpostor",
+      "method": "DELETE",
+      "path": "/avatars/{avatarId}/impostor",
+      "category": "avatars"
+    },
+    {
+      "operation": "EnqueueImpostor",
+      "method": "POST",
+      "path": "/avatars/{avatarId}/impostor/enqueue",
+      "category": "avatars"
+    },
+    {
+      "operation": "SelectAvatar",
+      "method": "PUT",
+      "path": "/avatars/{avatarId}/select",
+      "category": "avatars"
+    },
+    {
+      "operation": "SelectFallbackAvatar",
+      "method": "PUT",
+      "path": "/avatars/{avatarId}/selectFallback",
+      "category": "avatars"
+    },
+    {
+      "operation": "GetOwnAvatar",
+      "method": "GET",
+      "path": "/users/{userId}/avatar",
+      "category": "avatars"
+    },
+    {
+      "operation": "GetCalendarEvents",
+      "method": "GET",
+      "path": "/calendar",
+      "category": "calendar"
+    },
+    {
+      "operation": "DiscoverCalendarEvents",
+      "method": "GET",
+      "path": "/calendar/discover",
+      "category": "calendar"
+    },
+    {
+      "operation": "GetFeaturedCalendarEvents",
+      "method": "GET",
+      "path": "/calendar/featured",
+      "category": "calendar"
+    },
+    {
+      "operation": "GetFollowedCalendarEvents",
+      "method": "GET",
+      "path": "/calendar/following",
+      "category": "calendar"
+    },
+    {
+      "operation": "SearchCalendarEvents",
+      "method": "GET",
+      "path": "/calendar/search",
+      "category": "calendar"
+    },
+    {
+      "operation": "GetGroupCalendarEvents",
+      "method": "GET",
+      "path": "/calendar/{groupId}",
+      "category": "calendar"
+    },
+    {
+      "operation": "CreateGroupCalendarEvent",
+      "method": "POST",
+      "path": "/calendar/{groupId}/event",
+      "category": "calendar"
+    },
+    {
+      "operation": "GetGroupNextCalendarEvent",
+      "method": "GET",
+      "path": "/calendar/{groupId}/next",
+      "category": "calendar"
+    },
+    {
+      "operation": "DeleteGroupCalendarEvent",
+      "method": "DELETE",
+      "path": "/calendar/{groupId}/{calendarId}",
+      "category": "calendar"
+    },
+    {
+      "operation": "GetGroupCalendarEvent",
+      "method": "GET",
+      "path": "/calendar/{groupId}/{calendarId}",
+      "category": "calendar"
+    },
+    {
+      "operation": "UpdateGroupCalendarEvent",
+      "method": "PUT",
+      "path": "/calendar/{groupId}/{calendarId}/event",
+      "category": "calendar"
+    },
+    {
+      "operation": "FollowGroupCalendarEvent",
+      "method": "POST",
+      "path": "/calendar/{groupId}/{calendarId}/follow",
+      "category": "calendar"
+    },
+    {
+      "operation": "GetAdminTransactions",
+      "method": "GET",
+      "path": "/admin/transactions",
+      "category": "economy"
+    },
+    {
+      "operation": "GetAdminTransaction",
+      "method": "GET",
+      "path": "/admin/transactions/{transactionId}",
+      "category": "economy"
+    },
+    {
+      "operation": "UpdateAssetReviewNotes",
+      "method": "PUT",
+      "path": "/assetReview/{assetReviewId}/notes",
+      "category": "economy"
+    },
+    {
+      "operation": "GetCurrentSubscriptions",
+      "method": "GET",
+      "path": "/auth/user/subscription",
+      "category": "economy"
+    },
+    {
+      "operation": "GetActiveLicenses",
+      "method": "GET",
+      "path": "/economy/licenses/active",
+      "category": "economy"
+    },
+    {
+      "operation": "GetEarningsMetrics",
+      "method": "GET",
+      "path": "/economy/metrics/earnings",
+      "category": "economy"
+    },
+    {
+      "operation": "PurchaseProductListing",
+      "method": "POST",
+      "path": "/economy/purchase/listing",
+      "category": "economy"
+    },
+    {
+      "operation": "GetProductPurchases",
+      "method": "GET",
+      "path": "/economy/purchases",
+      "category": "economy"
+    },
+    {
+      "operation": "GetProductPurchase",
+      "method": "GET",
+      "path": "/economy/purchases/{productPurchaseId}",
+      "category": "economy"
+    },
+    {
+      "operation": "GetProductPurchaseStacks",
+      "method": "GET",
+      "path": "/economy/purchases/{productPurchaseId}/stacks",
+      "category": "economy"
+    },
+    {
+      "operation": "GetSellerEligibility",
+      "method": "GET",
+      "path": "/economy/seller/eligibility",
+      "category": "economy"
+    },
+    {
+      "operation": "GetEconomyStatus",
+      "method": "GET",
+      "path": "/economy/status",
+      "category": "economy"
+    },
+    {
+      "operation": "GetStore",
+      "method": "GET",
+      "path": "/economy/store",
+      "category": "economy"
+    },
+    {
+      "operation": "GetStoreShelves",
+      "method": "GET",
+      "path": "/economy/store/shelves",
+      "category": "economy"
+    },
+    {
+      "operation": "ListStores",
+      "method": "GET",
+      "path": "/economy/stores",
+      "category": "economy"
+    },
+    {
+      "operation": "GetEconomySubscriptions",
+      "method": "GET",
+      "path": "/economy/subscriptions",
+      "category": "economy"
+    },
+    {
+      "operation": "GetLicenseGroup",
+      "method": "GET",
+      "path": "/licenseGroups/{licenseGroupId}",
+      "category": "economy"
+    },
+    {
+      "operation": "CreateProductListingDirect",
+      "method": "POST",
+      "path": "/listing",
+      "category": "economy"
+    },
+    {
+      "operation": "GetProductListing",
+      "method": "GET",
+      "path": "/listing/{productId}",
+      "category": "economy"
+    },
+    {
+      "operation": "UpdateProductListingDirect",
+      "method": "PUT",
+      "path": "/listing/{productId}",
+      "category": "economy"
+    },
+    {
+      "operation": "DeleteProductListingDirect",
+      "method": "DELETE",
+      "path": "/listing/{productId}",
+      "category": "economy"
+    },
+    {
+      "operation": "GetProductListingProducts",
+      "method": "GET",
+      "path": "/listing/{productId}/products",
+      "category": "economy"
+    },
+    {
+      "operation": "CreateProduct",
+      "method": "POST",
+      "path": "/products",
+      "category": "economy"
+    },
+    {
+      "operation": "GetProductListingAlternate",
+      "method": "GET",
+      "path": "/products/{productId}",
+      "category": "economy"
+    },
+    {
+      "operation": "UpdateProduct",
+      "method": "PUT",
+      "path": "/products/{productId}",
+      "category": "economy"
+    },
+    {
+      "operation": "DeleteProduct",
+      "method": "DELETE",
+      "path": "/products/{productId}",
+      "category": "economy"
+    },
+    {
+      "operation": "GetSteamTransactions",
+      "method": "GET",
+      "path": "/steam/transactions",
+      "category": "economy"
+    },
+    {
+      "operation": "GetSteamTransaction",
+      "method": "GET",
+      "path": "/steam/transactions/{transactionId}",
+      "category": "economy"
+    },
+    {
+      "operation": "GetSubscriptions",
+      "method": "GET",
+      "path": "/subscriptions",
+      "category": "economy"
+    },
+    {
+      "operation": "GetTiliaStatus",
+      "method": "GET",
+      "path": "/tilia/status",
+      "category": "economy"
+    },
+    {
+      "operation": "GetTokenBundles",
+      "method": "GET",
+      "path": "/tokenBundles",
+      "category": "economy"
+    },
+    {
+      "operation": "GetBulkGiftPurchases",
+      "method": "GET",
+      "path": "/user/bulk/gift/purchases",
+      "category": "economy"
+    },
+    {
+      "operation": "GetRecentSubscription",
+      "method": "GET",
+      "path": "/user/subscription/recent",
+      "category": "economy"
+    },
+    {
+      "operation": "GetBalance",
+      "method": "GET",
+      "path": "/user/{userId}/balance",
+      "category": "economy"
+    },
+    {
+      "operation": "GetBalanceEarnings",
+      "method": "GET",
+      "path": "/user/{userId}/balance/earnings",
+      "category": "economy"
+    },
+    {
+      "operation": "GetEconomyAccount",
+      "method": "GET",
+      "path": "/user/{userId}/economy/account",
+      "category": "economy"
+    },
+    {
+      "operation": "GetEconomyBalance",
+      "method": "GET",
+      "path": "/user/{userId}/economy/balance",
+      "category": "economy"
+    },
+    {
+      "operation": "GetEconomyBalances",
+      "method": "GET",
+      "path": "/user/{userId}/economy/balances",
+      "category": "economy"
+    },
+    {
+      "operation": "GetEconomyPayouts",
+      "method": "GET",
+      "path": "/user/{userId}/economy/payouts/list",
+      "category": "economy"
+    },
+    {
+      "operation": "GetEconomyPayoutStatus",
+      "method": "GET",
+      "path": "/user/{userId}/economy/payouts/status",
+      "category": "economy"
+    },
+    {
+      "operation": "GetProductPurchaseHistory",
+      "method": "GET",
+      "path": "/user/{userId}/economy/transactions",
+      "category": "economy"
+    },
+    {
+      "operation": "GetProductListings",
+      "method": "GET",
+      "path": "/user/{userId}/listings",
+      "category": "economy"
+    },
+    {
+      "operation": "ListUserProducts",
+      "method": "GET",
+      "path": "/user/{userId}/products",
+      "category": "economy"
+    },
+    {
+      "operation": "GetUserTiliaKyc",
+      "method": "GET",
+      "path": "/user/{userId}/tilia/kyc",
+      "category": "economy"
+    },
+    {
+      "operation": "GetTiliaTOS",
+      "method": "GET",
+      "path": "/user/{userId}/tilia/tos",
+      "category": "economy"
+    },
+    {
+      "operation": "UpdateTiliaTOS",
+      "method": "PUT",
+      "path": "/user/{userId}/tilia/tos",
+      "category": "economy"
+    },
+    {
+      "operation": "GetUserCreditsEligible",
+      "method": "GET",
+      "path": "/users/{userId}/credits/eligible",
+      "category": "economy"
+    },
+    {
+      "operation": "GetUserSubscriptionEligible",
+      "method": "GET",
+      "path": "/users/{userId}/subscription/eligible",
+      "category": "economy"
+    },
+    {
+      "operation": "GetFavoriteLimits",
+      "method": "GET",
+      "path": "/auth/user/favoritelimits",
+      "category": "favorites"
+    },
+    {
+      "operation": "GetFavoriteGroup",
+      "method": "GET",
+      "path": "/favorite/group/{favoriteGroupType}/{favoriteGroupName}/{userId}",
+      "category": "favorites"
+    },
+    {
+      "operation": "UpdateFavoriteGroup",
+      "method": "PUT",
+      "path": "/favorite/group/{favoriteGroupType}/{favoriteGroupName}/{userId}",
+      "category": "favorites"
+    },
+    {
+      "operation": "ClearFavoriteGroup",
+      "method": "DELETE",
+      "path": "/favorite/group/{favoriteGroupType}/{favoriteGroupName}/{userId}",
+      "category": "favorites"
+    },
+    {
+      "operation": "GetFavoriteGroups",
+      "method": "GET",
+      "path": "/favorite/groups",
+      "category": "favorites"
+    },
+    {
+      "operation": "GetFavorites",
+      "method": "GET",
+      "path": "/favorites",
+      "category": "favorites"
+    },
+    {
+      "operation": "AddFavorite",
+      "method": "POST",
+      "path": "/favorites",
+      "category": "favorites"
+    },
+    {
+      "operation": "GetFavoriteGroupsByType",
+      "method": "GET",
+      "path": "/favorites/groups/{favoriteGroupType}",
+      "category": "favorites"
+    },
+    {
+      "operation": "GetFavoriteGroupContents",
+      "method": "GET",
+      "path": "/favorites/groups/{favoriteGroupType}/{favoriteGroupName}",
+      "category": "favorites"
+    },
+    {
+      "operation": "RemoveFavorite",
+      "method": "DELETE",
+      "path": "/favorites/{favoriteId}",
+      "category": "favorites"
+    },
+    {
+      "operation": "GetAdminAssetBundle",
+      "method": "GET",
+      "path": "/adminassetbundles/{adminAssetBundleId}",
+      "category": "files"
+    },
+    {
+      "operation": "GetContentAgreementStatus",
+      "method": "GET",
+      "path": "/agreement",
+      "category": "files"
+    },
+    {
+      "operation": "SubmitContentAgreement",
+      "method": "POST",
+      "path": "/agreement",
+      "category": "files"
+    },
+    {
+      "operation": "GetFileAnalysis",
+      "method": "GET",
+      "path": "/analysis/{fileId}/{versionId}",
+      "category": "files"
+    },
+    {
+      "operation": "GetFileAnalysisSecurity",
+      "method": "GET",
+      "path": "/analysis/{fileId}/{versionId}/security",
+      "category": "files"
+    },
+    {
+      "operation": "GetFileAnalysisStandard",
+      "method": "GET",
+      "path": "/analysis/{fileId}/{versionId}/standard",
+      "category": "files"
+    },
+    {
+      "operation": "CreateFile",
+      "method": "POST",
+      "path": "/file",
+      "category": "files"
+    },
+    {
+      "operation": "GetFile",
+      "method": "GET",
+      "path": "/file/{fileId}",
+      "category": "files"
+    },
+    {
+      "operation": "CreateFileVersion",
+      "method": "POST",
+      "path": "/file/{fileId}",
+      "category": "files"
+    },
+    {
+      "operation": "DeleteFile",
+      "method": "DELETE",
+      "path": "/file/{fileId}",
+      "category": "files"
+    },
+    {
+      "operation": "DownloadFileVersion",
+      "method": "GET",
+      "path": "/file/{fileId}/{versionId}",
+      "category": "files",
+      "implementation": "assets.go"
+    },
+    {
+      "operation": "DeleteFileVersion",
+      "method": "DELETE",
+      "path": "/file/{fileId}/{versionId}",
+      "category": "files"
+    },
+    {
+      "operation": "FinishFileDataUpload",
+      "method": "PUT",
+      "path": "/file/{fileId}/{versionId}/{fileType}/finish",
+      "category": "files"
+    },
+    {
+      "operation": "StartFileDataUpload",
+      "method": "PUT",
+      "path": "/file/{fileId}/{versionId}/{fileType}/start",
+      "category": "files"
+    },
+    {
+      "operation": "GetFileDataUploadStatus",
+      "method": "GET",
+      "path": "/file/{fileId}/{versionId}/{fileType}/status",
+      "category": "files"
+    },
+    {
+      "operation": "GetFiles",
+      "method": "GET",
+      "path": "/files",
+      "category": "files"
+    },
+    {
+      "operation": "GetFriends",
+      "method": "GET",
+      "path": "/auth/user/friends",
+      "category": "friends"
+    },
+    {
+      "operation": "Unfriend",
+      "method": "DELETE",
+      "path": "/auth/user/friends/{userId}",
+      "category": "friends"
+    },
+    {
+      "operation": "Friend",
+      "method": "POST",
+      "path": "/user/{userId}/friendRequest",
+      "category": "friends"
+    },
+    {
+      "operation": "DeleteFriendRequest",
+      "method": "DELETE",
+      "path": "/user/{userId}/friendRequest",
+      "category": "friends"
+    },
+    {
+      "operation": "GetFriendStatus",
+      "method": "GET",
+      "path": "/user/{userId}/friendStatus",
+      "category": "friends"
+    },
+    {
+      "operation": "Boop",
+      "method": "POST",
+      "path": "/users/{userId}/boop",
+      "category": "friends"
+    },
+    {
+      "operation": "SetGroupGalleryFileOrder",
+      "method": "PUT",
+      "path": "/files/order",
+      "category": "groups"
+    },
+    {
+      "operation": "SearchGroups",
+      "method": "GET",
+      "path": "/groups",
+      "category": "groups"
+    },
+    {
+      "operation": "CreateGroup",
+      "method": "POST",
+      "path": "/groups",
+      "category": "groups"
+    },
+    {
+      "operation": "GetGroupRoleTemplates",
+      "method": "GET",
+      "path": "/groups/roleTemplates",
+      "category": "groups"
+    },
+    {
+      "operation": "GetGroup",
+      "method": "GET",
+      "path": "/groups/{groupId}",
+      "category": "groups"
+    },
+    {
+      "operation": "UpdateGroup",
+      "method": "PUT",
+      "path": "/groups/{groupId}",
+      "category": "groups"
+    },
+    {
+      "operation": "DeleteGroup",
+      "method": "DELETE",
+      "path": "/groups/{groupId}",
+      "category": "groups"
+    },
+    {
+      "operation": "GetGroupAnnouncements",
+      "method": "GET",
+      "path": "/groups/{groupId}/announcement",
+      "category": "groups"
+    },
+    {
+      "operation": "CreateGroupAnnouncement",
+      "method": "POST",
+      "path": "/groups/{groupId}/announcement",
+      "category": "groups"
+    },
+    {
+      "operation": "DeleteGroupAnnouncement",
+      "method": "DELETE",
+      "path": "/groups/{groupId}/announcement",
+      "category": "groups"
+    },
+    {
+      "operation": "GetGroupAuditLogEntryTypes",
+      "method": "GET",
+      "path": "/groups/{groupId}/auditLogTypes",
+      "category": "groups"
+    },
+    {
+      "operation": "GetGroupAuditLogs",
+      "method": "GET",
+      "path": "/groups/{groupId}/auditLogs",
+      "category": "groups"
+    },
+    {
+      "operation": "GetGroupBans",
+      "method": "GET",
+      "path": "/groups/{groupId}/bans",
+      "category": "groups"
+    },
+    {
+      "operation": "BanGroupMember",
+      "method": "POST",
+      "path": "/groups/{groupId}/bans",
+      "category": "groups"
+    },
+    {
+      "operation": "UnbanGroupMember",
+      "method": "DELETE",
+      "path": "/groups/{groupId}/bans/{userId}",
+      "category": "groups"
+    },
+    {
+      "operation": "BlockGroup",
+      "method": "POST",
+      "path": "/groups/{groupId}/block",
+      "category": "groups"
+    },
+    {
+      "operation": "CreateGroupGallery",
+      "method": "POST",
+      "path": "/groups/{groupId}/galleries",
+      "category": "groups"
+    },
+    {
+      "operation": "GetGroupGalleryImages",
+      "method": "GET",
+      "path": "/groups/{groupId}/galleries/{groupGalleryId}",
+      "category": "groups"
+    },
+    {
+      "operation": "UpdateGroupGallery",
+      "method": "PUT",
+      "path": "/groups/{groupId}/galleries/{groupGalleryId}",
+      "category": "groups"
+    },
+    {
+      "operation": "DeleteGroupGallery",
+      "method": "DELETE",
+      "path": "/groups/{groupId}/galleries/{groupGalleryId}",
+      "category": "groups"
+    },
+    {
+      "operation": "AddGroupGalleryImage",
+      "method": "POST",
+      "path": "/groups/{groupId}/galleries/{groupGalleryId}/images",
+      "category": "groups"
+    },
+    {
+      "operation": "DeleteGroupGalleryImage",
+      "method": "DELETE",
+      "path": "/groups/{groupId}/galleries/{groupGalleryId}/images/{groupGalleryImageId}",
+      "category": "groups"
+    },
+    {
+      "operation": "GetGroupInstances",
+      "method": "GET",
+      "path": "/groups/{groupId}/instances",
+      "category": "groups"
+    },
+    {
+      "operation": "GetGroupInvites",
+      "method": "GET",
+      "path": "/groups/{groupId}/invites",
+      "category": "groups"
+    },
+    {
+      "operation": "DeclineGroupInvite",
+      "method": "PUT",
+      "path": "/groups/{groupId}/invites",
+      "category": "groups"
+    },
+    {
+      "operation": "CreateGroupInvite",
+      "method": "POST",
+      "path": "/groups/{groupId}/invites",
+      "category": "groups"
+    },
+    {
+      "operation": "DeleteGroupInvite",
+      "method": "DELETE",
+      "path": "/groups/{groupId}/invites/{userId}",
+      "category": "groups"
+    },
+    {
+      "operation": "JoinGroup",
+      "method": "POST",
+      "path": "/groups/{groupId}/join",
+      "category": "groups"
+    },
+    {
+      "operation": "LeaveGroup",
+      "method": "POST",
+      "path": "/groups/{groupId}/leave",
+      "category": "groups"
+    },
+    {
+      "operation": "GetGroupMembers",
+      "method": "GET",
+      "path": "/groups/{groupId}/members",
+      "category": "groups"
+    },
+    {
+      "operation": "SearchGroupMembers",
+      "method": "GET",
+      "path": "/groups/{groupId}/members/search",
+      "category": "groups"
+    },
+    {
+      "operation": "GetGroupMember",
+      "method": "GET",
+      "path": "/groups/{groupId}/members/{userId}",
+      "category": "groups"
+    },
+    {
+      "operation": "UpdateGroupMember",
+      "method": "PUT",
+      "path": "/groups/{groupId}/members/{userId}",
+      "category": "groups"
+    },
+    {
+      "operation": "KickGroupMember",
+      "method": "DELETE",
+      "path": "/groups/{groupId}/members/{userId}",
+      "category": "groups"
+    },
+    {
+      "operation": "AddGroupMemberRole",
+      "method": "PUT",
+      "path": "/groups/{groupId}/members/{userId}/roles/{groupRoleId}",
+      "category": "groups"
+    },
+    {
+      "operation": "RemoveGroupMemberRole",
+      "method": "DELETE",
+      "path": "/groups/{groupId}/members/{userId}/roles/{groupRoleId}",
+      "category": "groups"
+    },
+    {
+      "operation": "GetGroupPermissions",
+      "method": "GET",
+      "path": "/groups/{groupId}/permissions",
+      "category": "groups"
+    },
+    {
+      "operation": "GetGroupPosts",
+      "method": "GET",
+      "path": "/groups/{groupId}/posts",
+      "category": "groups"
+    },
+    {
+      "operation": "AddGroupPost",
+      "method": "POST",
+      "path": "/groups/{groupId}/posts",
+      "category": "groups"
+    },
+    {
+      "operation": "UpdateGroupPost",
+      "method": "PUT",
+      "path": "/groups/{groupId}/posts/{notificationId}",
+      "category": "groups"
+    },
+    {
+      "operation": "DeleteGroupPost",
+      "method": "DELETE",
+      "path": "/groups/{groupId}/posts/{notificationId}",
+      "category": "groups"
+    },
+    {
+      "operation": "UpdateGroupRepresentation",
+      "method": "PUT",
+      "path": "/groups/{groupId}/representation",
+      "category": "groups"
+    },
+    {
+      "operation": "GetGroupRequests",
+      "method": "GET",
+      "path": "/groups/{groupId}/requests",
+      "category": "groups"
+    },
+    {
+      "operation": "CancelGroupRequest",
+      "method": "DELETE",
+      "path": "/groups/{groupId}/requests",
+      "category": "groups"
+    },
+    {
+      "operation": "RespondGroupJoinRequest",
+      "method": "PUT",
+      "path": "/groups/{groupId}/requests/{userId}",
+      "category": "groups"
+    },
+    {
+      "operation": "GetGroupRoles",
+      "method": "GET",
+      "path": "/groups/{groupId}/roles",
+      "category": "groups"
+    },
+    {
+      "operation": "CreateGroupRole",
+      "method": "POST",
+      "path": "/groups/{groupId}/roles",
+      "category": "groups"
+    },
+    {
+      "operation": "UpdateGroupRole",
+      "method": "PUT",
+      "path": "/groups/{groupId}/roles/{groupRoleId}",
+      "category": "groups"
+    },
+    {
+      "operation": "DeleteGroupRole",
+      "method": "DELETE",
+      "path": "/groups/{groupId}/roles/{groupRoleId}",
+      "category": "groups"
+    },
+    {
+      "operation": "GetGroupTransferability",
+      "method": "GET",
+      "path": "/groups/{groupId}/transfer",
+      "category": "groups"
+    },
+    {
+      "operation": "InitiateOrAcceptGroupTransfer",
+      "method": "POST",
+      "path": "/groups/{groupId}/transfer",
+      "category": "groups"
+    },
+    {
+      "operation": "CancelGroupTransfer",
+      "method": "DELETE",
+      "path": "/groups/{groupId}/transfer",
+      "category": "groups"
+    },
+    {
+      "operation": "GetInstanceCategories",
+      "method": "GET",
+      "path": "/instanceCategories",
+      "category": "instances"
+    },
+    {
+      "operation": "GetInstanceVibes",
+      "method": "GET",
+      "path": "/instanceVibes",
+      "category": "instances"
+    },
+    {
+      "operation": "CreateInstance",
+      "method": "POST",
+      "path": "/instances",
+      "category": "instances"
+    },
+    {
+      "operation": "GetActiveInstances",
+      "method": "GET",
+      "path": "/instances/active",
+      "category": "instances"
+    },
+    {
+      "operation": "GetInstanceCount",
+      "method": "GET",
+      "path": "/instances/count",
+      "category": "instances"
+    },
+    {
+      "operation": "DiscoverInstances",
+      "method": "GET",
+      "path": "/instances/discover",
+      "category": "instances"
+    },
+    {
+      "operation": "GetRecentLocations",
+      "method": "GET",
+      "path": "/instances/recent",
+      "category": "instances"
+    },
+    {
+      "operation": "GetInstanceByShortName",
+      "method": "GET",
+      "path": "/instances/s/{shortName}",
+      "category": "instances"
+    },
+    {
+      "operation": "GetInstance",
+      "method": "GET",
+      "path": "/instances/{worldId}:{instanceId}",
+      "category": "instances"
+    },
+    {
+      "operation": "UpdateInstance",
+      "method": "PUT",
+      "path": "/instances/{worldId}:{instanceId}",
+      "category": "instances"
+    },
+    {
+      "operation": "CloseInstance",
+      "method": "DELETE",
+      "path": "/instances/{worldId}:{instanceId}",
+      "category": "instances"
+    },
+    {
+      "operation": "GetShortName",
+      "method": "GET",
+      "path": "/instances/{worldId}:{instanceId}/shortName",
+      "category": "instances"
+    },
+    {
+      "operation": "GetCosmetics",
+      "method": "GET",
+      "path": "/cosmetics/index/{itemType}",
+      "category": "inventory"
+    },
+    {
+      "operation": "GetInventory",
+      "method": "GET",
+      "path": "/inventory",
+      "category": "inventory"
+    },
+    {
+      "operation": "ShareInventoryItemDirect",
+      "method": "POST",
+      "path": "/inventory/cloning/direct",
+      "category": "inventory"
+    },
+    {
+      "operation": "ShareInventoryItemPedestal",
+      "method": "GET",
+      "path": "/inventory/cloning/pedestal",
+      "category": "inventory"
+    },
+    {
+      "operation": "GetInventoryCollections",
+      "method": "GET",
+      "path": "/inventory/collections",
+      "category": "inventory"
+    },
+    {
+      "operation": "GetInventoryDrops",
+      "method": "GET",
+      "path": "/inventory/drops",
+      "category": "inventory"
+    },
+    {
+      "operation": "GetGlobalInventory",
+      "method": "GET",
+      "path": "/inventory/global",
+      "category": "inventory"
+    },
+    {
+      "operation": "SpawnInventoryItem",
+      "method": "GET",
+      "path": "/inventory/spawn",
+      "category": "inventory"
+    },
+    {
+      "operation": "GetInventoryTemplate",
+      "method": "GET",
+      "path": "/inventory/template/{inventoryTemplateId}",
+      "category": "inventory"
+    },
+    {
+      "operation": "GetOwnInventoryItem",
+      "method": "GET",
+      "path": "/inventory/{inventoryItemId}",
+      "category": "inventory"
+    },
+    {
+      "operation": "UpdateOwnInventoryItem",
+      "method": "PUT",
+      "path": "/inventory/{inventoryItemId}",
+      "category": "inventory"
+    },
+    {
+      "operation": "DeleteOwnInventoryItem",
+      "method": "DELETE",
+      "path": "/inventory/{inventoryItemId}",
+      "category": "inventory"
+    },
+    {
+      "operation": "ConsumeOwnInventoryItem",
+      "method": "PUT",
+      "path": "/inventory/{inventoryItemId}/consume",
+      "category": "inventory"
+    },
+    {
+      "operation": "UnequipOwnInventorySlot",
+      "method": "DELETE",
+      "path": "/inventory/{inventoryItemId}/equip",
+      "category": "inventory"
+    },
+    {
+      "operation": "EquipOwnInventoryItem",
+      "method": "PUT",
+      "path": "/inventory/{inventoryItemId}/equip",
+      "category": "inventory"
+    },
+    {
+      "operation": "RedeemReward",
+      "method": "POST",
+      "path": "/reward/redeem",
+      "category": "inventory"
+    },
+    {
+      "operation": "GetUserCosmetics",
+      "method": "GET",
+      "path": "/user/{userId}/cosmetics",
+      "category": "inventory"
+    },
+    {
+      "operation": "GetUserInventoryItem",
+      "method": "GET",
+      "path": "/user/{userId}/inventory/{inventoryItemId}",
+      "category": "inventory"
+    },
+    {
+      "operation": "InviteMyselfTo",
+      "method": "POST",
+      "path": "/invite/myself/to/{worldId}:{instanceId}",
+      "category": "invite"
+    },
+    {
+      "operation": "RespondInvite",
+      "method": "POST",
+      "path": "/invite/{notificationId}/response",
+      "category": "invite"
+    },
+    {
+      "operation": "InviteUser",
+      "method": "POST",
+      "path": "/invite/{userId}",
+      "category": "invite"
+    },
+    {
+      "operation": "GetInviteMessages",
+      "method": "GET",
+      "path": "/message/{userId}/{messageType}",
+      "category": "invite"
+    },
+    {
+      "operation": "GetInviteMessage",
+      "method": "GET",
+      "path": "/message/{userId}/{messageType}/{slot}",
+      "category": "invite"
+    },
+    {
+      "operation": "UpdateInviteMessage",
+      "method": "PUT",
+      "path": "/message/{userId}/{messageType}/{slot}",
+      "category": "invite"
+    },
+    {
+      "operation": "ResetInviteMessage",
+      "method": "DELETE",
+      "path": "/message/{userId}/{messageType}/{slot}",
+      "category": "invite"
+    },
+    {
+      "operation": "RequestInvite",
+      "method": "POST",
+      "path": "/requestInvite/{userId}",
+      "category": "invite"
+    },
+    {
+      "operation": "GetJams",
+      "method": "GET",
+      "path": "/jams",
+      "category": "jams"
+    },
+    {
+      "operation": "GetJam",
+      "method": "GET",
+      "path": "/jams/{jamId}",
+      "category": "jams"
+    },
+    {
+      "operation": "GetJamSubmissions",
+      "method": "GET",
+      "path": "/jams/{jamId}/submissions",
+      "category": "jams"
+    },
+    {
+      "operation": "SubmitJamContent",
+      "method": "POST",
+      "path": "/jams/{jamId}/submissions",
+      "category": "jams"
+    },
+    {
+      "operation": "DeleteJamSubmission",
+      "method": "DELETE",
+      "path": "/jams/{jamId}/submissions/{jamSubmissionId}",
+      "category": "jams"
+    },
+    {
+      "operation": "GetAssignedPermissions",
+      "method": "GET",
+      "path": "/auth/permissions",
+      "category": "miscellaneous"
+    },
+    {
+      "operation": "GetBeta",
+      "method": "GET",
+      "path": "/beta/{betaName}",
+      "category": "miscellaneous"
+    },
+    {
+      "operation": "GetBetaRegistration",
+      "method": "GET",
+      "path": "/beta/{betaName}/register",
+      "category": "miscellaneous"
+    },
+    {
+      "operation": "GetConfig",
+      "method": "GET",
+      "path": "/config",
+      "category": "miscellaneous"
+    },
+    {
+      "operation": "GetFrontendBranches",
+      "method": "GET",
+      "path": "/frontend/branches",
+      "category": "miscellaneous"
+    },
+    {
+      "operation": "GetHealth",
+      "method": "GET",
+      "path": "/health",
+      "category": "miscellaneous"
+    },
+    {
+      "operation": "GetInfoPush",
+      "method": "GET",
+      "path": "/infoPush",
+      "category": "miscellaneous"
+    },
+    {
+      "operation": "GetInfoPushContent",
+      "method": "GET",
+      "path": "/infoPush/{entryId}/content",
+      "category": "miscellaneous"
+    },
+    {
+      "operation": "GetPermissions",
+      "method": "GET",
+      "path": "/permissions",
+      "category": "miscellaneous"
+    },
+    {
+      "operation": "CreatePermission",
+      "method": "POST",
+      "path": "/permissions",
+      "category": "miscellaneous"
+    },
+    {
+      "operation": "GetPermission",
+      "method": "GET",
+      "path": "/permissions/{permissionId}",
+      "category": "miscellaneous"
+    },
+    {
+      "operation": "UpdatePermission",
+      "method": "PUT",
+      "path": "/permissions/{permissionId}",
+      "category": "miscellaneous"
+    },
+    {
+      "operation": "DeletePermission",
+      "method": "DELETE",
+      "path": "/permissions/{permissionId}",
+      "category": "miscellaneous"
+    },
+    {
+      "operation": "GetSystemTime",
+      "method": "GET",
+      "path": "/time",
+      "category": "miscellaneous"
+    },
+    {
+      "operation": "GetCurrentOnlineUsers",
+      "method": "GET",
+      "path": "/visits",
+      "category": "miscellaneous"
+    },
+    {
+      "operation": "GetNotifications",
+      "method": "GET",
+      "path": "/auth/user/notifications",
+      "category": "notifications"
+    },
+    {
+      "operation": "ClearNotifications",
+      "method": "PUT",
+      "path": "/auth/user/notifications/clear",
+      "category": "notifications"
+    },
+    {
+      "operation": "GetNotification",
+      "method": "GET",
+      "path": "/auth/user/notifications/{notificationId}",
+      "category": "notifications"
+    },
+    {
+      "operation": "AcceptFriendRequest",
+      "method": "PUT",
+      "path": "/auth/user/notifications/{notificationId}/accept",
+      "category": "notifications"
+    },
+    {
+      "operation": "DeleteNotification",
+      "method": "PUT",
+      "path": "/auth/user/notifications/{notificationId}/hide",
+      "category": "notifications"
+    },
+    {
+      "operation": "MarkNotificationAsRead",
+      "method": "PUT",
+      "path": "/auth/user/notifications/{notificationId}/see",
+      "category": "notifications"
+    },
+    {
+      "operation": "DeleteAllNotificationV2S",
+      "method": "DELETE",
+      "path": "/notifications",
+      "category": "notifications"
+    },
+    {
+      "operation": "GetNotificationV2S",
+      "method": "GET",
+      "path": "/notifications",
+      "category": "notifications"
+    },
+    {
+      "operation": "GetNotificationV2",
+      "method": "GET",
+      "path": "/notifications/{notificationId}",
+      "category": "notifications"
+    },
+    {
+      "operation": "DeleteNotificationV2",
+      "method": "DELETE",
+      "path": "/notifications/{notificationId}",
+      "category": "notifications"
+    },
+    {
+      "operation": "ReplyNotificationV2",
+      "method": "POST",
+      "path": "/notifications/{notificationId}/reply",
+      "category": "notifications"
+    },
+    {
+      "operation": "RespondNotificationV2",
+      "method": "POST",
+      "path": "/notifications/{notificationId}/respond",
+      "category": "notifications"
+    },
+    {
+      "operation": "AcknowledgeNotificationV2",
+      "method": "POST",
+      "path": "/notifications/{notificationId}/see",
+      "category": "notifications"
+    },
+    {
+      "operation": "ClearAllPlayerModerations",
+      "method": "DELETE",
+      "path": "/auth/user/playermoderations",
+      "category": "playermoderation"
+    },
+    {
+      "operation": "GetPlayerModerations",
+      "method": "GET",
+      "path": "/auth/user/playermoderations",
+      "category": "playermoderation"
+    },
+    {
+      "operation": "ModerateUser",
+      "method": "POST",
+      "path": "/auth/user/playermoderations",
+      "category": "playermoderation"
+    },
+    {
+      "operation": "UnmoderateUser",
+      "method": "PUT",
+      "path": "/auth/user/unplayermoderate",
+      "category": "playermoderation"
+    },
+    {
+      "operation": "GetUserPrints",
+      "method": "GET",
+      "path": "/prints/user/{userId}",
+      "category": "prints"
+    },
+    {
+      "operation": "GetPrint",
+      "method": "GET",
+      "path": "/prints/{printId}",
+      "category": "prints"
+    },
+    {
+      "operation": "DeletePrint",
+      "method": "DELETE",
+      "path": "/prints/{printId}",
+      "category": "prints"
+    },
+    {
+      "operation": "ListProps",
+      "method": "GET",
+      "path": "/props",
+      "category": "props"
+    },
+    {
+      "operation": "CreateProp",
+      "method": "POST",
+      "path": "/props",
+      "category": "props"
+    },
+    {
+      "operation": "GetProp",
+      "method": "GET",
+      "path": "/props/{propId}",
+      "category": "props"
+    },
+    {
+      "operation": "UpdateProp",
+      "method": "PUT",
+      "path": "/props/{propId}",
+      "category": "props"
+    },
+    {
+      "operation": "DeleteProp",
+      "method": "DELETE",
+      "path": "/props/{propId}",
+      "category": "props"
+    },
+    {
+      "operation": "GetPropPublishStatus",
+      "method": "GET",
+      "path": "/props/{propId}/publish",
+      "category": "props"
+    },
+    {
+      "operation": "PublishProp",
+      "method": "PUT",
+      "path": "/props/{propId}/publish",
+      "category": "props"
+    },
+    {
+      "operation": "UnpublishProp",
+      "method": "DELETE",
+      "path": "/props/{propId}/publish",
+      "category": "props"
+    },
+    {
+      "operation": "GetAgeVerificationStatus",
+      "method": "GET",
+      "path": "/ageVerification/status",
+      "category": "users"
+    },
+    {
+      "operation": "GetPublicProfile",
+      "method": "GET",
+      "path": "/profile/{userId}",
+      "category": "users"
+    },
+    {
+      "operation": "UpdateProfile",
+      "method": "PUT",
+      "path": "/profile/{userId}",
+      "category": "users"
+    },
+    {
+      "operation": "GetPrivateProfile",
+      "method": "GET",
+      "path": "/profile/{userId}/private",
+      "category": "users"
+    },
+    {
+      "operation": "GetUserNotes",
+      "method": "GET",
+      "path": "/userNotes",
+      "category": "users"
+    },
+    {
+      "operation": "UpdateUserNote",
+      "method": "POST",
+      "path": "/userNotes",
+      "category": "users"
+    },
+    {
+      "operation": "GetUserNote",
+      "method": "GET",
+      "path": "/userNotes/{userNoteId}",
+      "category": "users"
+    },
+    {
+      "operation": "SearchUsers",
+      "method": "GET",
+      "path": "/users",
+      "category": "users"
+    },
+    {
+      "operation": "SearchActiveUsers",
+      "method": "GET",
+      "path": "/users/active",
+      "category": "users"
+    },
+    {
+      "operation": "GetUser",
+      "method": "GET",
+      "path": "/users/{userId}",
+      "category": "users"
+    },
+    {
+      "operation": "UpdateUser",
+      "method": "PUT",
+      "path": "/users/{userId}",
+      "category": "users"
+    },
+    {
+      "operation": "AddTags",
+      "method": "POST",
+      "path": "/users/{userId}/addTags",
+      "category": "users"
+    },
+    {
+      "operation": "UpdateBadge",
+      "method": "PUT",
+      "path": "/users/{userId}/badges/{badgeId}",
+      "category": "users"
+    },
+    {
+      "operation": "GetUserClientConfig",
+      "method": "GET",
+      "path": "/users/{userId}/clientConfig",
+      "category": "users"
+    },
+    {
+      "operation": "UpdateUserClientConfig",
+      "method": "PUT",
+      "path": "/users/{userId}/clientConfig",
+      "category": "users"
+    },
+    {
+      "operation": "GetUserFeedback",
+      "method": "GET",
+      "path": "/users/{userId}/feedback",
+      "category": "users"
+    },
+    {
+      "operation": "GetUserGroups",
+      "method": "GET",
+      "path": "/users/{userId}/groups",
+      "category": "users"
+    },
+    {
+      "operation": "GetInvitedGroups",
+      "method": "GET",
+      "path": "/users/{userId}/groups/invited",
+      "category": "users"
+    },
+    {
+      "operation": "GetUserAllGroupPermissions",
+      "method": "GET",
+      "path": "/users/{userId}/groups/permissions",
+      "category": "users"
+    },
+    {
+      "operation": "GetUserRepresentedGroup",
+      "method": "GET",
+      "path": "/users/{userId}/groups/represented",
+      "category": "users"
+    },
+    {
+      "operation": "GetUserGroupRequests",
+      "method": "GET",
+      "path": "/users/{userId}/groups/requested",
+      "category": "users"
+    },
+    {
+      "operation": "GetBlockedGroups",
+      "method": "GET",
+      "path": "/users/{userId}/groups/userblocked",
+      "category": "users"
+    },
+    {
+      "operation": "GetUserGroupInstances",
+      "method": "GET",
+      "path": "/users/{userId}/instances/groups",
+      "category": "users"
+    },
+    {
+      "operation": "GetUserGroupInstancesForGroup",
+      "method": "GET",
+      "path": "/users/{userId}/instances/groups/{groupId}",
+      "category": "users"
+    },
+    {
+      "operation": "GetMutuals",
+      "method": "GET",
+      "path": "/users/{userId}/mutuals",
+      "category": "users"
+    },
+    {
+      "operation": "GetMutualFriends",
+      "method": "GET",
+      "path": "/users/{userId}/mutuals/friends",
+      "category": "users"
+    },
+    {
+      "operation": "GetMutualGroups",
+      "method": "GET",
+      "path": "/users/{userId}/mutuals/groups",
+      "category": "users"
+    },
+    {
+      "operation": "DeleteAllUserPersistenceData",
+      "method": "DELETE",
+      "path": "/users/{userId}/persist",
+      "category": "users"
+    },
+    {
+      "operation": "RemoveTags",
+      "method": "POST",
+      "path": "/users/{userId}/removeTags",
+      "category": "users"
+    },
+    {
+      "operation": "GetUserTutorialStatus",
+      "method": "GET",
+      "path": "/users/{userId}/tutorial",
+      "category": "users"
+    },
+    {
+      "operation": "CompleteUserTutorial",
+      "method": "POST",
+      "path": "/users/{userId}/tutorial",
+      "category": "users"
+    },
+    {
+      "operation": "ClearUserTutorials",
+      "method": "DELETE",
+      "path": "/users/{userId}/tutorial",
+      "category": "users"
+    },
+    {
+      "operation": "DeleteUserPersistence",
+      "method": "DELETE",
+      "path": "/users/{userId}/{worldId}/persist",
+      "category": "users"
+    },
+    {
+      "operation": "CheckUserPersistenceExists",
+      "method": "GET",
+      "path": "/users/{userId}/{worldId}/persist/exists",
+      "category": "users"
+    },
+    {
+      "operation": "GetUserByName",
+      "method": "GET",
+      "path": "/users/{username}/name",
+      "category": "users"
+    },
+    {
+      "operation": "SearchWorlds",
+      "method": "GET",
+      "path": "/worlds",
+      "category": "worlds"
+    },
+    {
+      "operation": "CreateWorld",
+      "method": "POST",
+      "path": "/worlds",
+      "category": "worlds"
+    },
+    {
+      "operation": "GetActiveWorlds",
+      "method": "GET",
+      "path": "/worlds/active",
+      "category": "worlds"
+    },
+    {
+      "operation": "GetFavoritedWorlds",
+      "method": "GET",
+      "path": "/worlds/favorites",
+      "category": "worlds"
+    },
+    {
+      "operation": "GetRecentWorlds",
+      "method": "GET",
+      "path": "/worlds/recent",
+      "category": "worlds"
+    },
+    {
+      "operation": "GetWorld",
+      "method": "GET",
+      "path": "/worlds/{worldId}",
+      "category": "worlds"
+    },
+    {
+      "operation": "UpdateWorld",
+      "method": "PUT",
+      "path": "/worlds/{worldId}",
+      "category": "worlds"
+    },
+    {
+      "operation": "DeleteWorld",
+      "method": "DELETE",
+      "path": "/worlds/{worldId}",
+      "category": "worlds"
+    },
+    {
+      "operation": "AddWorldTags",
+      "method": "POST",
+      "path": "/worlds/{worldId}/addTags",
+      "category": "worlds"
+    },
+    {
+      "operation": "RemoveWorldTags",
+      "method": "POST",
+      "path": "/worlds/{worldId}/deleteTags",
+      "category": "worlds"
+    },
+    {
+      "operation": "GetWorldMetadata",
+      "method": "GET",
+      "path": "/worlds/{worldId}/metadata",
+      "category": "worlds"
+    },
+    {
+      "operation": "DeleteWorldPlatform",
+      "method": "DELETE",
+      "path": "/worlds/{worldId}/platform/{publishedPlatform}",
+      "category": "worlds"
+    },
+    {
+      "operation": "GetWorldPublishStatus",
+      "method": "GET",
+      "path": "/worlds/{worldId}/publish",
+      "category": "worlds"
+    },
+    {
+      "operation": "PublishWorld",
+      "method": "PUT",
+      "path": "/worlds/{worldId}/publish",
+      "category": "worlds"
+    },
+    {
+      "operation": "UnpublishWorld",
+      "method": "DELETE",
+      "path": "/worlds/{worldId}/publish",
+      "category": "worlds"
+    },
+    {
+      "operation": "GetWorldInstance",
+      "method": "GET",
+      "path": "/worlds/{worldId}/{instanceId}",
+      "category": "worlds"
+    }
+  ],
+  "excluded": [
+    {
+      "operation": "GetGroupCalendarEventIcs",
+      "reason": "Non-JSON response body",
+      "method": "GET",
+      "path": "/calendar/{groupId}/{calendarId}.ics"
+    },
+    {
+      "operation": "UploadImage",
+      "reason": "Non-JSON request body",
+      "method": "POST",
+      "path": "/file/image"
+    },
+    {
+      "operation": "UploadGalleryImage",
+      "reason": "Non-JSON request body",
+      "method": "POST",
+      "path": "/gallery"
+    },
+    {
+      "operation": "UploadIcon",
+      "reason": "Non-JSON request body",
+      "method": "POST",
+      "path": "/icon"
+    },
+    {
+      "operation": "RespondInviteWithPhoto",
+      "reason": "Non-JSON request body",
+      "method": "POST",
+      "path": "/invite/{notificationId}/response/photo"
+    },
+    {
+      "operation": "InviteUserWithPhoto",
+      "reason": "Non-JSON request body",
+      "method": "POST",
+      "path": "/invite/{userId}/photo"
+    },
+    {
+      "operation": "RequestInviteWithPhoto",
+      "reason": "Non-JSON request body",
+      "method": "POST",
+      "path": "/requestInvite/{userId}/photo"
+    },
+    {
+      "operation": "GetCss",
+      "reason": "Non-JSON response body",
+      "method": "GET",
+      "path": "/css/app.css"
+    },
+    {
+      "operation": "GetJavaScript",
+      "reason": "Non-JSON response body",
+      "method": "GET",
+      "path": "/js/app.js"
+    },
+    {
+      "operation": "UploadPrint",
+      "reason": "Non-JSON request body",
+      "method": "POST",
+      "path": "/prints"
+    },
+    {
+      "operation": "EditPrint",
+      "reason": "Non-JSON request body",
+      "method": "POST",
+      "path": "/prints/{printId}"
+    }
+  ]
+}

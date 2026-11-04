@@ -23,7 +23,7 @@ export default function Sidebar({ open }: { open: boolean }) {
   useLocale();
   const { section, sectionLink, saved, openPrivacy, coveAccount } = useApp();
   const staff = coveAccount?.role === 'admin' || coveAccount?.role === 'owner';
-  // Groups can be folded to keep the sidebar short; the choice stays on this device.
+  // Save collapsed sidebar groups on this device.
   const [collapsed, setCollapsed] = useState(loadCollapsed);
   function toggle(label: string) {
     const next = collapsed.includes(label) ? collapsed.filter((l) => l !== label) : [...collapsed, label];

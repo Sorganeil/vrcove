@@ -13,7 +13,7 @@ import (
 // exportAccount sends everything VRCove stores about the signed-in account as
 // a JSON download. It asks for the password again, because it includes the
 // private VRChat links. Secrets are left out: passwords and recovery codes are
-// only stored as hashes, and session tokens and API keys are never exported.
+// only stored as hashes, and session tokens are never exported.
 func (s *Server) exportAccount(w http.ResponseWriter, r *http.Request, a *account) error {
 	if !s.limiter.allow(reauthKey(a), s.now()) {
 		return errStatus(http.StatusTooManyRequests, "Too many attempts. Wait 10 minutes.")
@@ -75,7 +75,7 @@ func (s *Server) accountData(ctx context.Context, a *account) (map[string]any, e
 		picture = "data:image/png;base64," + base64.StdEncoding.EncodeToString(image)
 	}
 
-	// Linked VRChat accounts are sealed; their sessions refer to them by an HMAC.
+	// Linked VRChat accounts are encrypted. Sessions identify them by HMAC.
 	links, linkNames := []map[string]any{}, map[string]string{}
 	rows, err := db.QueryContext(ctx, "SELECT sealed, created FROM vrchat_links WHERE account_id = ? ORDER BY id", a.ID)
 	if err != nil {
@@ -115,24 +115,6 @@ func (s *Server) accountData(ctx context.Context, a *account) (map[string]any, e
 			return nil, err
 		}
 		sessions = append(sessions, map[string]any{"vrchatId": linkNames[string(key)], "device": device, "browser": browser, "created": started, "expires": unixTime(expires)})
-	}
-	rows.Close()
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	keys := []map[string]any{}
-	rows, err = db.QueryContext(ctx, "SELECT created FROM logger_keys WHERE account_id = ? ORDER BY id", a.ID)
-	if err != nil {
-		return nil, err
-	}
-	for rows.Next() {
-		var made int64
-		if err := rows.Scan(&made); err != nil {
-			rows.Close()
-			return nil, err
-		}
-		keys = append(keys, map[string]any{"created": unixTime(made)})
 	}
 	rows.Close()
 	if err := rows.Err(); err != nil {
@@ -242,16 +224,15 @@ func (s *Server) accountData(ctx context.Context, a *account) (map[string]any, e
 	return map[string]any{
 		"format":   "vrcove-account-data-1",
 		"exported": s.now().UTC().Format(time.RFC3339),
-		"note":     "Everything VRCove stores about this account. Your password and recovery codes are stored only as hashes, so they can't be exported. Session tokens and API keys are left out for safety.",
+		"note":     "Everything VRCove stores about this account. Your password and recovery codes are stored only as hashes, so they can't be exported. Session tokens are left out for safety.",
 		"account": map[string]any{"username": a.Username, "created": created, "bio": bio, "status": status, "publicProfile": public, "role": role,
 			"recoveryCodesRemaining": recoveryCodes},
-		"picture":          picture,
-		"vrchatLinks":      links,
-		"vrchatSessions":   sessions,
-		"companionApiKeys": keys,
-		"reviews":          reviews,
-		"collections":      collections,
-		"reportsFiled":     reports,
-		"removalRequests":  requests,
+		"picture":         picture,
+		"vrchatLinks":     links,
+		"vrchatSessions":  sessions,
+		"reviews":         reviews,
+		"collections":     collections,
+		"reportsFiled":    reports,
+		"removalRequests": requests,
 	}, nil
 }

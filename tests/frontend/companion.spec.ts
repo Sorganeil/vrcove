@@ -30,14 +30,11 @@ test('desktop app page opens by path and from the banner, and downloads from Git
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
     page.viewportSize()!.width,
   );
-  await page.locator('.companion-setup').getByRole('link', { name: 'Open Account page' }).click();
-  await expect(page).toHaveURL(/\/account$/);
+  await expect(page.locator('.companion-setup')).toContainText('No VRCove account is needed.');
   await page.locator('footer').getByRole('link', { name: 'Desktop app' }).click();
   await expect(page).toHaveURL(/\/companion$/);
   await page.locator('.topbar .language-picker select').selectOption('ja');
-  await expect(
-    page.getByRole('heading', { name: 'デスクトップで使う VRCove。' }),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'デスクトップで使う VRCove。' })).toBeVisible();
 });
 
 test('the desktop app banner can be dismissed and stays hidden', async ({ page, isMobile }, testInfo) => {

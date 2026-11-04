@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-// Every upstream request in these tests goes to a stub; nothing reaches VRChat.
+// All upstream requests use test stubs. None reach VRChat.
 
 const origin = "https://vrcove.example.test"
 

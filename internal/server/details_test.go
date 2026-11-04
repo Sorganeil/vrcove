@@ -5,6 +5,8 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -23,8 +25,12 @@ func (h *harness) signedIn(r *http.Request, wantPath, body string) *httptest.Res
 		if strings.HasPrefix(wantPath, "/users/") && up.URL.Path == "/api/1/profile/"+strings.TrimPrefix(wantPath, "/users/") {
 			return respond(200, "application/json", []byte(`{}`)), nil
 		}
-		if got := strings.TrimPrefix(up.URL.RequestURI(), "/api/1"); got != wantPath {
-			h.t.Errorf("upstream path = %s, want %s", got, wantPath)
+		expected, err := url.ParseRequestURI(wantPath)
+		if err != nil {
+			h.t.Fatal(err)
+		}
+		if got := strings.TrimPrefix(up.URL.Path, "/api/1"); got != expected.Path || !reflect.DeepEqual(up.URL.Query(), expected.Query()) {
+			h.t.Errorf("upstream path = %s, want %s", up.URL.RequestURI(), wantPath)
 		}
 		return respond(200, "application/json", []byte(body)), nil
 	}

@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/Sorganeil/vrcove/vrchat"
 )
 
 // localAccountID stands in for the VRCove account in local mode, where the
@@ -123,7 +125,7 @@ func (s *Server) switchLocalAccount(w http.ResponseWriter, r *http.Request) erro
 	if session.Auth == "" || session.Expires <= s.now().UnixMilli() {
 		return reconnect()
 	}
-	me, updates, err := s.vrc(r.Context(), "/auth/user", session, vrcRequest{})
+	me, updates, err := s.vrc(r.Context(), session, vrchat.GetCurrentUser())
 	if err != nil {
 		var failure *sessionFailure
 		if errors.As(err, &failure) {

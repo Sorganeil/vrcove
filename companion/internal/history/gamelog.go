@@ -14,7 +14,7 @@ import (
 )
 
 // VRChat writes output_log_<date>.txt in its LocalLow folder. These are the
-// lines that matter for history; everything else is skipped.
+// lines used for history. Skip everything else.
 var (
 	logLine      = regexp.MustCompile(`^(\d{4}\.\d{2}\.\d{2} \d{2}:\d{2}:\d{2}) +\S+ +- +(.*)$`)
 	joining      = regexp.MustCompile(`^\[Behaviour\] Joining ((wrld_[0-9a-f-]+)(?::\S*)?)$`)
@@ -99,7 +99,7 @@ func (s *Store) readLog(ctx context.Context, g *gameLog, file string) error {
 		return nil
 	}
 	if offset == 0 && g.visit != 0 {
-		// A new log means VRChat restarted; the last instance has ended.
+		// A new log means VRChat restarted and the last instance has ended.
 		endAt := g.lastAt
 		if endAt <= 0 || endAt < g.joined {
 			endAt = info.ModTime().UnixMilli()
@@ -170,7 +170,7 @@ func (g *gameLog) apply(ctx context.Context, tx *sql.Tx, line string) error {
 		world := enteringRoom.FindStringSubmatch(msg)[1]
 		if g.visit != 0 && world == g.worldName && at-g.joined <= 30000 && g.people == 0 {
 			// VRChat logs both "Entering Room" and "Joining or Creating Room"
-			// for one join; update the open visit instead of duplicating it.
+			// for the same join. Update the open visit to avoid a duplicate.
 			_, err := tx.ExecContext(ctx, `UPDATE visits SET
 				location = CASE WHEN ? != '' THEN ? ELSE location END,
 				world_id = CASE WHEN ? != '' THEN ? ELSE world_id END

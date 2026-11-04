@@ -22,7 +22,7 @@ export const platformName = (p: string) =>
 
 export const safeLinks = (links: unknown) =>
   (Array.isArray(links) ? links : []).filter(
-    (l: unknown): l is string => typeof l === 'string' && /^https:\/\//.test(l),
+    (l: unknown): l is string => typeof l === 'string' && /^https?:\/\//i.test(l),
   );
 
 export const joinStates: Record<string, string> = {

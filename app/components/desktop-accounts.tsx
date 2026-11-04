@@ -46,13 +46,16 @@ export function DesktopAccounts({
   return (
     <label className="vrchat-account-switcher">
       <span className="sr-only">{tr('Active VRChat account')}</span>
+      <span className="vrchat-account-label" aria-hidden="true">
+        {tr('VRChat account')}
+      </span>
       <select
         aria-label={tr('Active VRChat account')}
         value={user?.id || ''}
         disabled={disabled || busy !== null}
         onChange={(e) => {
           const value = e.target.value;
-          // Add and Manage are actions in the same menu; the selection stays on the active account.
+          // Keep the active account selected when Add or Manage opens another view.
           if (value === addValue) requestConnection('');
           else if (value === manageValue) navigate('Settings');
           else {

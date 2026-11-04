@@ -3,12 +3,13 @@ package server
 import (
 	"errors"
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 	"time"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/Sorganeil/vrcove/vrchat"
 )
 
 // checkUsername is only exposed by the local desktop API. It uses the same
@@ -25,7 +26,7 @@ func (s *Server) checkUsername(w http.ResponseWriter, r *http.Request, session *
 	if s.backoff.coolingDown(serverKey, s.now()) {
 		err = rateLimitedError()
 	} else {
-		data, updates, err = s.vrc(r.Context(), "/auth/exists?"+url.Values{"username": {name}}.Encode(), session, vrcRequest{})
+		data, updates, err = s.vrc(r.Context(), session, vrchat.CheckUserExists(vrchat.CheckUserExistsParams{Username: vrchat.Ptr(name)}))
 	}
 	if err != nil {
 		var he *httpError

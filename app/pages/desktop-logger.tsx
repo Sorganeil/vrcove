@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FolderOpen, KeyRound, Pause, Play, Trash2, MonitorDown } from 'lucide-react';
+import { FolderOpen, Pause, Play, Trash2, MonitorDown, Upload } from 'lucide-react';
 import { api } from '../lib/api';
 import { t as tr, useLocale } from '../lib/i18n';
 import { useApp } from '../lib/app-context';
@@ -16,16 +16,14 @@ type LoggerState = {
   folder: string;
   server?: string;
   autoStart: boolean;
-  hasKey: boolean;
   message?: string;
 };
 
 /** The avatar logger built into the desktop app, in place of the companion download page. */
 export default function DesktopLogger() {
   useLocale();
-  const { user, requestConnection, sectionLink, notify } = useApp();
+  const { user, requestConnection, notify } = useApp();
   const [state, setState] = useState<LoggerState | null>(null);
-  const [key, setKey] = useState('');
   const [folder, setFolder] = useState<string | null>(null);
   const [server, setServer] = useState<string | null>(null);
   const send = (body: object, savedNote?: string) =>
@@ -101,37 +99,14 @@ export default function DesktopLogger() {
         <section className="dashboard-panel">
           <div className="panel-title">
             <h2>{tr('Uploading')}</h2>
-            <KeyRound size={16} />
+            <Upload size={16} />
           </div>
           <div className="settings-content">
             <p>
               {tr(
-                'Uploading avatars requires both a local VRChat sign-in on this device and a VRCove API key:',
+                'Uploading needs a VRChat sign-in on this device. Your PC checks each avatar first, then VRCove checks it again with its own VRChat account. Only avatar IDs are sent, never your VRChat session.',
               )}
             </p>
-            <ol className="logger-steps">
-              <li>
-                {tr('Create or sign in to a VRCove account.')}{' '}
-                <a className="text-link" {...sectionLink('Account')}>
-                  {tr('Open VRCove Settings')}
-                </a>
-              </li>
-              <li>
-                {tr(
-                  'Link a VRChat account to your VRCove account. VRCove uses that linked account for server-side avatar checks.',
-                )}
-              </li>
-              <li>
-                {tr(
-                  'Generate a Companion API key on your VRCove account page, then paste and save it below.',
-                )}
-              </li>
-              <li>
-                {tr(
-                  'Sign in to VRChat in this app so your PC can check avatars locally before uploading, then press Start.',
-                )}
-              </li>
-            </ol>
             {!user && (
               <p>
                 <button className="text-link" onClick={() => requestConnection()}>
@@ -139,29 +114,6 @@ export default function DesktopLogger() {
                 </button>
               </p>
             )}
-            <form
-              className="logger-key"
-              onSubmit={(e) => {
-                e.preventDefault();
-                void send({ token: key }, 'Saved').then((ok) => {
-                  if (ok) setKey('');
-                });
-              }}
-            >
-              <label>
-                {tr(state.hasKey ? 'Replace API key' : 'VRCove API key')}
-                <input
-                  type="password"
-                  autoComplete="off"
-                  value={key}
-                  onChange={(e) => setKey(e.target.value)}
-                  placeholder={state.hasKey ? tr('Saved') : tr('From your VRCove account page')}
-                />
-              </label>
-              <button className="standard-button" type="submit" disabled={!key.trim()}>
-                {tr('Save key')}
-              </button>
-            </form>
             <form
               className="logger-key"
               onSubmit={(e) => {

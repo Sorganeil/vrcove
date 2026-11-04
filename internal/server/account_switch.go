@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/Sorganeil/vrcove/vrchat"
 )
 
 func (s *Server) linkedCookieName(userID string) string {
@@ -22,7 +24,7 @@ func (s *Server) readLinkedSession(r *http.Request, userID string, accountID int
 	if session == nil || session.AccountID != accountID || session.UserID != userID || session.Pending != nil || session.Auth == "" || !s.sessionLive(r.Context(), session) {
 		return nil
 	}
-	return s.hydrateLoggerSession(r.Context(), session)
+	return session
 }
 func (s *Server) clearNamedSession(w http.ResponseWriter, name string) {
 	cookie, _ := s.namedSessionCookie(name, nil)
@@ -113,7 +115,7 @@ func (s *Server) switchVRChat(w http.ResponseWriter, r *http.Request, a *account
 		writeJSON(w, http.StatusUnauthorized, map[string]string{"code": "vrchat_switch_reconnect", "error": "This VRChat account’s session has expired or is unavailable in this browser. Reconnect it to switch. Your active account has not changed."})
 		return nil
 	}
-	me, updates, err := s.vrc(r.Context(), "/auth/user", session, vrcRequest{})
+	me, updates, err := s.vrc(r.Context(), session, vrchat.GetCurrentUser())
 	if err != nil {
 		var failure *sessionFailure
 		if errors.As(err, &failure) {

@@ -35,7 +35,7 @@ type desktop struct {
 	remote *httputil.ReverseProxy
 	assets fs.FS
 	logger *avatarLogger
-	// history is the local history database; notify shows a desktop alert.
+	// history stores local history. notify shows a desktop alert.
 	history       *history.Store
 	notify        func(id, title, body string)
 	openURL       func(string) error
@@ -77,7 +77,7 @@ func newDesktop(st *store, site *url.URL, assets fs.FS) (*desktop, error) {
 	api, err := server.New(server.Config{
 		PublicOrigin: apiOrigin,
 		SessionKey:   st.SessionKey,
-		Contact:      site.Scheme + "://" + site.Host,
+		Contact:      contact,
 		Local:        true,
 		Remote:       d.remote,
 	}, nil, nil)
@@ -87,6 +87,10 @@ func newDesktop(st *store, site *url.URL, assets fs.FS) (*desktop, error) {
 	d.api = api
 	return d, nil
 }
+
+// contact goes in the User-Agent of VRChat requests, so VRChat can reach
+// VRCove's operator.
+const contact = "admin@vrcove.st"
 
 func userAgent() string { return "VRCoveDesktop/" + buildinfo.Version }
 
@@ -123,9 +127,8 @@ func (d *desktop) serveAPI(w http.ResponseWriter, r *http.Request) {
 	cookies, version, changed := d.store.localSnapshot()
 	r = r.Clone(r.Context())
 	if r.Body != nil && r.Body != http.NoBody && r.ContentLength <= 0 {
-		// WebKitGTK custom-scheme requests omit Content-Length, leaving
-		// ContentLength at 0; httputil.ReverseProxy drops the body when
-		// ContentLength is 0. Buffer the body so its length is known.
+		// WebKitGTK custom-scheme requests omit Content-Length. ReverseProxy
+		// drops bodies with ContentLength=0, so buffer this body to get its length.
 		if body, err := io.ReadAll(io.LimitReader(r.Body, 1<<20)); err == nil {
 			r.Body = io.NopCloser(bytes.NewReader(body))
 			r.ContentLength = int64(len(body))
@@ -184,8 +187,8 @@ func (d *desktop) serveAPI(w http.ResponseWriter, r *http.Request) {
 	w.Write(response.Body.Bytes())
 }
 
-// serveAsset serves the bundled frontend; unknown paths get the app shell,
-// which routes by URL.
+// serveAsset serves the bundled frontend. Unknown paths get the app shell
+// so the frontend can route by URL.
 func (d *desktop) serveAsset(w http.ResponseWriter, r *http.Request) {
 	name := strings.TrimPrefix(path.Clean("/"+r.URL.Path), "/")
 	if info, err := fs.Stat(d.assets, name); name == "" || err != nil || info.IsDir() {

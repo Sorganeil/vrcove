@@ -12,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/Sorganeil/vrcove/vrchat"
 )
 
 // Same format as the former WebCrypto implementation (AES-256-GCM, 12-byte IV,
@@ -64,7 +66,7 @@ func (s *Server) missingVRChatSession(r *http.Request) error {
 }
 
 // sessionUpdates are the rotated token cookies VRChat sent with a response.
-type sessionUpdates struct{ Auth, TwoFactorAuth string }
+type sessionUpdates = vrchat.Tokens
 
 func (s *Session) apply(u sessionUpdates) {
 	if u.Auth != "" {
@@ -141,10 +143,10 @@ func (s *Server) readSession(r *http.Request) *Session {
 	if !s.sessionLive(r.Context(), session) {
 		return nil
 	}
-	return s.hydrateLoggerSession(r.Context(), session)
+	return session
 }
 
-// sessionCookie builds the Set-Cookie value; a nil session clears the cookie.
+// sessionCookie builds a Set-Cookie value. A nil session clears the cookie.
 func (s *Server) sessionCookie(session *Session) (string, error) {
 	return s.namedSessionCookie(s.cookieName(), session)
 }

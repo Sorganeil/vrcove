@@ -3,25 +3,24 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
-	"net/url"
 	"strconv"
 	"sync"
 	"time"
 
-	"github.com/coder/websocket"
+	"github.com/Sorganeil/vrcove/vrchat"
 )
 
 // Live notifications: while a browser keeps /account/live open, the server
 // connects to VRChat's pipeline with that browser's session and forwards new
 // notifications as server-sent events. The VRChat token stays in memory for
-// the length of the connection only; nothing is written to disk. The relay
+// this connection and is never written to disk. The relay
 // ends when the browser leaves, the session is ended or expires, or after an
 // hour, when the browser reconnects with its cookie checked again.
 
 const (
-	vrchatPipeline    = "wss://pipeline.vrchat.cloud/"
 	liveHeartbeat     = 25 * time.Second
 	liveRecheck       = 5 * time.Minute
 	liveLifetime      = time.Hour
@@ -33,10 +32,7 @@ const (
 )
 
 // Pipeline is one open connection to VRChat's live feed.
-type Pipeline interface {
-	Read(ctx context.Context) ([]byte, error)
-	Close() error
-}
+type Pipeline = vrchat.Pipeline
 
 // liveStreams counts open relays, in total and per VRCove account.
 type liveStreams struct {
@@ -68,42 +64,33 @@ func (l *liveStreams) release(account int64) {
 	}
 }
 
-type wsPipeline struct{ c *websocket.Conn }
-
-func (p wsPipeline) Read(ctx context.Context) ([]byte, error) {
-	_, b, err := p.c.Read(ctx)
-	return b, err
-}
-func (p wsPipeline) Close() error { return p.c.CloseNow() }
-
 func (s *Server) dialVRChatPipeline(ctx context.Context, auth string) (Pipeline, error) {
-	c, resp, err := websocket.Dial(ctx, vrchatPipeline+"?authToken="+url.QueryEscape(auth), &websocket.DialOptions{
-		HTTPClient: s.Client,
-		HTTPHeader: http.Header{"User-Agent": {s.userAgent()}},
-	})
+	client, err := s.vrchatClient()
 	if err != nil {
-		if resp != nil && resp.StatusCode == http.StatusTooManyRequests {
-			return nil, rateLimitedError()
-		}
-		if resp != nil && resp.StatusCode == http.StatusUnauthorized {
-			return nil, invalidVRChatSession()
+		return nil, err
+	}
+	pipe, err := client.DialPipeline(ctx, auth)
+	if err != nil {
+		var apiErr *vrchat.APIError
+		if errors.As(err, &apiErr) {
+			switch apiErr.StatusCode {
+			case http.StatusTooManyRequests:
+				return nil, rateLimitedError()
+			case http.StatusUnauthorized:
+				return nil, invalidVRChatSession()
+			}
 		}
 		return nil, errStatus(http.StatusBadGateway, "VRChat live updates are unavailable right now.")
 	}
-	c.SetReadLimit(1 << 20)
-	return wsPipeline{c}, nil
+	return pipe, nil
 }
 
 // liveNotification picks the fields VRCove shows from one pipeline message,
 // or returns nil for messages that are not new notifications. ended reports a
 // pipeline error, such as a session VRChat no longer accepts.
 func liveNotification(message []byte) (out map[string]any, ended bool) {
-	var envelope struct {
-		Type    string          `json:"type"`
-		Content json.RawMessage `json:"content"`
-		Err     string          `json:"err"`
-	}
-	if json.Unmarshal(message, &envelope) != nil {
+	envelope, err := vrchat.DecodePipelineMessage(message)
+	if err != nil {
 		return nil, false
 	}
 	if envelope.Err != "" {
@@ -112,36 +99,18 @@ func liveNotification(message []byte) (out map[string]any, ended bool) {
 	if envelope.Type != "notification" {
 		return nil, false
 	}
-	content := []byte(envelope.Content)
-	// VRChat sends the notification as a JSON string holding JSON.
-	var inner string
-	if json.Unmarshal(content, &inner) == nil {
-		content = []byte(inner)
-	}
-	var n struct {
-		ID             string          `json:"id"`
-		Type           string          `json:"type"`
-		SenderUserID   string          `json:"senderUserId"`
-		SenderUsername string          `json:"senderUsername"`
-		Message        string          `json:"message"`
-		Details        json.RawMessage `json:"details"`
-		Created        string          `json:"created_at"`
-	}
-	if json.Unmarshal(content, &n) != nil || !notificationID.MatchString(n.ID) {
+	var n vrchat.NotificationEvent
+	if envelope.DecodeContent(&n) != nil || !notificationID.MatchString(n.ID) {
 		return nil, false
 	}
-	out = map[string]any{"id": n.ID, "type": n.Type, "senderUsername": n.SenderUsername, "message": n.Message, "created_at": n.Created}
+	out = map[string]any{"id": n.ID, "type": n.Type, "senderUsername": n.SenderUsername, "message": n.Message, "created_at": n.CreatedAt}
 	if userID.MatchString(n.SenderUserID) {
 		out["senderUserId"] = n.SenderUserID
-	}
-	details := []byte(n.Details)
-	if json.Unmarshal(details, &inner) == nil {
-		details = []byte(inner)
 	}
 	var d struct {
 		WorldName string `json:"worldName"`
 	}
-	if json.Unmarshal(details, &d) == nil && d.WorldName != "" {
+	if vrchat.DecodePipelineContent(n.Details, &d) == nil && d.WorldName != "" {
 		out["details"] = map[string]string{"worldName": d.WorldName}
 	}
 	return out, false
@@ -176,7 +145,7 @@ func (s *Server) liveNotifications(w http.ResponseWriter, r *http.Request, sessi
 	defer pipe.Close()
 
 	rc := http.NewResponseController(w)
-	// The server's read and write timeouts suit ordinary requests; this one stays open.
+	// Clear the normal request timeout so the event stream can stay open.
 	rc.SetReadDeadline(time.Time{})
 	h := w.Header()
 	h.Set("Content-Type", "text/event-stream")

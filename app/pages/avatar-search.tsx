@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight, Search, SlidersHorizontal, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Search, SlidersHorizontal, Tags, X } from 'lucide-react';
 import { api } from '../lib/api';
 import { t as tr, useLocale } from '../lib/i18n';
 import type { Avatar } from '../lib/avatar';
@@ -8,6 +8,7 @@ import { ErrorBanner } from '../components/section-page';
 import CompanionDownload from '../components/companion-download';
 import SearchBar, { SortMenu, type SearchInput } from '../components/search-bar';
 import { replaceSearchParams } from '../lib/search-params';
+import TagBrowser, { useCatalogTags } from '../components/tag-browser';
 
 const PAGE_SIZE = 36;
 
@@ -41,6 +42,9 @@ const sorts = [
   ['author', 'Creator A–Z'],
   ['rating', 'Best performance'],
 ] as const;
+
+// How many of the most used tags appear above the results.
+const POPULAR_TAGS = 8;
 
 // The last filters, restored when returning to avatar search during the visit.
 let remembered: Filters = defaults;
@@ -78,19 +82,29 @@ export default function AvatarResults({ input, setInput, query, submit }: Search
   const page = paging.query === query ? paging.page : 0;
   const setPage = (next: number) => setPaging({ query, page: next });
   const [panel, setPanel] = useState(false);
+  const [tagBrowser, setTagBrowser] = useState(false);
+  const popularTags = (useCatalogTags().tags || []).slice(0, POPULAR_TAGS).map((t) => t.tag);
   const [avatars, setAvatars] = useState<Avatar[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [retry, setRetry] = useState(0);
   const { platform, rating, author, tag, hide, fallbackOnly } = filters;
-  // Best match needs a search; without one the newest come first.
+  // Use best match for a search and newest first when browsing.
   const chosen = filters.sort ?? (query ? 'relevance' : 'newest');
   const sort = chosen === 'relevance' && !query ? 'newest' : chosen;
+  // The row shows the most used tags. A chosen tag outside them comes first, so it can be cleared there.
+  const shownTags = tag && !popularTags.includes(tag) ? [tag, ...popularTags] : popularTags;
 
   function update(patch: Partial<Filters>) {
     setFilters((f) => ({ ...f, ...patch }));
     setPage(0);
+  }
+
+  function chooseTag(tag: string) {
+    const next = filters.tag === tag ? '' : tag;
+    setTagInput(next);
+    update({ tag: next });
   }
 
   // Creator and tag filters apply after a short pause.
@@ -189,8 +203,11 @@ export default function AvatarResults({ input, setInput, query, submit }: Search
           {activeFilters > 0 && <small>{activeFilters}</small>}
         </button>
       </SearchBar>
-      <div className="browse-bar">
-        <div className="chips">
+      <div className="avatar-toolbar">
+        <span id="avatar-platform-label" className="toolbar-label">
+          {tr('Platform')}
+        </span>
+        <div className="chips" role="group" aria-labelledby="avatar-platform-label">
           {[
             ['all', 'All avatars'],
             ['both', 'PC + Quest'],
@@ -200,6 +217,7 @@ export default function AvatarResults({ input, setInput, query, submit }: Search
             <button
               key={v}
               className={platform === v ? 'chosen' : ''}
+              aria-pressed={platform === v}
               onClick={() => update({ platform: v })}
             >
               {v === 'both' && <i />}
@@ -213,6 +231,33 @@ export default function AvatarResults({ input, setInput, query, submit }: Search
           options={sorts.map(([value, text]) => [value, text, value === 'relevance' && !query] as const)}
           onChange={(value) => update({ sort: value })}
         />
+        <span id="avatar-tag-label" className="toolbar-label tag-label">
+          {tr('Tags')}
+        </span>
+        <div className="tag-pills" role="group" aria-labelledby="avatar-tag-label">
+          {shownTags.map((name) => (
+            <button
+              key={name}
+              type="button"
+              className={tag === name ? 'chosen' : ''}
+              aria-pressed={tag === name}
+              onClick={() => chooseTag(name)}
+            >
+              <span aria-hidden>#</span>
+              {name}
+              {tag === name && <X size={12} aria-hidden />}
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          className="browse-tags"
+          onClick={() => setTagBrowser(true)}
+          aria-haspopup="dialog"
+        >
+          <Tags size={14} aria-hidden />
+          {tr('Browse all tags')}
+        </button>
       </div>
       {panel && (
         <div className="filter-panel">
@@ -303,33 +348,29 @@ export default function AvatarResults({ input, setInput, query, submit }: Search
           </button>
         </div>
       )}
-      {(author || tag) && (
+      {author && (
         <div className="active-filters">
-          {author && (
-            <button
-              onClick={() => {
-                setAuthorInput('');
-                update({ author: null });
-              }}
-              aria-label={tr('Remove filter') + ': ' + author.name}
-            >
-              {tr('Creator: {author}', { author: author.name })}
-              <X size={13} />
-            </button>
-          )}
-          {tag && (
-            <button
-              onClick={() => {
-                setTagInput('');
-                update({ tag: '' });
-              }}
-              aria-label={tr('Remove filter') + ': ' + tag}
-            >
-              {tr('Tag: {tag}', { tag })}
-              <X size={13} />
-            </button>
-          )}
+          <button
+            onClick={() => {
+              setAuthorInput('');
+              update({ author: null });
+            }}
+            aria-label={tr('Remove filter') + ': ' + author.name}
+          >
+            {tr('Creator: {author}', { author: author.name })}
+            <X size={13} />
+          </button>
         </div>
+      )}
+      {tagBrowser && (
+        <TagBrowser
+          chosen={filters.tag}
+          choose={(next) => {
+            setTagInput(next);
+            update({ tag: next });
+          }}
+          close={() => setTagBrowser(false)}
+        />
       )}
       <ErrorBanner error={error} retry={() => setRetry((r) => r + 1)} />
       <div className="results-line">

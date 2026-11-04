@@ -1,45 +1,49 @@
 # VRCove Desktop
 
-VRCove for Windows and Linux. It looks and works like
-[vrcove.st](https://vrcove.st), but talks to VRChat directly from your
-computer: your VRChat password and session never pass through VRCove's server.
-A VRCove account is optional; avatar search, reviews and collections still come
-from vrcove.st.
+VRCove Desktop runs on Windows and Linux with the same interface as
+[vrcove.st](https://vrcove.st). The app connects to VRChat directly from your
+computer. Your VRChat password and session never pass through VRCove's server.
+You can use it without a VRCove account. Avatar search, reviews and collections
+still come from vrcove.st.
 
-It replaces the old VRCove Logger, which is retired. The avatar logger is built
-in, and the app imports the old logger's saved settings and queue.
+The avatar logger is built in. If you used the retired VRCove Logger, the app
+imports its saved settings and queue.
 
 Setup and details: https://vrcove.st/companion
 
 ## Use
 
 1. Download the latest release, extract it and run `vrcove-desktop`.
-2. Sign in to VRChat in the app. Your password only goes to VRChat and isn't
-   saved; the session is kept in a file encrypted with a key in Windows
+2. Sign in to VRChat in the app. Your password goes to VRChat and isn't saved.
+   The app saves your session in an encrypted file, with its key in Windows
    Credential Manager or your Linux keyring.
-3. Optional, to add avatars to VRCove's search: link VRChat on your VRCove
-   account page on the website, generate an API key, and paste it into
-   Avatar logger in the app.
+3. To contribute avatars to VRCove's search, open Avatar logger in the app
+   and press Start. This step is optional and needs no VRCove account. The
+   app checks each avatar with your VRChat session, then sends only the
+   avatar IDs. VRCove checks them again with its own VRChat account.
 
-Closing the window keeps it running in the tray. On Linux that needs a tray
-host (KDE Plasma, or a GNOME tray extension). Updates are offered in Local
-Settings and installed only after their checksums match the release.
+The app keeps running in the tray when you close its window. On Linux, you
+need a tray host such as KDE Plasma or a GNOME tray extension. You can install
+updates from Local Settings. The app checks each download's checksum against
+the release before installing it.
 
-Also in the app: instance history and people you met, a game log of joins,
-leaves, avatar changes and videos (read from VRChat's logs),
-a friend activity feed, screenshots with the world and people, desktop
-notifications with the window closed, and Tools (username checker, OSC chatbox
-and Unity package extractor). All of it is stored only on your computer.
+Instance history shows where you went and who you met. The game log reads
+joins, leaves, avatar changes and videos from VRChat's logs. There's also a
+friend activity feed and a screenshot browser that shows the world and people
+from each photo. Desktop notifications work with the window closed.
+
+Tools includes a username checker, OSC chatbox and Unity package extractor.
+The app stores this local data only on your computer.
 
 ## Build
 
-Go 1.26+, Node.js and the Wails CLI at the version in `go.mod`
-(`go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-beta.34`). Linux
-also needs gcc, pkg-config and the GTK 4 and WebKitGTK 6 dev packages.
+You'll need Go 1.26+, Node.js and the Wails CLI version listed in `go.mod`
+(`go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-beta.34`). On Linux,
+install gcc, pkg-config and the GTK 4 and WebKitGTK 6 development packages too.
 
-Release builds go through `wails3 build` (see `cmd/vrcove-desktop/Taskfile.yml`):
-the `production` tag turns off developer tools, symbols are stripped and paths
-trimmed, and the Windows build embeds the icon and version details.
+Release builds use `wails3 build` (see `cmd/vrcove-desktop/Taskfile.yml`). The
+`production` tag turns off developer tools. Builds strip symbols and trim
+paths, and Windows builds include the icon and version details.
 
 ```sh
 bash build.sh linux     # dist/vrcove-desktop
@@ -47,10 +51,9 @@ bash build.sh windows   # dist/vrcove-desktop.exe, cross-built, no cgo
 go test -race ./...
 ```
 
-The app shows the website's own frontend (`npm run build:desktop`) and runs the
-website's VRChat API code (`internal/server` in local mode) inside the app.
+The app uses the website's frontend (`npm run build:desktop`) and runs its
+VRChat API code (`internal/server` in local mode) on your computer.
 `VRCOVE_SITE=http://localhost:8080` points a development build at a local
 server, and `VRCOVE_START=/history` opens another page first.
 
-Releases are built by GitHub Actions when a `v*` tag matching `VERSION` is
-pushed.
+GitHub Actions builds a release when you push a `v*` tag matching `VERSION`.

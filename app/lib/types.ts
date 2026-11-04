@@ -49,7 +49,7 @@ export type CoveAccount = {
   status: string;
   public: boolean;
   picture: string;
-  /** Moderation role; admins and owners see the hidden admin page. */
+  /** Admins and owners can open the hidden moderation page. */
   role?: 'user' | 'admin' | 'owner';
   recoveryCodesRemaining: number;
   showLinkReminder?: boolean;

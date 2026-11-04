@@ -77,7 +77,7 @@ export default function About({ onPrivacy, onDonate }: { onPrivacy: () => void; 
   const provider = siteOrigin + '/api/vrcx/avatars';
   const [copied, setCopied] = useState(false);
   const address = useRef<HTMLElement>(null);
-  // Browsers can refuse clipboard access; then select the address to copy by hand.
+  // Select the address for manual copying if clipboard access is blocked.
   function selectAddress() {
     const selection = window.getSelection();
     if (!address.current || !selection) return;

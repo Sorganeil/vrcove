@@ -1,16 +1,16 @@
 package server
 
 import (
-	"encoding/base64"
 	"errors"
 	"net/http"
 	"net/url"
 	"regexp"
 	"slices"
-	"strconv"
 	"strings"
 	"time"
 	"unicode/utf16"
+
+	"github.com/Sorganeil/vrcove/vrchat"
 )
 
 var (
@@ -82,8 +82,8 @@ func (s *Server) handleAPI(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) route(w http.ResponseWriter, r *http.Request, p string) error {
 	post := r.Method == http.MethodPost
-	// On the device only VRChat routes and pictures run here; VRCove's own
-	// features, such as the catalog and accounts, stay on the website.
+	// In the desktop app, this server handles VRChat routes and pictures.
+	// The catalog and VRCove accounts stay on the website.
 	if s.cfg.Local && !strings.HasPrefix(p, "/account/") && p != "/image" {
 		s.cfg.Remote.ServeHTTP(w, r)
 		return nil
@@ -95,6 +95,8 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, p string) error {
 		return s.loggerAvatars(w, r)
 	case p == "/catalog" && !post:
 		return s.catalog(w, r)
+	case p == "/catalog/tags" && !post:
+		return s.catalogTags(w, r)
 	case p == "/vrcx/avatars" && !post:
 		return s.vrcxAvatars(w, r)
 	case p == "/stats":
@@ -148,7 +150,7 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, p string) error {
 		return s.verifyTwoFactor(w, r, session, acct)
 	case p == "/account/logout" && post:
 		if session != nil && session.AccountID == acct.ID && session.Auth != "" {
-			s.vrc(r.Context(), "/logout", session, vrcRequest{Method: http.MethodPut})
+			s.vrc(r.Context(), session, vrchat.Logout())
 		}
 		if session != nil && session.AccountID == acct.ID {
 			if err := s.forgetSession(r.Context(), session); err != nil {
@@ -217,8 +219,7 @@ func (s *Server) login(w http.ResponseWriter, r *http.Request, acct *account) er
 			return errStatus(http.StatusForbidden, "Choose one of your linked VRChat accounts.")
 		}
 	}
-	basic := base64.StdEncoding.EncodeToString([]byte(encodeURIComponent(username) + ":" + encodeURIComponent(password)))
-	data, updates, err := s.vrc(r.Context(), "/auth/user", nil, vrcRequest{Header: http.Header{"Authorization": {"Basic " + basic}}})
+	data, updates, err := s.vrc(r.Context(), nil, vrchat.Login(username, password))
 	if err != nil {
 		return err
 	}
@@ -277,7 +278,7 @@ func (s *Server) verifyTwoFactor(w http.ResponseWriter, r *http.Request, session
 		return nil
 	}
 	ctx := r.Context()
-	result, updates, err := s.vrc(ctx, "/auth/twofactorauth/"+method+"/verify", session, vrcRequest{Method: http.MethodPost, Body: map[string]string{"code": code}})
+	result, updates, err := s.vrc(ctx, session, vrchat.VerifyTwoFactor(method, code))
 	if err != nil {
 		var he *httpError
 		if errors.As(err, &he) && he.status == http.StatusBadRequest {
@@ -293,7 +294,7 @@ func (s *Server) verifyTwoFactor(w http.ResponseWriter, r *http.Request, session
 	session.apply(updates)
 	session.Expires = s.now().Add(sessionLifetime).UnixMilli()
 	session.Pending = nil
-	user, updates, err := s.vrc(ctx, "/auth/user", session, vrcRequest{})
+	user, updates, err := s.vrc(ctx, session, vrchat.GetCurrentUser())
 	if err != nil {
 		var failure *sessionFailure
 		if errors.As(err, &failure) {
@@ -312,7 +313,7 @@ func (s *Server) verifyTwoFactor(w http.ResponseWriter, r *http.Request, session
 
 // currentUserID looks up the signed-in user, applying any token rotation.
 func (s *Server) currentUserID(r *http.Request, session *Session) (string, error) {
-	me, updates, err := s.vrc(r.Context(), "/auth/user", session, vrcRequest{})
+	me, updates, err := s.vrc(r.Context(), session, vrchat.GetCurrentUser())
 	if err != nil {
 		return "", err
 	}
@@ -324,8 +325,19 @@ func (s *Server) currentUserID(r *http.Request, session *Session) (string, error
 	return id, nil
 }
 
-func offsetParam(r *http.Request) string {
-	return strconv.Itoa(queryInt(r.URL.Query().Get("offset"), 10000))
+func offsetParam(r *http.Request) *int {
+	return vrchat.Ptr(queryInt(r.URL.Query().Get("offset"), 10000))
+}
+
+func userPatch(patch map[string]string) *vrchat.UpdateUserRequest {
+	out := &vrchat.UpdateUserRequest{}
+	if value, ok := patch["status"]; ok {
+		out.Status = vrchat.Ptr(vrchat.UserStatus(value))
+	}
+	if value, ok := patch["statusDescription"]; ok {
+		out.StatusDescription = vrchat.Ptr(value)
+	}
+	return out
 }
 
 // account serves the signed-in endpoints. Most map to a single VRChat call
@@ -333,8 +345,7 @@ func offsetParam(r *http.Request) string {
 func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, session *Session) error {
 	post := r.Method == http.MethodPost
 	query := r.URL.Query()
-	req := vrcRequest{}
-	endpoint := ""
+	var call vrchat.Call
 	// mapper, when set, filters the VRChat response before it is returned.
 	var mapper func(any) (any, error)
 	// idParam validates ?id= and writes a 400 when it does not match.
@@ -355,6 +366,7 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, sessi
 			return err
 		}
 		patch := map[string]string{}
+		profilePatch := &vrchat.UpdateProfileRequest{}
 		if v, present := input["status"]; present {
 			status, _ := v.(string)
 			if !slices.Contains([]string{"active", "join me", "ask me", "busy"}, status) {
@@ -376,11 +388,38 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, sessi
 				patch[f.key] = text
 			}
 		}
-		if len(patch) == 0 {
+		if v, present := input["bioLinks"]; present {
+			links, ok := v.([]any)
+			if !ok {
+				writeError(w, http.StatusBadRequest, "Invalid bioLinks")
+				return nil
+			}
+			bioLinks := make([]string, 0, len(links))
+			for _, v := range links {
+				link, ok := v.(string)
+				if !ok {
+					writeError(w, http.StatusBadRequest, "Invalid bioLinks")
+					return nil
+				}
+				link = strings.TrimSpace(link)
+				u, err := url.Parse(link)
+				if err != nil || u.Hostname() == "" || (u.Scheme != "http" && u.Scheme != "https") {
+					writeError(w, http.StatusBadRequest, "Enter a valid http:// or https:// URL for each social link.")
+					return nil
+				}
+				bioLinks = append(bioLinks, link)
+			}
+			profilePatch.BioLinks = &bioLinks
+		}
+		if bio, present := patch["bio"]; present {
+			profilePatch.Bio = vrchat.Ptr(bio)
+			delete(patch, "bio")
+		}
+		if len(patch) == 0 && profilePatch.Bio == nil && profilePatch.BioLinks == nil {
 			writeError(w, http.StatusBadRequest, "No profile changes supplied")
 			return nil
 		}
-		result, updates, err := s.vrc(r.Context(), "/auth/user", session, vrcRequest{})
+		result, updates, err := s.vrc(r.Context(), session, vrchat.GetCurrentUser())
 		if err != nil {
 			return err
 		}
@@ -389,18 +428,16 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, sessi
 		if !userID.MatchString(id) {
 			return errStatus(http.StatusBadGateway, "VRChat returned an unexpected account.")
 		}
-		bio, hasBio := patch["bio"]
-		delete(patch, "bio")
 		if len(patch) > 0 {
-			result, updates, err = s.vrc(r.Context(), "/users/"+id, session, vrcRequest{Method: http.MethodPut, Body: patch})
+			result, updates, err = s.vrc(r.Context(), session, vrchat.UpdateUser(id, userPatch(patch)))
 			if err != nil {
 				return err
 			}
 			session.apply(updates)
 		}
 		out := publicUser(result)
-		if hasBio {
-			profile, updates, err := s.vrc(r.Context(), "/profile/"+id, session, vrcRequest{Method: http.MethodPut, Body: map[string]string{"bio": bio}})
+		if profilePatch.Bio != nil || profilePatch.BioLinks != nil {
+			profile, updates, err := s.vrc(r.Context(), session, vrchat.UpdateProfile(id, profilePatch))
 			if err != nil {
 				return err
 			}
@@ -415,33 +452,34 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, sessi
 		if len(search) > 100 {
 			search = search[:100]
 		}
-		params := url.Values{"n": {"50"}, "offset": {offsetParam(r)}}
 		switch kind {
 		case "users":
-			params.Set("search", string(search))
+			call = vrchat.SearchUsers(vrchat.SearchUsersParams{Search: vrchat.Ptr(string(search)), N: vrchat.Ptr(50), Offset: offsetParam(r)})
 		case "worlds":
-			// Worlds can also be browsed without a search, sorted and by platform.
-			params.Set("releaseStatus", "public")
+			params := vrchat.SearchWorldsParams{
+				N:             vrchat.Ptr(50),
+				Offset:        offsetParam(r),
+				ReleaseStatus: vrchat.Ptr(vrchat.ReleaseStatus("public")),
+			}
 			if len(search) > 0 {
-				params.Set("search", string(search))
+				params.Search = vrchat.Ptr(string(search))
 			}
 			if sort, ok := worldSorts[query.Get("sort")]; ok {
-				params.Set("sort", sort)
-				params.Set("order", "descending")
+				params.Sort, params.Order = vrchat.Ptr(vrchat.SortOption(sort)), vrchat.Ptr(vrchat.OrderOption("descending"))
 			} else if len(search) == 0 {
-				params.Set("sort", "popularity")
-				params.Set("order", "descending")
+				params.Sort, params.Order = vrchat.Ptr(vrchat.SortOption("popularity")), vrchat.Ptr(vrchat.OrderOption("descending"))
 			}
 			if platform, ok := worldPlatforms[query.Get("platform")]; ok {
-				params.Set("platform", platform)
+				params.Platform = vrchat.Ptr(platform)
 			}
+			call = vrchat.SearchWorlds(params)
 		case "groups":
-			params.Set("query", string(search))
+			call = vrchat.SearchGroups(vrchat.SearchGroupsParams{Query: vrchat.Ptr(string(search)), N: vrchat.Ptr(50), Offset: offsetParam(r)})
 		default:
 			writeError(w, http.StatusBadRequest, "Invalid search type")
 			return nil
 		}
-		result, updates, err := s.vrc(r.Context(), "/"+kind+"?"+params.Encode(), session, req)
+		result, updates, err := s.vrc(r.Context(), session, call)
 		if err != nil {
 			return err
 		}
@@ -458,62 +496,72 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, sessi
 		if err != nil {
 			return err
 		}
-		endpoint = "/users/" + id + "/groups"
+		call = vrchat.GetUserGroups(id)
 	case p == "/account/group":
 		id, ok := idParam(groupID, "group")
 		if !ok {
 			return nil
 		}
-		endpoint, mapper = "/groups/"+id, publicGroup
+		call, mapper = vrchat.GetGroup(id, vrchat.GetGroupParams{}), publicGroup
 	case p == "/account/group-posts":
 		id, ok := idParam(groupID, "group")
 		if !ok {
 			return nil
 		}
-		endpoint, mapper = "/groups/"+id+"/posts?n=20&offset=0", groupPosts
+		call, mapper = vrchat.GetGroupPosts(id, vrchat.GetGroupPostsParams{N: vrchat.Ptr(20), Offset: vrchat.Ptr(0)}), groupPosts
 	case p == "/account/group-members":
 		id, ok := idParam(groupID, "group")
 		if !ok {
 			return nil
 		}
-		endpoint, mapper = "/groups/"+id+"/members?n=50&offset=0", groupMembers
+		call, mapper = vrchat.GetGroupMembers(id, vrchat.GetGroupMembersParams{N: vrchat.Ptr(50), Offset: vrchat.Ptr(0)}), groupMembers
 	case p == "/account/group-instances":
 		id, ok := idParam(groupID, "group")
 		if !ok {
 			return nil
 		}
-		endpoint, mapper = "/groups/"+id+"/instances", groupInstances
+		call, mapper = vrchat.GetGroupInstances(id), groupInstances
 	case p == "/account/world":
 		id, ok := idParam(worldID, "world")
 		if !ok {
 			return nil
 		}
-		endpoint, mapper = "/worlds/"+id, publicWorld
+		call, mapper = vrchat.GetWorld(id), publicWorld
 	case p == "/account/user":
 		id, ok := idParam(userID, "user")
 		if !ok {
 			return nil
 		}
-		endpoint, mapper = "/users/"+id, publicProfile
+		call, mapper = vrchat.GetUser(id), publicProfile
 	case p == "/account/user-worlds":
 		id, ok := idParam(userID, "user")
 		if !ok {
 			return nil
 		}
-		params := url.Values{"userId": {id}, "releaseStatus": {"public"}, "sort": {"updated"}, "order": {"descending"}, "n": {"24"}}
-		endpoint, mapper = "/worlds?"+params.Encode(), worldSummaries
+		call, mapper = vrchat.SearchWorlds(vrchat.SearchWorldsParams{
+			UserID:        vrchat.Ptr(id),
+			ReleaseStatus: vrchat.Ptr(vrchat.ReleaseStatus("public")),
+			Sort:          vrchat.Ptr(vrchat.SortOption("updated")),
+			Order:         vrchat.Ptr(vrchat.OrderOption("descending")),
+			N:             vrchat.Ptr(24),
+		}), worldSummaries
 	case p == "/account/user-groups":
 		id, ok := idParam(userID, "user")
 		if !ok {
 			return nil
 		}
-		endpoint, mapper = "/users/"+id+"/groups", userGroups
+		call, mapper = vrchat.GetUserGroups(id), userGroups
 	case p == "/account/raw":
 		// Deliberately unfiltered: the full VRChat record, asset URLs included.
 		kinds := map[string]struct {
-			prefix  string
+			call    func(string) vrchat.Call
 			pattern *regexp.Regexp
-		}{"world": {"/worlds/", worldID}, "avatar": {"/avatars/", avatarID}, "group": {"/groups/", groupID}, "user": {"/users/", userID}}
+		}{
+			"world":  {func(id string) vrchat.Call { return vrchat.GetWorld(id) }, worldID},
+			"avatar": {func(id string) vrchat.Call { return vrchat.GetAvatar(id) }, avatarID},
+			"group":  {func(id string) vrchat.Call { return vrchat.GetGroup(id, vrchat.GetGroupParams{}) }, groupID},
+			"user":   {func(id string) vrchat.Call { return vrchat.GetUser(id) }, userID},
+		}
 		kind, ok := kinds[query.Get("kind")]
 		if !ok {
 			writeError(w, http.StatusBadRequest, "Invalid record type")
@@ -523,13 +571,27 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, sessi
 		if !ok {
 			return nil
 		}
-		endpoint = kind.prefix + id
+		call = kind.call(id)
 	case p == "/account/my-avatars", p == "/account/my-worlds":
-		endpoint = "/avatars"
 		if p == "/account/my-worlds" {
-			endpoint = "/worlds"
+			call = vrchat.SearchWorlds(vrchat.SearchWorldsParams{
+				User:          vrchat.Ptr(vrchat.SearchWorldsUser("me")),
+				ReleaseStatus: vrchat.Ptr(vrchat.ReleaseStatus("all")),
+				Sort:          vrchat.Ptr(vrchat.SortOption("updated")),
+				Order:         vrchat.Ptr(vrchat.OrderOption("descending")),
+				N:             vrchat.Ptr(100),
+				Offset:        offsetParam(r),
+			})
+		} else {
+			call = vrchat.SearchAvatars(vrchat.SearchAvatarsParams{
+				User:          vrchat.Ptr("me"),
+				ReleaseStatus: vrchat.Ptr(vrchat.ReleaseStatus("all")),
+				Sort:          vrchat.Ptr(vrchat.SortOptionAvatar("updated")),
+				Order:         vrchat.Ptr(vrchat.OrderOption("descending")),
+				N:             vrchat.Ptr(100),
+				Offset:        offsetParam(r),
+			})
 		}
-		endpoint += "?user=me&releaseStatus=all&sort=updated&order=descending&n=100&offset=" + offsetParam(r)
 	case p == "/account/action" && post:
 		a, err := requestJSON(r)
 		if err != nil {
@@ -545,44 +607,55 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, sessi
 			}
 			switch action {
 			case "friend":
-				endpoint, req.Method = "/user/"+id+"/friendRequest", http.MethodPost
+				call = vrchat.Friend(id)
 			case "cancelFriend":
-				endpoint, req.Method = "/user/"+id+"/friendRequest", http.MethodDelete
+				call = vrchat.DeleteFriendRequest(id)
 			case "unfriend":
-				endpoint, req.Method = "/auth/user/friends/"+id, http.MethodDelete
+				call = vrchat.Unfriend(id)
 			case "requestInvite":
-				endpoint, req.Method, req.Body = "/requestInvite/"+id, http.MethodPost, map[string]int{"requestSlot": 0}
+				call = vrchat.RequestInvite(id, &vrchat.RequestInviteRequest{RequestSlot: vrchat.Ptr(0)})
 			}
 		case "accept", "hide", "see":
 			if !notificationID.MatchString(id) {
 				writeError(w, http.StatusBadRequest, "Invalid notification ID")
 				return nil
 			}
-			endpoint, req.Method = "/auth/user/notifications/"+id+"/"+action, http.MethodPut
+			switch action {
+			case "accept":
+				call = vrchat.AcceptFriendRequest(id)
+			case "hide":
+				call = vrchat.DeleteNotification(id)
+			case "see":
+				call = vrchat.MarkNotificationAsRead(id)
+			}
 		case "joinGroup", "leaveGroup":
 			if !groupID.MatchString(id) {
 				writeError(w, http.StatusBadRequest, "Invalid group ID")
 				return nil
 			}
-			suffix := "/join"
 			if action == "leaveGroup" {
-				suffix = "/leave"
+				call = vrchat.LeaveGroup(id)
+			} else {
+				call = vrchat.JoinGroup(id, vrchat.JoinGroupParams{}, nil)
 			}
-			endpoint, req.Method = "/groups/"+id+suffix, http.MethodPost
 		case "selfInvite":
 			if !location.MatchString(id) {
 				writeError(w, http.StatusBadRequest, "Invalid instance")
 				return nil
 			}
-			endpoint, req.Method = "/invite/myself/to/"+id, http.MethodPost
+			world, instance, _ := strings.Cut(id, ":")
+			call = vrchat.InviteMyselfTo(world, instance)
 		case "newInstance":
 			region, _ := str(a, "region")
 			if !worldID.MatchString(id) || !slices.Contains([]string{"us", "use", "eu", "jp"}, region) {
 				writeError(w, http.StatusBadRequest, "Choose a world and region.")
 				return nil
 			}
-			created, updates, err := s.vrc(r.Context(), "/instances", session, vrcRequest{Method: http.MethodPost,
-				Body: map[string]string{"worldId": id, "type": "public", "region": region}})
+			created, updates, err := s.vrc(r.Context(), session, vrchat.CreateInstance(vrchat.CreateInstanceRequest{
+				WorldID: vrchat.WorldID(id),
+				Type:    vrchat.InstanceType("public"),
+				Region:  vrchat.CreateInstanceRequestRegion(region),
+			}))
 			if err != nil {
 				return err
 			}
@@ -604,25 +677,26 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, sessi
 				writeError(w, http.StatusBadRequest, "Invalid avatar ID")
 				return nil
 			}
-			endpoint, req.Method = "/avatars/"+id+"/selectfallback", http.MethodPut
+			call = vrchat.SelectFallbackAvatar(id)
 		default:
 			writeError(w, http.StatusBadRequest, "Unsupported action")
 			return nil
 		}
 	case p == "/account/me":
-		endpoint = "/auth/user"
+		call = vrchat.GetCurrentUser()
 	case p == "/account/friends":
-		offline := "false"
-		if query.Get("offline") == "true" {
-			offline = "true"
-		}
-		endpoint = "/auth/user/friends?offline=" + offline + "&n=100&offset=" + offsetParam(r)
+		call = vrchat.GetFriends(vrchat.GetFriendsParams{Offline: vrchat.Ptr(query.Get("offline") == "true"), N: vrchat.Ptr(100), Offset: offsetParam(r)})
 	case p == "/account/notifications":
-		endpoint = "/auth/user/notifications?n=100"
+		call = vrchat.GetNotifications(vrchat.GetNotificationsParams{N: vrchat.Ptr(100)})
 	case p == "/account/live" && !post:
 		return s.liveNotifications(w, r, session)
 	case p == "/account/worlds":
-		endpoint = "/worlds?sort=popularity&order=descending&n=48&releaseStatus=public"
+		call = vrchat.SearchWorlds(vrchat.SearchWorldsParams{
+			Sort:          vrchat.Ptr(vrchat.SortOption("popularity")),
+			Order:         vrchat.Ptr(vrchat.OrderOption("descending")),
+			N:             vrchat.Ptr(48),
+			ReleaseStatus: vrchat.Ptr(vrchat.ReleaseStatus("public")),
+		})
 	case p == "/account/favorites" && !post:
 		kind := query.Get("type")
 		if kind == "" {
@@ -632,20 +706,20 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, sessi
 			writeError(w, http.StatusBadRequest, "Choose avatar, world or friend favorites.")
 			return nil
 		}
-		endpoint = "/favorites?type=" + kind + "&n=100&offset=" + offsetParam(r)
+		call = vrchat.GetFavorites(vrchat.GetFavoritesParams{Type: vrchat.Ptr(kind), N: vrchat.Ptr(100), Offset: offsetParam(r)})
 	case p == "/account/favorite-groups":
 		kind := "avatar"
 		if query.Get("type") == "friend" {
 			kind = "friend"
 		}
-		endpoint = "/favorite/groups?type=" + kind + "&n=100"
+		call = vrchat.GetFavoriteGroups(vrchat.GetFavoriteGroupsParams{Type: vrchat.Ptr(vrchat.FavoriteType(kind)), N: vrchat.Ptr(100)})
 	case p == "/account/avatar" && !post:
 		id := query.Get("id")
 		if !avatarID.MatchString(id) {
 			writeError(w, http.StatusBadRequest, "Invalid avatar ID")
 			return nil
 		}
-		endpoint = "/avatars/" + id
+		call = vrchat.GetAvatar(id)
 	case p == "/account/select" && post:
 		body, err := requestJSON(r)
 		if err != nil {
@@ -656,7 +730,7 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, sessi
 			writeError(w, http.StatusBadRequest, "Invalid avatar ID")
 			return nil
 		}
-		endpoint, req.Method = "/avatars/"+id+"/select", http.MethodPut
+		call = vrchat.SelectAvatar(id)
 	case p == "/account/favorites" && post:
 		body, err := requestJSON(r)
 		if err != nil {
@@ -668,8 +742,7 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, sessi
 			writeError(w, http.StatusBadRequest, "Choose an avatar and favorite group.")
 			return nil
 		}
-		endpoint, req.Method = "/favorites", http.MethodPost
-		req.Body = map[string]any{"type": "avatar", "favoriteId": id, "tags": []string{group}}
+		call = vrchat.AddFavorite(&vrchat.AddFavoriteRequest{Type: vrchat.FavoriteType("avatar"), FavoriteID: id, Tags: []vrchat.Tag{vrchat.Tag(group)}})
 	case p == "/account/unfavorite" && post:
 		body, err := requestJSON(r)
 		if err != nil {
@@ -680,12 +753,12 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, sessi
 			writeError(w, http.StatusBadRequest, "Invalid favorite ID")
 			return nil
 		}
-		endpoint, req.Method = "/favorites/"+id, http.MethodDelete
+		call = vrchat.RemoveFavorite(id)
 	default:
 		writeError(w, http.StatusNotFound, "Not found")
 		return nil
 	}
-	result, updates, err := s.vrc(r.Context(), endpoint, session, req)
+	result, updates, err := s.vrc(r.Context(), session, call)
 	if err != nil {
 		return err
 	}
@@ -710,7 +783,7 @@ func (s *Server) account(w http.ResponseWriter, r *http.Request, p string, sessi
 	if p == "/account/user" {
 		// Bios moved to the profile API. Keep relationship and activity metadata
 		// from /users, but take bio fields from their authoritative endpoint.
-		profile, updates, err := s.vrc(r.Context(), "/profile/"+query.Get("id"), session, vrcRequest{})
+		profile, updates, err := s.vrc(r.Context(), session, vrchat.GetPublicProfile(query.Get("id"), vrchat.GetPublicProfileParams{}))
 		if err != nil {
 			return err
 		}

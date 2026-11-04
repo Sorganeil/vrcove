@@ -20,6 +20,9 @@ CREATE TABLE IF NOT EXISTS catalog (id TEXT PRIMARY KEY, name TEXT, author TEXT,
 CREATE VIRTUAL TABLE IF NOT EXISTS catalog_fts USING fts5(name,author,description,tags,content="");
 CREATE INDEX IF NOT EXISTS catalog_updated ON catalog(updated DESC);
 CREATE INDEX IF NOT EXISTS catalog_platform ON catalog(quest,pc,updated DESC);
+-- PC-only and Quest-only browsing reads the newest page without sorting every match.
+CREATE INDEX IF NOT EXISTS catalog_pc_updated ON catalog(pc,updated DESC,id);
+CREATE INDEX IF NOT EXISTS catalog_quest_updated ON catalog(quest,updated DESC,id);
 CREATE INDEX IF NOT EXISTS catalog_rating ON catalog(rating,updated DESC);
 CREATE INDEX IF NOT EXISTS catalog_author_id ON catalog(json_extract(data, '$.authorId'));
 CREATE INDEX IF NOT EXISTS catalog_image_file ON catalog(` + imageFileExpr + `);`
@@ -259,7 +262,7 @@ func (s *Server) catalog(w http.ResponseWriter, r *http.Request) error {
 	order, orderArgs := "updated DESC, id ASC", []any(nil)
 	switch query.Get("sort") {
 	case "relevance":
-		// Best match needs a typed search; without one it is the newest first.
+		// Use best match for a typed search and newest first when browsing.
 		if term != "" && !avatarID.MatchString(term) {
 			order, orderArgs = relevanceOrder(term)
 		}

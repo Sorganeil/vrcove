@@ -15,7 +15,7 @@ import (
 // Moderation: reports, avatar removal requests and account administration.
 //
 // Accounts have a role: user, admin or owner. Owners are set only with the
-// `vrcove set-role` command on the server. Owners can make users admins;
+// `vrcove set-role` command on the server. Owners can make users admins.
 // admins and owners can review reports and removal requests and suspend, ban
 // or delete accounts with a lower role. Admin routes answer 404 to everyone
 // else, so the panel stays hidden. Every action is recorded in moderation_log.
@@ -93,8 +93,7 @@ func (s *Server) accountBlock(ctx context.Context, id int64) (string, error) {
 	return "", nil
 }
 
-// signOutEverywhere ends every VRCove and VRChat session of an account. Its
-// companion API keys go with the VRChat sessions.
+// signOutEverywhere ends every VRCove and VRChat session of an account.
 func (s *Server) signOutEverywhere(ctx context.Context, tx *sql.Tx, id int64) error {
 	if _, err := tx.ExecContext(ctx, "DELETE FROM account_sessions WHERE account_id = ?", id); err != nil {
 		return err
@@ -176,7 +175,7 @@ func (s *Server) report(w http.ResponseWriter, r *http.Request, a *account) erro
 
 // requestRemoval asks moderators to remove an avatar from the catalog and keep
 // it out. A requester whose connected VRChat account authored the avatar is
-// marked as a verified owner; anyone else must describe their proof.
+// marked as a verified owner. Other requesters must describe their proof.
 func (s *Server) requestRemoval(w http.ResponseWriter, r *http.Request, a *account) error {
 	if s.limiter.allowN("cove-removal:"+strconv.FormatInt(a.ID, 10), removalsPerHour, s.now()) > 0 {
 		return errStatus(http.StatusTooManyRequests, "You’ve sent a lot of requests. Try again later.")

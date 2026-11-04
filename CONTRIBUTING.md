@@ -8,13 +8,13 @@ Thanks for helping out. This page covers how to branch, commit and open a pull r
 
 Name branches `type/short-description`, lowercase with hyphens:
 
-| Prefix      | Use for                                  | Example                        |
-| ----------- | ---------------------------------------- | ------------------------------ |
-| `feature/`  | New features                             | `feature/avatar-collections`   |
-| `fix/`      | Bug fixes                                | `fix/login-redirect-loop`      |
-| `docs/`     | Documentation only                       | `docs/desktop-build-steps`     |
-| `refactor/` | Code changes with no behaviour change    | `refactor/router-cleanup`      |
-| `chore/`    | Tooling, dependencies, CI                | `chore/bump-vite`              |
+| Prefix      | Use for                               | Example                      |
+| ----------- | ------------------------------------- | ---------------------------- |
+| `feature/`  | New features                          | `feature/avatar-collections` |
+| `fix/`      | Bug fixes                             | `fix/login-redirect-loop`    |
+| `docs/`     | Documentation only                    | `docs/desktop-build-steps`   |
+| `refactor/` | Code changes with no behaviour change | `refactor/router-cleanup`    |
+| `chore/`    | Tooling, dependencies, CI             | `chore/bump-vite`            |
 
 Start from an up-to-date `main`:
 
@@ -29,7 +29,7 @@ Keep one topic per branch. If your branch falls behind, rebase it on `main` rath
 ## Commits
 
 - Write the subject in the imperative, under about 72 characters: "Add avatar search filters", not "added filters".
-- Explain *why* in the body when it isn't obvious.
+- Explain _why_ in the body when it isn't obvious.
 - Each commit should build and pass tests on its own where practical.
 
 ## Before you open a PR
@@ -45,6 +45,10 @@ go test ./...
 ```
 
 For the desktop app, also run `go test ./...` inside `companion/`.
+
+The standalone VRChat SDK is a separate Go module. For changes to it, run
+`go test -race ./...` and `go vet ./...` inside `vrchat/`; the root module's
+checks do not include it.
 
 ## Pull requests
 

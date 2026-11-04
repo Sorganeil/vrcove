@@ -31,7 +31,6 @@ import { desktop, openExternal } from '../lib/platform';
 import { covePath, appLink } from '../lib/routes';
 import { CovePicture } from '../components/cove-picture';
 import PictureCropper from '../components/picture-cropper';
-import LoggerApiKeys from '../components/logger-api-keys';
 import { day } from '../lib/dates';
 import type { VRChatUser } from '../lib/types';
 type Me = {
@@ -81,7 +80,7 @@ function NameAdvice() {
       <p>
         <strong>{tr('Pick a name unrelated to your VRChat name.')}</strong>{' '}
         {tr(
-          'Your VRCove username appears on every review you post. If it matches or resembles your VRChat display name or username, anyone, including VRChat staff, could connect your activity here to your VRChat account. Avoid reusing a handle you use elsewhere, too. A different name reduces correlation risk; it cannot guarantee anonymity or prevent action by VRChat.',
+          'Your VRCove username appears on every review you post. If it matches or resembles your VRChat display name or username, anyone, including VRChat staff, could connect your activity here to your VRChat account. Avoid reusing a handle you use elsewhere, too. A different name reduces correlation risk. It cannot guarantee anonymity or prevent action by VRChat.',
         )}
       </p>
     </div>
@@ -233,7 +232,7 @@ export default function AccountPage({
     URL.revokeObjectURL(url);
   }
 
-  // Ending this browser's session disconnects VRChat here; ending another device's locks it out.
+  // Ending this browser's session disconnects VRChat here. Ending another device's session locks that device out.
   const endSession = (s: VRChatSession) =>
     run('end:' + s.id, async () => {
       const r = await api('/cove/vrchat-sessions/end', { id: s.id });
@@ -899,13 +898,6 @@ export default function AccountPage({
             </p>
           </details>
         </div>
-        <LoggerApiKeys
-          key={`${me.username}:${user?.id || ''}`}
-          currentId={user?.id}
-          connected={!!user && !connection.issue && !!connection.expiresAt && connection.expiresAt > now}
-          links={me.links}
-          notify={notify}
-        />
         <div className="cove-panel login-content">
           <div className="eyebrow">{tr('SECURITY')}</div>
           <div className="account-row">
@@ -948,7 +940,7 @@ export default function AccountPage({
               <form onSubmit={generateCodes}>
                 <p className="fineprint">
                   {tr(
-                    'Each code can reset your password once. Store them somewhere safe; anyone with a code and your username can access your account.',
+                    'Each code can reset your password once. Store them somewhere safe. Anyone with a code and your username can access your account.',
                   )}{' '}
                   {tr('Generating a new set immediately invalidates all previous codes.')}
                 </p>

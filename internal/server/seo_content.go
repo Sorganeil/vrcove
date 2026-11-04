@@ -13,14 +13,12 @@ import (
 	"time"
 )
 
-// The app shell's #root stays empty until JavaScript runs, so without this
-// every address would look like the same blank page to search engines.
-// seoPage fills #root with the page's real text and links; React replaces it
-// as soon as the app starts.
+// seoPage gives search engines page text and links before JavaScript runs.
+// React replaces this content when the app starts.
 type seoPage struct {
 	Meta  pageMeta
 	Body  string
-	Graph []any // JSON-LD nodes; nil keeps the shell's own structured data
+	Graph []any // JSON-LD nodes. nil keeps the shell's structured data
 }
 
 var rankNames = map[string]string{"Excellent": "Excellent", "Good": "Good", "Medium": "Medium", "Poor": "Poor", "VeryPoor": "Very Poor"}
@@ -67,8 +65,8 @@ func (a catalogAvatar) hasLinks() bool {
 	return linkText.MatchString(a.Name) || linkText.MatchString(a.Description)
 }
 
-// indexable is whether search engines may list the avatar's page; the avatar
-// sitemaps use the same rule.
+// indexable controls whether search engines may list the avatar's page.
+// Avatar sitemaps use the same rule.
 func (a catalogAvatar) indexable() bool { return !a.adult() && !a.hasLinks() }
 
 func (a catalogAvatar) adult() bool {

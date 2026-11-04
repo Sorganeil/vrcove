@@ -30,7 +30,7 @@ export const kindLabel: Record<string, string> = {
 /* Where a reviewed or collected VRChat item opens in this app. */
 export const targetHref = (kind: string, id: string) => entityPath(kind as EntityKind, id);
 
-// A plain click opens the quick view, as elsewhere; modified clicks open the full page.
+// Open the quick view on a plain click. Modified clicks open the full page.
 export const targetLink = (kind: string, id: string) => ({
   href: targetHref(kind, id),
   onClick: (e: React.MouseEvent) => {

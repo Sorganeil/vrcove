@@ -105,7 +105,7 @@ export default function Dashboard({
       setBusy(false);
     }
   }
-  // People in game come first; those on the website or app follow with a "Not in game" badge.
+  // List people in game first, then website and app users with a "Not in game" badge.
   const inGame = friends.filter((f) => !notInGame(f)),
     elsewhere = friends.filter((f) => notInGame(f));
   const friendCard = (f: any) => (

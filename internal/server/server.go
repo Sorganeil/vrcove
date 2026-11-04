@@ -23,10 +23,12 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
+
+	"github.com/Sorganeil/vrcove/vrchat"
 )
 
-// Config is the runtime configuration. SessionKey, Contact and the database
-// are optional; account features stay disabled without them.
+// Config holds runtime settings. Account features need SessionKey, Contact
+// and the database. They stay disabled if any are missing.
 type Config struct {
 	// PublicOrigin is the origin browsers use, e.g. https://vrcove.example.
 	// Behind a tunnel the server only sees plain HTTP, so the origin check and
@@ -44,11 +46,11 @@ type Config struct {
 	Accounts   *sql.DB
 	AccountKey []byte
 	// TurnstileSiteKey and TurnstileSecret enable Cloudflare Turnstile on
-	// registration. Both must be set; without them signup has no challenge.
+	// registration. Signup has a challenge only when both are set.
 	TurnstileSiteKey string
 	TurnstileSecret  string
-	// Logger is an optional, separately authenticated ingestion service. The
-	// desktop receives only its API key, never VRChat credentials.
+	// Logger is an optional ingestion service. The desktop sends only avatar
+	// IDs, which the operator's bot account checks with VRChat.
 	Logger *LoggerConfig
 	// Local runs the VRChat routes for one person on their own device, as the
 	// desktop app does: no VRCove account is needed and VRChat requests go
@@ -76,14 +78,16 @@ type Server struct {
 	// pictureSlots bounds concurrent avatar picture decodes.
 	pictureSlots chan struct{}
 	loggerSlot   chan struct{}
+	bot          botState
 	sitemaps     sitemapStore
+	tags         tagStore
 	// imageSlots bounds concurrent image fetches from VRChat.
 	imageSlots chan struct{}
 	// Client sends every upstream request. Redirects are never followed
-	// automatically; the image proxy re-validates each hop itself.
+	// automatically. The image proxy validates each hop itself.
 	Client *http.Client
 	now    func() time.Time
-	// live counts open live-notification relays; dialPipeline opens VRChat's
+	// live counts open notification relays. dialPipeline opens VRChat's
 	// pipeline and is replaced in tests.
 	live         liveStreams
 	dialPipeline func(ctx context.Context, auth string) (Pipeline, error)
@@ -96,7 +100,7 @@ func New(cfg Config, db *sql.DB, static fs.FS) (*Server, error) {
 	}
 	cfg.PublicOrigin = u.Scheme + "://" + u.Host
 	cfg.Contact = strings.TrimSpace(cfg.Contact)
-	if cfg.Contact != "" && !validContact(cfg.Contact) {
+	if cfg.Contact != "" && !vrchat.ValidContact(cfg.Contact) {
 		return nil, errors.New("VRC_CONTACT must be an email address or http(s) URL in printable ASCII, without parentheses")
 	}
 	if cfg.Local && (cfg.Accounts != nil || cfg.Logger != nil || cfg.Remote == nil) {
@@ -105,8 +109,8 @@ func New(cfg Config, db *sql.DB, static fs.FS) (*Server, error) {
 	if cfg.SessionKey != nil && len(cfg.SessionKey) != 32 {
 		return nil, errors.New("SESSION_KEY must be a base64-encoded 32-byte key")
 	}
-	if cfg.Logger != nil && (cfg.Logger.Catalog == nil || cfg.Accounts == nil || len(cfg.SessionKey) != 32 || cfg.Contact == "") {
-		return nil, errors.New("logger ingestion needs accounts, session encryption, a writable catalog and operator contact")
+	if cfg.Logger != nil && (cfg.Logger.Catalog == nil || cfg.Accounts == nil || cfg.Contact == "" || cfg.Logger.Bot.Username == "" || cfg.Logger.Bot.Password == "") {
+		return nil, errors.New("logger ingestion needs accounts, a writable catalog, operator contact and a bot account")
 	}
 	var keys accountKeys
 	if cfg.Accounts != nil {
@@ -271,7 +275,7 @@ func clientIP(r *http.Request) string {
 	return host
 }
 
-// clientKey identifies the client for rate limiting; see rateKey.
+// clientKey uses rateKey to identify a client for rate limiting.
 func clientKey(r *http.Request) string { return rateKey(clientIP(r)) }
 
 // queryInt mirrors the old clamp(Number(value)||0) parsing of numeric query parameters.

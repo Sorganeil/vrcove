@@ -350,7 +350,7 @@ func (u *Updater) client() *http.Client {
 	if u.Client != nil {
 		return u.Client
 	}
-	// GitHub redirects downloads to its file host; every hop must stay on GitHub.
+	// Check every download redirect against the allowed GitHub hosts.
 	return &http.Client{Timeout: 60 * time.Second, CheckRedirect: func(r *http.Request, via []*http.Request) error {
 		if len(via) >= 5 || !u.allowedDownloadURL(r.URL.String()) {
 			return errors.New("update download left GitHub")

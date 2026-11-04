@@ -1,6 +1,6 @@
 // VRCove service worker. It caches only the app's own static files so the
 // installed app opens quickly. API responses, images and account data are
-// never cached; they always go to the network.
+// always fetched from the network and never cached.
 const CACHE = 'vrcove-shell-v1';
 const SHELL = ['/', '/favicon.svg', '/vrcove-wordmark.svg', '/icon-192.png'];
 

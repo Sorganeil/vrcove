@@ -3,6 +3,7 @@ module vrcove/companion
 go 1.26.0
 
 require (
+	github.com/Sorganeil/vrcove/vrchat v0.0.0
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/zalando/go-keyring v0.2.6
 	golang.org/x/sys v0.48.0
@@ -38,3 +39,5 @@ require (
 )
 
 replace vrcove => ../
+
+replace github.com/Sorganeil/vrcove/vrchat => ../vrchat

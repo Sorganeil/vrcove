@@ -150,3 +150,19 @@ func TestNamesAndFullHundred(t *testing.T) {
 		t.Fatalf("normalization=%v %v", names, err)
 	}
 }
+
+func TestRequestDurationDoesNotShortenSpacing(t *testing.T) {
+	c, now := fakeClock()
+	var starts []time.Time
+	if err := c.Start(context.Background(), []string{"one", "two"}, func(context.Context, string) Reply {
+		starts = append(starts, *now)
+		*now = now.Add(100 * time.Millisecond)
+		return Reply{Status: "available"}
+	}); err != nil {
+		t.Fatal(err)
+	}
+	finished(t, c)
+	if len(starts) != 2 || starts[1].Sub(starts[0]) != interval+100*time.Millisecond {
+		t.Fatalf("request starts=%v", starts)
+	}
+}

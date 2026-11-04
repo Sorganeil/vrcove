@@ -9,7 +9,7 @@ export const companionReleaseUrl = 'https://github.com/Sorganeil/vrcove/releases
 // A new key, so people who hid the old logger banner see the desktop app once.
 const dismissedKey = 'vrcove-desktop-banner-dismissed';
 
-/* VRCove Desktop promo on Home, and on Avatar search as a way to help grow the catalog. Dismissing hides it in this browser; the sidebar still links the page. */
+/* Show the desktop download on Home and avatar search. Dismissing it hides it in this browser. The sidebar link stays visible. */
 export default function CompanionDownload({ contribute = false }: { contribute?: boolean }) {
   useLocale();
   const { sectionLink } = useApp();

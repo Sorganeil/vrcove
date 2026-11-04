@@ -27,7 +27,7 @@ export default function PrivacyDialog({ close }: { close: () => void }) {
             {tr('cookie policy')}
           </a>{' '}
           {tr(
-            'lists analytics providers including Amplitude, Google and Mixpanel. VRCove leaves those integrations out of this web interface. Account requests still reach VRChat; this does not change tracking in the game or on VRChat’s own pages.',
+            'lists analytics providers including Amplitude, Google and Mixpanel. VRCove leaves those integrations out of this web interface. Account requests still reach VRChat. This does not change tracking in the game or on VRChat’s own pages.',
           )}
         </p>
         <h3>{tr('When you connect')}</h3>
@@ -43,7 +43,7 @@ export default function PrivacyDialog({ close }: { close: () => void }) {
         </p>
         <p>
           {tr(
-            'If you generate a desktop companion API key, encrypted VRChat credentials are also stored in the existing server-side session record so the server can verify avatar submissions while your browser is closed. The desktop receives only the API key. The key expires with its linked session; signing out, ending that session or unlinking the account invalidates it.',
+            'VRCove Desktop’s avatar logger sends only avatar IDs. The server checks them with a VRChat account VRCove owns, so it stores none of your VRChat credentials for the logger.',
           )}
         </p>
         <h3>{tr('What stays here')}</h3>
@@ -61,19 +61,19 @@ export default function PrivacyDialog({ close }: { close: () => void }) {
         <h3>{tr('Profiles and collections')}</h3>
         <p>
           {tr(
-            'Your profile starts private. Making it public shares your bio, review history and public collections. Reviews remain public on the reviewed items even with a private profile. Collections start private unless you choose public; anyone with a public collection’s link can view it. Its owner is named only when their profile is public. Linked VRChat accounts never appear in these public views. Deleting your account removes your reviews, collections and links; older backups may retain copies.',
+            'Your profile starts private. Making it public shares your bio, review history and public collections. Reviews remain public on the reviewed items even with a private profile. Collections start private unless you choose public. Anyone with a public collection’s link can view it. Its owner is named only when their profile is public. Linked VRChat accounts never appear in these public views. Deleting your account removes your reviews, collections and links. Older backups may retain copies.',
           )}
         </p>
         <h3>{tr('Reports and moderation')}</h3>
         <p>
           {tr(
-            'Reports, removal requests and moderation actions are visible only to VRCove moderators. A report stores your username, the reason, your note and a copy of what you reported. A removal request stores your username, your proof and whether your connected VRChat account uploaded the avatar. Moderators can suspend, ban or delete accounts; a banned account’s reviews, profile and collections are hidden.',
+            'Reports, removal requests and moderation actions are visible only to VRCove moderators. A report stores your username, the reason, your note and a copy of what you reported. A removal request stores your username, your proof and whether your connected VRChat account uploaded the avatar. Moderators can suspend, ban or delete accounts. A banned account’s reviews, profile and collections are hidden.',
           )}
         </p>
         <h3>{tr('What leaves this site')}</h3>
         <p>
           {tr(
-            'Account actions and image requests contact VRChat. Images are proxied so your browser does not contact image hosts directly. The hosting provider and VRChat still process traffic; VRCove cannot promise they keep no operational logs. External links open VRChat’s own website.',
+            'Account actions and image requests contact VRChat. Images are proxied so your browser does not contact image hosts directly. The hosting provider and VRChat still process traffic. VRCove cannot promise they keep no operational logs. External links open VRChat’s own website.',
           )}
         </p>
         <div className="privacy-note">

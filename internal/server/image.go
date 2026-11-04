@@ -9,6 +9,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/Sorganeil/vrcove/vrchat"
 )
 
 const maxImageBytes = 10_000_000
@@ -50,8 +52,8 @@ func allowedImage(u *url.URL) bool {
 
 // image proxies avatar and profile images so browsers never contact VRChat
 // directly. Every redirect hop is re-validated against the allow-list.
-// Results are cached on the server only; browsers are still told not to
-// store them, so nothing lingers on a shared device.
+// Cache results on the server. Tell browsers not to store them so images
+// do not remain on a shared device.
 func (s *Server) image(w http.ResponseWriter, r *http.Request) error {
 	target, err := url.Parse(r.URL.Query().Get("url"))
 	if err != nil || !allowedImage(target) {
@@ -122,8 +124,13 @@ type imageResult struct {
 // API carry the viewer's cookie, and only those are subject to backoff.
 func (s *Server) fetchImage(ctx context.Context, target *url.URL, session *Session) (imageResult, error) {
 	var res imageResult
+	client, err := s.vrchatClient()
+	if err != nil {
+		return res, err
+	}
+	options := vrchat.DownloadOptions{Timeout: 15 * time.Second, MaxBytes: maxImageBytes}
 	for range 4 {
-		api := strings.EqualFold(target.Hostname(), "api.vrchat.cloud")
+		api := client.IsAPIURL(target)
 		withCookie := api && session != nil
 		key := serverKey
 		if withCookie {
@@ -133,75 +140,70 @@ func (s *Server) fetchImage(ctx context.Context, target *url.URL, session *Sessi
 			return imageResult{status: http.StatusTooManyRequests}, nil
 		}
 		res.private = res.private || withCookie
-		hop, cancel := context.WithTimeout(ctx, 15*time.Second)
-		req, err := http.NewRequestWithContext(hop, http.MethodGet, target.String(), nil)
+		fetched, _, err := client.FetchImage(ctx, vrchatTokens(session), target.String(), options)
 		if err != nil {
-			cancel()
-			return res, err
+			var apiErr *vrchat.APIError
+			switch {
+			case errors.As(err, &apiErr):
+				if apiErr.StatusCode == http.StatusTooManyRequests {
+					if api {
+						now := s.now()
+						s.backoff.limited(key, apiErr.RetryDelay(now, maxRetryAfter), now)
+					}
+					return imageResult{status: http.StatusTooManyRequests}, nil
+				}
+				return imageResult{status: http.StatusNotFound}, nil
+			case errors.Is(err, vrchat.ErrResponseTooLarge):
+				contentType, generic := imageContentType(fetched.ContentType)
+				if !generic && !imageTypes[contentType] {
+					return imageResult{status: http.StatusNotFound}, nil
+				}
+				return imageResult{status: http.StatusRequestEntityTooLarge}, nil
+			case errors.Is(err, vrchat.ErrInvalidRedirect), errors.Is(err, vrchat.ErrInvalidAssetURL):
+				return imageResult{status: http.StatusNotFound}, nil
+			default:
+				return res, err
+			}
 		}
-		req.Header.Set("Accept", "image/*")
-		req.Header.Set("User-Agent", s.userAgent())
-		if withCookie {
-			req.Header.Set("Cookie", vrcCookie(session))
-		}
-		resp, err := s.Client.Do(req)
-		if err != nil {
-			cancel()
-			return res, err
-		}
-		if resp.StatusCode >= 300 && resp.StatusCode < 400 {
-			next, err := target.Parse(resp.Header.Get("Location"))
-			resp.Body.Close()
-			cancel()
-			if err != nil || !allowedImage(next) {
+		if fetched.RedirectURL != nil {
+			if !allowedImage(fetched.RedirectURL) {
 				return imageResult{status: http.StatusNotFound}, nil
 			}
-			target = next
+			target = fetched.RedirectURL
 			continue
 		}
-		if resp.StatusCode == http.StatusTooManyRequests && api {
-			now := s.now()
-			s.backoff.limited(key, retryAfter(resp.Header, now), now)
-		}
-		img, err := readImage(resp)
-		resp.Body.Close()
-		cancel()
+		img, err := readImage(fetched)
 		img.private = res.private
 		return img, err
 	}
 	return imageResult{status: http.StatusNotFound}, nil
 }
 
-func readImage(resp *http.Response) (imageResult, error) {
-	contentType, _, _ := strings.Cut(resp.Header.Get("Content-Type"), ";")
+func imageContentType(value string) (contentType string, generic bool) {
+	contentType, _, _ = strings.Cut(value, ";")
 	contentType = strings.ToLower(strings.TrimSpace(contentType))
-	// Extensionless uploads are often served as generic binary data, so
-	// those are identified from their bytes instead.
-	generic := contentType == "application/octet-stream" || contentType == "binary/octet-stream" || contentType == ""
+	generic = contentType == "application/octet-stream" || contentType == "binary/octet-stream" || contentType == ""
+	return contentType, generic
+}
+
+func readImage(resp vrchat.AssetResponse) (imageResult, error) {
+	contentType, generic := imageContentType(resp.ContentType)
 	if resp.StatusCode == http.StatusTooManyRequests {
 		return imageResult{status: http.StatusTooManyRequests}, nil
 	}
 	if resp.StatusCode < 200 || resp.StatusCode > 299 || (!imageTypes[contentType] && !generic) {
 		return imageResult{status: http.StatusNotFound}, nil
 	}
-	if resp.ContentLength > maxImageBytes {
+	if resp.ContentLength > maxImageBytes || len(resp.Body) > maxImageBytes {
 		return imageResult{status: http.StatusRequestEntityTooLarge}, nil
 	}
-	image, err := readBounded(resp.Body, maxImageBytes, "Image too large.")
-	if err != nil {
-		var tooLarge *httpError
-		if errors.As(err, &tooLarge) && tooLarge.status == http.StatusRequestEntityTooLarge {
-			return imageResult{status: http.StatusRequestEntityTooLarge}, nil
-		}
-		return imageResult{}, err
-	}
 	if generic {
-		contentType = http.DetectContentType(image)
+		contentType = http.DetectContentType(resp.Body)
 		if !imageTypes[contentType] {
 			return imageResult{status: http.StatusNotFound}, nil
 		}
 	}
-	return imageResult{status: http.StatusOK, contentType: contentType, body: image}, nil
+	return imageResult{status: http.StatusOK, contentType: contentType, body: resp.Body}, nil
 }
 
 func writeImage(w http.ResponseWriter, img imageResult) error {

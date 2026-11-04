@@ -1,5 +1,5 @@
 // Package logger extracts avatar IDs from the local VRChat analytics file.
-// It has no GUI dependencies; all state is owned by the caller's worker goroutine.
+// The caller's worker goroutine owns all state. The package has no GUI dependencies.
 package logger
 
 import (
@@ -41,7 +41,6 @@ const (
 type Config struct {
 	Folder string `json:"folder"`
 	Server string `json:"server"`
-	Token  string `json:"token,omitempty"`
 	// AutoStart starts collecting as soon as the app opens.
 	AutoStart bool `json:"autoStart,omitempty"`
 }
@@ -54,7 +53,7 @@ type Cursor struct {
 type Event struct{ Time, ID, Result string }
 
 // Verifier checks avatars with the desktop's own VRChat login. Check reports
-// whether id is a public avatar; errors leave the avatar queued.
+// whether id is a public avatar. Errors leave the avatar queued.
 type Verifier interface {
 	Ready() bool
 	Check(ctx context.Context, id string) (public bool, err error)
@@ -208,21 +207,17 @@ type Result struct {
 //     use ingestion quota). Those are marked existing without asking VRChat.
 //  2. Check the rest with this PC's VRChat login. Private, missing or invalid
 //     avatars are rejected locally and never sent.
-//  3. Send only IDs that passed. The server verifies each one again with its
-//     own session before adding it.
+//  3. Send only IDs that passed. The server verifies each one again with
+//     VRCove's own bot account before adding it.
 //
 // Rate limits, connection problems and expired logins leave unfinished IDs
-// queued and set RetryAt; collection continues meanwhile.
+// queued and set RetryAt. Collection continues while uploads wait.
 func (s *State) Submit(ctx context.Context, client *http.Client) error {
 	if len(s.Pending) == 0 {
 		return nil
 	}
 	if time.Now().Before(s.RetryAt) {
 		s.Status = s.WaitingStatus()
-		return nil
-	}
-	if s.Config.Token == "" {
-		s.Status = "Collecting locally · add an API key in Settings to upload"
 		return nil
 	}
 	if s.Verifier == nil || !s.Verifier.Ready() {
@@ -312,8 +307,8 @@ func (s *State) ingest(ctx context.Context, client *http.Client, origin string, 
 			s.settle(result.ID, result.Status)
 		}
 	}
-	// The server stops early when VRChat limits its verification; the rest of
-	// the batch waits for the time it gives.
+	// If verification hits a VRChat rate limit, wait for Retry-After before
+	// sending the rest of the batch.
 	if resp.Header.Get("Retry-After") != "" {
 		return limit(resp)
 	}
@@ -383,7 +378,7 @@ func (s *State) known(ctx context.Context, client *http.Client, origin string, i
 	return existing, nil
 }
 
-// post sends IDs with the API key. VRChat credentials never go to VRCove.
+// post sends only IDs. VRChat credentials never go to VRCove.
 func (s *State) post(ctx context.Context, client *http.Client, url string, ids []string) (*http.Response, error) {
 	body, _ := json.Marshal(map[string]any{"ids": ids})
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
@@ -391,7 +386,6 @@ func (s *State) post(ctx context.Context, client *http.Client, url string, ids [
 		return nil, err
 	}
 	origin, _ := ValidateServer(s.Config.Server)
-	req.Header.Set("Authorization", "Bearer "+s.Config.Token)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Origin", origin)
 	req.Header.Set("User-Agent", buildinfo.UserAgent())
@@ -405,8 +399,8 @@ func responseError(resp *http.Response, action string) error {
 		return nil
 	case http.StatusTooManyRequests:
 		return limit(resp)
-	case http.StatusUnauthorized:
-		return errors.New("API key expired or revoked · generate a new key on VRCove")
+	case http.StatusServiceUnavailable:
+		return errors.New("VRCove paused avatar checks · uploads will retry")
 	default:
 		return fmt.Errorf("%s returned %d · will retry", action, resp.StatusCode)
 	}
@@ -422,7 +416,7 @@ func limit(resp *http.Response) *retry.Limited {
 }
 
 // retry keeps unfinished IDs queued. Rate limits wait exactly as long as the
-// service asked; other failures back off exponentially up to about five minutes.
+// service requested. Other failures back off exponentially up to about five minutes.
 func (s *State) retry(err error) error {
 	until, reason := time.Time{}, ""
 	var limited *retry.Limited

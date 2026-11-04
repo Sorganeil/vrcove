@@ -6,8 +6,8 @@ import (
 	"strconv"
 )
 
-// Explicit field mappers for VRChat detail pages. Only listed fields reach
-// the browser; a field VRChat omits stays omitted, while null passes through.
+// Send only the listed VRChat fields to the browser. Preserve null values
+// and leave omitted fields out of the response.
 
 var (
 	worldID  = regexp.MustCompile(`^wrld_[a-f0-9-]{36}$`)
@@ -65,7 +65,7 @@ func truthy(v any) bool {
 	return true
 }
 
-// firstTruthy mirrors a || b chains; the result is omitted when all are falsy.
+// firstTruthy behaves like an a || b chain. Omit the result if every value is falsy.
 func firstTruthy(dst object, key string, values ...any) {
 	var last any
 	present := false

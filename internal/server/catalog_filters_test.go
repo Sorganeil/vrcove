@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"path/filepath"
 	"slices"
+	"strings"
 	"testing"
 )
 
@@ -120,7 +121,7 @@ func TestCatalogSorts(t *testing.T) {
 	if got := order("name-desc"); got[0] != "Quest Backup" || got[len(got)-1] != "Club Outfit" {
 		t.Errorf("name-desc = %v", got)
 	}
-	// Creator A–Z, then name within a creator.
+	// Sort by creator name, then by avatar name.
 	if got := order("author"); !slices.Equal(got, []string{"Fox Scout", "Night Terror", "Quest Backup", "Club Outfit", "Plain Robot"}) {
 		t.Errorf("author = %v", got)
 	}
@@ -190,7 +191,7 @@ func TestCatalogByCreatorIDAlone(t *testing.T) {
 	for _, a := range body["avatars"].([]any) {
 		names = append(names, a.(map[string]any)["name"].(string))
 	}
-	// Both upload names count; another creator with the same name does not.
+	// Include both upload names for this creator ID. Exclude other creators with the same name.
 	if !slices.Equal(names, []string{"Second", "First"}) || body["total"] != 2.0 {
 		t.Errorf("by creator ID = %v (%v)", names, body["total"])
 	}
@@ -223,5 +224,34 @@ func TestCatalogByImageFile(t *testing.T) {
 	}
 	if total := decode(t, h.do(get("/catalog?imageFile=file_bogus"))).(map[string]any)["total"]; total != 3.0 {
 		t.Errorf("invalid file ID should be ignored, total = %v", total)
+	}
+}
+
+// Use an index for PC-only and Quest-only pages. Sorting every match takes
+// tens of seconds on the full catalog.
+func TestCatalogPlatformPagesUseIndex(t *testing.T) {
+	db, err := OpenCatalog(filepath.Join(t.TempDir(), "plan.sqlite"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	for _, where := range []string{"pc=1", "quest=1"} {
+		rows, err := db.Query("EXPLAIN QUERY PLAN SELECT data FROM catalog WHERE "+where+" ORDER BY updated DESC, id ASC LIMIT ? OFFSET ?", 60, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var plan []string
+		for rows.Next() {
+			var id, parent, unused int
+			var detail string
+			if err := rows.Scan(&id, &parent, &unused, &detail); err != nil {
+				t.Fatal(err)
+			}
+			plan = append(plan, detail)
+		}
+		rows.Close()
+		if len(plan) != 1 || !strings.Contains(plan[0], "USING INDEX catalog_") || strings.Contains(plan[0], "TEMP B-TREE") {
+			t.Errorf("%s plan=%q", where, plan)
+		}
 	}
 }

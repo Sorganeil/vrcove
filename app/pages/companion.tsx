@@ -1,5 +1,4 @@
 import { t as tr, useLocale } from '../lib/i18n';
-import { useApp } from '../lib/app-context';
 import { companionReleaseUrl } from '../components/companion-download';
 import {
   ArrowUpRight,
@@ -26,7 +25,7 @@ const features = [
     title: 'Avatar logger built in',
     points: [
       'Finds public avatar IDs in VRChat’s analytics cache while you play and adds new ones to VRCove’s search. No game injection or memory access.',
-      'Each avatar is checked with your VRChat sign-in, then again by the server. Uploading needs an API key from your Account page.',
+      'Each avatar is checked with your VRChat sign-in, then again by VRCove’s own VRChat account. No API key or VRCove account is needed.',
     ],
   },
   {
@@ -50,7 +49,6 @@ const features = [
 /* VRCove Desktop: what it does and how to set it up. Downloads come from GitHub. */
 export default function Companion() {
   useLocale();
-  const { sectionLink } = useApp();
   return (
     <section className="about-page companion-page" aria-labelledby="companion-title">
       <div className="about-intro">
@@ -92,9 +90,8 @@ export default function Companion() {
           </li>
           <li>
             {tr(
-              'Optional, to add avatars to the search: on VRCove, sign in, connect VRChat, and generate an API key on your Account page. Paste it into Avatar logger in the app.',
-            )}{' '}
-            <a {...sectionLink('Account')}>{tr('Open Account page')}</a>
+              'Optional, to add avatars to the search: open Avatar logger in the app and press Start. No VRCove account is needed.',
+            )}
           </li>
         </ol>
       </article>

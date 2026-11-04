@@ -146,8 +146,8 @@ func TestCollections(t *testing.T) {
 		t.Errorf("summary = %v", c)
 	}
 
-	// The private collection is hidden from others; the public one opens by
-	// link but doesn't name an owner whose profile is private.
+	// Hide private collections from other users. Public links must not reveal
+	// the owner when their profile is private.
 	if w := h.do(as(get("/cove/collection?id="+worlds), bob)); w.Code != 404 {
 		t.Errorf("private collection = %d", w.Code)
 	}
