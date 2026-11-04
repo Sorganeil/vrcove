@@ -88,6 +88,12 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, p string) error {
 		s.cfg.Remote.ServeHTTP(w, r)
 		return nil
 	}
+	// After the cutover, the website's VRChat requests run only in the
+	// browser's VRChat worker. This server no longer holds VRChat sessions.
+	if s.cfg.VRChatWorker == "only" && !s.cfg.Local && (strings.HasPrefix(p, "/account/") || p == "/cove/link") {
+		writeJSON(w, http.StatusGone, map[string]string{"error": "VRCove now connects to VRChat from your browser. Sign in to VRChat again.", "code": "vrchat_relink"})
+		return nil
+	}
 	switch {
 	case p == "/logger/known":
 		return s.loggerKnown(w, r)

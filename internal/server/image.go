@@ -61,7 +61,9 @@ func (s *Server) image(w http.ResponseWriter, r *http.Request) error {
 		return nil
 	}
 	var session *Session
-	if s.cfg.SessionKey != nil {
+	// After the cutover, private images load through the browser's VRChat
+	// worker, so the proxy never sends a viewer's cookie.
+	if s.cfg.SessionKey != nil && s.cfg.VRChatWorker != "only" {
 		session = s.readSession(r)
 		if session != nil {
 			acct, err := s.readAccount(r)

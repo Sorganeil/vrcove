@@ -79,6 +79,21 @@ func main() {
 		fmt.Printf("%s is now %s\n", os.Args[2], os.Args[3])
 		return
 	}
+	// vrcove forget-vrchat-sessions deletes the website's stored VRChat
+	// session records after the cutover to VRCHAT_WORKER=only.
+	if len(os.Args) > 1 && os.Args[1] == "forget-vrchat-sessions" {
+		accounts, err := server.OpenAccounts(env("ACCOUNTS_PATH", ".data/accounts.sqlite"))
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer accounts.Close()
+		n, err := server.ForgetVRChatSessions(context.Background(), accounts)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("Deleted %d VRChat session records.\n", n)
+		return
+	}
 	// vrcove bot-login signs the logger's bot account in to VRChat, asking for
 	// the email or authenticator code, and stores its session for the server.
 	if len(os.Args) > 1 && os.Args[1] == "bot-login" {

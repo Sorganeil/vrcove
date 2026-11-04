@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"crypto/rand"
+	"database/sql"
 	"encoding/base64"
 	"net/http"
 	"strings"
@@ -201,4 +202,22 @@ func (s *Server) endVRChatSession(w http.ResponseWriter, r *http.Request, a *acc
 		s.clearNamedSession(w, c.Name)
 	}
 	return s.accountMe(w, r, a)
+}
+
+// ForgetVRChatSessions deletes every stored website VRChat session record
+// after the cutover to the browser's VRChat worker, then compacts the
+// database so the rows leave the file. It reports how many it deleted.
+func ForgetVRChatSessions(ctx context.Context, accounts *sql.DB) (int64, error) {
+	result, err := accounts.ExecContext(ctx, "DELETE FROM vrchat_sessions")
+	if err != nil {
+		return 0, err
+	}
+	n, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	if _, err := accounts.ExecContext(ctx, "VACUUM"); err != nil {
+		return n, err
+	}
+	return n, nil
 }

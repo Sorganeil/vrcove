@@ -93,6 +93,8 @@ Export the settings from [.env.example](.env.example) in the server's environmen
 
 Set `ACCOUNT_KEY` to enable VRCove accounts. Add `SESSION_KEY` and `VRC_CONTACT` to enable VRChat login. Use a different base64-encoded 32-byte value for each key. `LOGGER_ENABLED=true` lets the server accept desktop logger submissions. It needs `ACCOUNT_KEY`, `VRC_CONTACT`, and `BOT_USERNAME` and `BOT_PASSWORD` for a VRChat account the operator owns. The server checks submissions with that account. Run `vrcove bot-login` once with the same environment to enter the code VRChat sends. The bot's session is stored encrypted under `ACCOUNT_KEY`, and the server signs in again on its own when the session ends. If VRChat asks for a new code, logger checks pause until you run `vrcove bot-login` again.
 
+`VRCHAT_WORKER` moves the website's VRChat requests into a browser worker (`cmd/vrcove-wasm`), which dials VRChat over TLS through `/api/relay`. The server then only copies encrypted bytes and never sees VRChat passwords, tokens or responses. `on` uses the worker for new connections while existing server sessions keep working. `only` is the cutover: the server answers its own VRChat routes with `410 vrchat_relink`, so everyone signs in to VRChat again in the worker. After the cutover, run `vrcove forget-vrchat-sessions` to delete the stored session records, then remove `SESSION_KEY` from the environment. Linking a VRChat account to a VRCove account in the worker uses a one-time code in the VRChat bio that the bot account checks, so it needs `BOT_USERNAME` and `BOT_PASSWORD`.
+
 ### VRChat SDK
 
 The standalone Go SDK in [vrchat/](vrchat/) provides named methods, typed request
