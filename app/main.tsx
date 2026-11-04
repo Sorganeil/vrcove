@@ -1,13 +1,16 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './app';
-import { desktop, openExternal } from './lib/platform';
+import { chooseVRChatClient, desktop, openExternal } from './lib/platform';
 import './globals.css';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
+// Settle how this page reaches VRChat before anything asks it.
+void chooseVRChatClient().then(() =>
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  ),
 );
 
 // The service worker makes VRCove installable. Development and the desktop

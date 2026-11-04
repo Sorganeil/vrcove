@@ -1,4 +1,4 @@
-import { desktop } from '../lib/platform';
+import { desktop, deviceVRChat } from '../lib/platform';
 import { useState } from 'react';
 import { ArrowRight, ShieldCheck, X } from 'lucide-react';
 import { api, useSessionTime, useVRChatSession, vrchatAccountState } from '../lib/api';
@@ -98,7 +98,7 @@ export function AccountSwitcher({
   const { user, coveAccount, setCoveAccount, navigate, notify } = useApp();
   const connection = useVRChatSession();
   const now = useSessionTime();
-  if (desktop)
+  if (deviceVRChat())
     return <DesktopAccounts onSwitch={onSwitch} refresh={refresh} disabled={switching || connecting} />;
   if (!coveAccount?.links.length) return null;
   return (

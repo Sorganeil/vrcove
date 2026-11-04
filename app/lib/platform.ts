@@ -25,3 +25,35 @@ export const appVersion = (import.meta as { env?: { APP_VERSION?: string } }).en
  * the desktop app the page's own origin is internal (wails://localhost).
  */
 export const siteOrigin = desktop ? 'https://vrcove.st' : window.location.origin;
+
+const workerFlag =
+  document.querySelector<HTMLMetaElement>('meta[name="vrcove-vrchat"]')?.content ||
+  import.meta.env.VITE_VRCHAT_WORKER ||
+  '';
+
+/**
+ * True when the website reaches VRChat through the VRChat worker
+ * (lib/vrchat-worker.ts), with TLS that ends in this browser, instead of
+ * through VRCove's server. The deployment turns it on with VRCHAT_WORKER.
+ * chooseVRChatClient settles it before the app renders.
+ */
+export let vrchatInBrowser = false;
+
+export async function chooseVRChatClient() {
+  const supported =
+    typeof WebAssembly === 'object' &&
+    typeof Worker !== 'undefined' &&
+    typeof indexedDB !== 'undefined' &&
+    !!globalThis.crypto?.subtle;
+  if (desktop || !workerFlag || !supported) return;
+  // While both paths run, a browser already connected through the server
+  // keeps that connection until it ends. New connections use the worker.
+  if (workerFlag === 'on') {
+    const current = await fetch('/api/account/me').catch(() => null);
+    if (current?.ok) return;
+  }
+  vrchatInBrowser = true;
+}
+
+/** VRChat sessions live on this device: in the desktop app, or in the website's VRChat worker. */
+export const deviceVRChat = () => desktop || vrchatInBrowser;

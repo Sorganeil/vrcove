@@ -4,6 +4,7 @@ import { formatDate, t as tr, useLocale } from '../lib/i18n';
 import { useState, useEffect } from 'react';
 import { LoaderCircle, Upload, Monitor, Smartphone, Users, RefreshCw } from 'lucide-react';
 import { detailLink } from '../components/detail-links';
+import { retryThroughWorker } from '../lib/vrchat-image';
 function Photo({ url, name }: any) {
   useLocale();
   const [fail, setFail] = useState(false);
@@ -12,7 +13,9 @@ function Photo({ url, name }: any) {
     <img
       src={'/api/image?url=' + encodeURIComponent(url)}
       alt=""
-      onError={() => setFail(true)}
+      onError={(e) => {
+        if (!retryThroughWorker(e.currentTarget, url)) setFail(true);
+      }}
       referrerPolicy="no-referrer"
       loading="lazy"
     />

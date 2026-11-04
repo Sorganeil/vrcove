@@ -1,4 +1,6 @@
 import { useSyncExternalStore, useState, useEffect } from 'react';
+import { vrchatInBrowser } from './platform';
+import { workerFetch } from './vrchat-client';
 
 export function useSessionTime() {
   const [now, setNow] = useState(() => Date.now());
@@ -60,7 +62,10 @@ export async function api(path: string, body?: unknown): Promise<any> {
   if (path === '/account/switch') revision++;
   const started = revision,
     epoch = accountEpoch;
-  const response = await fetch('/api' + path, {
+  // VRChat routes run in the VRChat worker when it is on, so the request never
+  // reaches VRCove's server in readable form.
+  const send = vrchatInBrowser && path.startsWith('/account/') ? workerFetch : fetch;
+  const response = await send('/api' + path, {
     method: body === undefined ? 'GET' : 'POST',
     headers: {
       ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),

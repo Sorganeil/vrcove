@@ -1,4 +1,4 @@
-import { desktop } from '../lib/platform';
+import { desktop, deviceVRChat, vrchatInBrowser } from '../lib/platform';
 import { useState } from 'react';
 import { Compass, ArrowUpRight, ArrowRight, LoaderCircle, ShieldCheck, ExternalLink } from 'lucide-react';
 import { api } from '../lib/api';
@@ -63,7 +63,7 @@ export default function Login({
         <p>
           {pending
             ? 'Enter your VRChat verification code.'
-            : desktop
+            : deviceVRChat()
               ? 'Sign in to VRChat to switch avatars, manage favorites, and find your friends.'
               : 'Link your VRChat account to your VRCove account to switch avatars, manage favorites, and find your friends.'}
         </p>
@@ -126,12 +126,16 @@ export default function Login({
               {error}
             </div>
           )}
-          {configured === false && (
+          {configured === false && !vrchatInBrowser && (
             <div className="form-error">
               {tr('VRChat login is awaiting server configuration. Browsing and bookmarks are available.')}
             </div>
           )}
-          <button className="primary" disabled={busy || configured === false} type="submit">
+          <button
+            className="primary"
+            disabled={busy || (configured === false && !vrchatInBrowser)}
+            type="submit"
+          >
             {busy ? <LoaderCircle size={17} className="spin" /> : <ArrowRight size={17} />}{' '}
             {pending ? tr('Verify & connect') : tr('Connect to VRChat')}
           </button>
@@ -142,7 +146,9 @@ export default function Login({
             {tr(
               desktop
                 ? 'Your password goes straight from this device to VRChat, never through VRCove. Your session stays on this device, encrypted with a key kept in your system keyring.'
-                : 'Your password is processed briefly, then discarded. Your session stays in an encrypted browser cookie. No credentials saved on our server.',
+                : vrchatInBrowser
+                  ? 'Your password goes from this browser to VRChat over an encrypted connection that VRCove only relays and cannot read. Your session stays in this browser, encrypted.'
+                  : 'Your password is processed briefly, then discarded. Your session stays in an encrypted browser cookie. No credentials saved on our server.',
             )}
           </p>
         </div>

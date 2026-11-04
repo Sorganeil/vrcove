@@ -1,13 +1,14 @@
 import { t as tr, useLocale } from '../lib/i18n';
 import { ShieldCheck, ArrowUpRight } from 'lucide-react';
 import { useVRChatSession, type VRChatSessionIssue } from '../lib/api';
-import { desktop } from '../lib/platform';
+import { desktop, deviceVRChat } from '../lib/platform';
 import type { CoveAccount } from '../lib/types';
 // Signed-out prompt shared by every page that needs a linked VRChat session.
 // Ask to reconnect after a session expires or is revoked. Ask to connect on the first visit.
 export function gateTitle(coveAccount: Pick<CoveAccount, 'links'> | null, issue: VRChatSessionIssue | null) {
   if (!coveAccount) return tr('Sign in to VRCove and link VRChat');
-  if (!coveAccount.links?.length) return tr(desktop ? 'Sign in to VRChat' : 'Link your VRChat account');
+  if (!coveAccount.links?.length)
+    return tr(deviceVRChat() ? 'Sign in to VRChat' : 'Link your VRChat account');
   return tr(
     issue === 'vrchat_session_expired' || issue === 'vrchat_session_invalid'
       ? 'Reconnect your VRChat account'
@@ -44,7 +45,7 @@ export default function VRChatGate({
         {tr('Your password is never saved.')}
       </p>
       <button className="primary" onClick={onConnect}>
-        {tr(desktop ? 'Sign in to VRChat' : 'Connect VRChat')}
+        {tr(deviceVRChat() ? 'Sign in to VRChat' : 'Connect VRChat')}
         <ArrowUpRight size={16} />
       </button>
     </div>

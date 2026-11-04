@@ -3,7 +3,7 @@ import { LoaderCircle, Plus, Users } from 'lucide-react';
 import { api, ApiError, resetVRChatSession, useSessionTime } from '../lib/api';
 import { useApp } from '../lib/app-context';
 import { t as tr, useLocale } from '../lib/i18n';
-import { desktop } from '../lib/platform';
+import { deviceVRChat } from '../lib/platform';
 import type { LinkedAccount } from '../lib/types';
 
 const addValue = '__add',
@@ -99,7 +99,7 @@ export function DesktopAccountSettings({
   const now = useSessionTime();
   const [busy, setBusy] = useState<number | null>(null);
   const [error, setError] = useState('');
-  if (!desktop) return null;
+  if (!deviceVRChat()) return null;
   const reconnect = (link: LinkedAccount) => {
     requestConnection(link.vrchatId, link.username);
   };

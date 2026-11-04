@@ -3,6 +3,7 @@ import { UserRound, Monitor, Smartphone } from 'lucide-react';
 import { t as tr, useLocale } from '../lib/i18n';
 import type { Avatar } from '../lib/avatar';
 import type { ImgHTMLAttributes } from 'react';
+import { retryThroughWorker } from '../lib/vrchat-image';
 
 // Avatar image through the image proxy, falling back to the thumbnail, then a placeholder.
 export function Picture({
@@ -22,7 +23,9 @@ export function Picture({
       key={requestKey + index}
       src={'/api/image?url=' + encodeURIComponent(current)}
       alt={alt}
-      onError={() => setAttempt({ requestKey, index: index + 1 })}
+      onError={(e) => {
+        if (!retryThroughWorker(e.currentTarget, current)) setAttempt({ requestKey, index: index + 1 });
+      }}
       referrerPolicy="no-referrer"
       {...props}
     />

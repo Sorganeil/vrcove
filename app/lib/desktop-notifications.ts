@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { api } from './api';
 import { t as tr } from './i18n';
-import { desktop } from './platform';
+import { desktop, vrchatInBrowser } from './platform';
+import { workerStream } from './vrchat-client';
 import { goTo } from './routes';
 
 /** Kinds of VRChat notification people can choose to see on their desktop. */
@@ -143,9 +144,37 @@ async function catchUp(userId: string) {
  * While VRCove is open, shows new VRChat notifications of the chosen kinds on
  * the desktop as they arrive. One tab holds a live connection through VRCove,
  * which relays VRChat's own live feed using this browser's session, kept only
- * in memory while the connection is open. Without that, or while it is down,
- * the tab checks once a minute instead, as VRChat asks of third-party apps.
+ * in memory while the connection is open. With the VRChat worker, the worker
+ * opens the feed itself and VRCove only relays encrypted bytes. Without a live
+ * connection, or while it is down, the tab checks once a minute instead, as
+ * VRChat asks of third-party apps.
  */
+/** Parses server-sent events from text chunks, as EventSource would. */
+function readEvents(onEvent: (type: string, data: string) => void) {
+  let pending = '';
+  return (text: string) => {
+    pending += text;
+    let end;
+    while ((end = pending.indexOf('\n\n')) >= 0) {
+      const block = pending.slice(0, end);
+      pending = pending.slice(end + 2);
+      let type = 'message';
+      const data: string[] = [];
+      for (const line of block.split('\n')) {
+        if (line.startsWith('event:')) type = line.slice(6).trim();
+        else if (line.startsWith('data:')) data.push(line.slice(5).trimStart());
+      }
+      if (data.length) {
+        try {
+          onEvent(type, data.join('\n'));
+        } catch {
+          /* Ignore a damaged message. */
+        }
+      }
+    }
+  };
+}
+
 export function useDesktopNotifications(userId: string | undefined) {
   const [enabled, setEnabled] = useState(() => loadPrefs().enabled);
   useEffect(() => {
@@ -180,6 +209,22 @@ export function useDesktopNotifications(userId: string | undefined) {
     const listen = () =>
       new Promise<boolean>((resolve) => {
         const opened = Date.now();
+        if (vrchatInBrowser) {
+          const stream = workerStream(
+            '/api/account/live',
+            readEvents((type, data) => {
+              if (type === 'ended') close();
+              else if (type === 'message') void announce(userId, JSON.parse(data));
+            }),
+            () => close(),
+          );
+          const close = () => {
+            stream.close();
+            resolve(Date.now() - opened > 2 * every);
+          };
+          stop.signal.addEventListener('abort', close);
+          return;
+        }
         const source = new EventSource('/api/account/live');
         const close = () => {
           source.close();

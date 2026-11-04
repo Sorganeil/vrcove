@@ -58,6 +58,11 @@ type Config struct {
 	// normally by forwarding it to the VRCove website.
 	Local  bool
 	Remote http.Handler
+	// VRChatWorker moves the website's VRChat requests into the browser's
+	// VRChat worker, so this server only relays encrypted bytes. "on" uses
+	// the worker for new connections while existing server sessions keep
+	// working. "only" uses the worker for everyone.
+	VRChatWorker string
 }
 
 type Server struct {
@@ -89,7 +94,7 @@ type Server struct {
 	// PipelineDial connects to VRChat's live feed host in browser builds,
 	// where the SDK cannot use the browser's WebSocket. See vrchat.Config.
 	PipelineDial func(ctx context.Context) (net.Conn, error)
-	now    func() time.Time
+	now          func() time.Time
 	// live counts open notification relays. dialPipeline opens VRChat's
 	// pipeline and is replaced in tests.
 	live         streams
@@ -112,6 +117,9 @@ func New(cfg Config, db *sql.DB, static fs.FS) (*Server, error) {
 	}
 	if cfg.Local && (cfg.Accounts != nil || cfg.Logger != nil || cfg.Remote == nil) {
 		return nil, errors.New("local mode keeps no VRCove accounts and needs a remote handler")
+	}
+	if cfg.VRChatWorker != "" && cfg.VRChatWorker != "on" && cfg.VRChatWorker != "only" {
+		return nil, errors.New(`VRCHAT_WORKER must be empty, "on" or "only"`)
 	}
 	if cfg.SessionKey != nil && len(cfg.SessionKey) != 32 {
 		return nil, errors.New("SESSION_KEY must be a base64-encoded 32-byte key")
@@ -354,6 +362,9 @@ func (s *Server) handleStatic(w http.ResponseWriter, r *http.Request) {
 	}
 	if name == "index.html" {
 		data = s.previewHTML(r, data)
+		if s.cfg.VRChatWorker != "" {
+			data = bytes.Replace(data, []byte("</head>"), []byte(`<meta name="vrcove-vrchat" content="`+s.cfg.VRChatWorker+`"></head>`), 1)
+		}
 		// Cloudflare copies this nonce onto the security scripts it injects
 		// into HTML, such as bot detection, so they run without 'unsafe-inline'.
 		h.Set("Content-Security-Policy", contentSecurityPolicy(newNonce()))

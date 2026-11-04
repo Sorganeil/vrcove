@@ -3,7 +3,7 @@ import { X } from 'lucide-react';
 import { api, expireVRChatSession, resetVRChatSession, useVRChatSession } from './lib/api';
 import { t as tr, useLocale } from './lib/i18n';
 import { useDesktopNotifications } from './lib/desktop-notifications';
-import { desktop } from './lib/platform';
+import { desktop, deviceVRChat } from './lib/platform';
 import { entityPath } from './lib/routes';
 import { sectionPath, useRoute } from './lib/router';
 import { AppContext, type AppContextValue, type AvatarBrowse } from './lib/app-context';
@@ -49,11 +49,13 @@ export default function App() {
   useLocale();
   const [user, setUser] = useState<VRChatUser | null>(null);
   const [coveAccount, setCoveAccount] = useState<CoveAccount | null>(null);
-  // In the desktop app VRChat is signed in on the device itself.
+  // In the desktop app and the VRChat worker, VRChat is signed in on the
+  // device itself. The worker's relay still needs a VRCove account.
+  const device = deviceVRChat();
   const [deviceLinks, setDeviceLinks] = useState<LinkedAccount[]>([]);
-  const linkAccount = desktop ? { links: deviceLinks } : coveAccount;
+  const linkAccount = device ? (desktop || coveAccount ? { links: deviceLinks } : null) : coveAccount;
   const refreshLinks = () =>
-    desktop
+    device
       ? api('/account/device')
           .then((d) => setDeviceLinks(d.links))
           .catch(() => {})
@@ -103,14 +105,14 @@ export default function App() {
   }
   function accountChanged(me: CoveAccount | null) {
     setCoveAccount(me);
-    if (desktop) return;
+    if (device) return;
     if (!me || (user && !me.links.some((l) => l.vrchatId === user.id))) {
       resetVRChatSession();
       setUser(null);
     }
   }
   function requestConnection(expectedUserId?: string, username?: string) {
-    if (!desktop) navigate('Account');
+    if (!device || !linkAccount) navigate('Account');
     if (!linkAccount) return;
     const target =
       expectedUserId === undefined
@@ -174,9 +176,9 @@ export default function App() {
     api('/cove/me')
       .then(setCoveAccount)
       .catch(() => {});
-    if (desktop) void refreshLinks();
+    if (deviceVRChat()) void refreshLinks();
     const refreshDevice = () => void refreshLinks();
-    if (desktop) window.addEventListener('vrcove:device-accounts', refreshDevice);
+    if (deviceVRChat()) window.addEventListener('vrcove:device-accounts', refreshDevice);
     return () => window.removeEventListener('vrcove:device-accounts', refreshDevice);
   }, []);
 

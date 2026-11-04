@@ -12,6 +12,7 @@ import (
 	"strings"
 	"sync/atomic"
 	"testing"
+	"testing/fstest"
 	"time"
 
 	"github.com/coder/websocket"
@@ -221,5 +222,23 @@ func TestRelayDialsOnlyPublicAddresses(t *testing.T) {
 	if conn, err := dialPublic(ctx, "localhost:443"); err == nil {
 		conn.Close()
 		t.Fatal("relay dialed a loopback address")
+	}
+}
+
+func TestVRChatWorkerFlagReachesThePage(t *testing.T) {
+	for flag, want := range map[string]string{"": "", "on": `<meta name="vrcove-vrchat" content="on">`, "only": `<meta name="vrcove-vrchat" content="only">`} {
+		srv, err := New(Config{PublicOrigin: origin, VRChatWorker: flag}, nil, fstest.MapFS{"index.html": {Data: []byte("<html><head><title>VRCove</title></head><body></body></html>")}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		w := httptest.NewRecorder()
+		srv.Handler().ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/", nil))
+		page := w.Body.String()
+		if (want == "") != !strings.Contains(page, "vrcove-vrchat") || (want != "" && !strings.Contains(page, want)) {
+			t.Errorf("VRCHAT_WORKER=%q: %s", flag, page)
+		}
+	}
+	if _, err := New(Config{PublicOrigin: origin, VRChatWorker: "yes"}, nil, nil); err == nil {
+		t.Error("accepted an unknown VRCHAT_WORKER value")
 	}
 }

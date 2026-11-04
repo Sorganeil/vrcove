@@ -89,6 +89,7 @@ func main() {
 	cfg := server.Config{
 		PublicOrigin: env("PUBLIC_ORIGIN", "http://localhost:5173"),
 		Contact:      os.Getenv("VRC_CONTACT"),
+		VRChatWorker: os.Getenv("VRCHAT_WORKER"),
 	}
 	if site, secret := os.Getenv("TURNSTILE_SITE_KEY"), os.Getenv("TURNSTILE_SECRET_KEY"); site != "" && secret != "" {
 		cfg.TurnstileSiteKey, cfg.TurnstileSecret = site, secret
