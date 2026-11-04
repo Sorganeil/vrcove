@@ -89,8 +89,12 @@ type Server struct {
 	now    func() time.Time
 	// live counts open notification relays. dialPipeline opens VRChat's
 	// pipeline and is replaced in tests.
-	live         liveStreams
+	live         streams
 	dialPipeline func(ctx context.Context, auth string) (Pipeline, error)
+	// relays counts open VRChat tunnels. relayDial connects one to VRChat and
+	// is replaced in tests.
+	relays    streams
+	relayDial func(ctx context.Context, addr string) (net.Conn, error)
 }
 
 func New(cfg Config, db *sql.DB, static fs.FS) (*Server, error) {
@@ -128,6 +132,7 @@ func New(cfg Config, db *sql.DB, static fs.FS) (*Server, error) {
 		now:    time.Now,
 	}
 	srv.dialPipeline = srv.dialVRChatPipeline
+	srv.relayDial = dialPublic
 	return srv, nil
 }
 

@@ -89,6 +89,24 @@ func (l *limiter) allow(key string, now time.Time) bool {
 	return l.allowN(key, signInAttempts, now) == 0
 }
 
+// takeN records n units for key unless that would pass limit in the current
+// window. When refused, it returns how long until the window resets.
+func (l *limiter) takeN(key string, n, limit int, now time.Time) time.Duration {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	b := l.live(key, now)
+	if b != nil && b.n+n > limit {
+		return b.until.Sub(now)
+	}
+	if b == nil {
+		l.sweep(now)
+		b = &bucket{until: now.Add(signInWindow)}
+		l.buckets[key] = b
+	}
+	b.n += n
+	return 0
+}
+
 // rateKey is the client's address for rate limiting. IPv6 is grouped by /64,
 // the smallest block a customer is usually given, so rotating addresses
 // within one allocation does not reset the limits.

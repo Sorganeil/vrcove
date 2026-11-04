@@ -36,6 +36,11 @@ func TestVRChatRequestsUseSDK(t *testing.T) {
 			}
 			for _, imp := range parsed.Imports {
 				value, _ := strconv.Unquote(imp.Path.Value)
+				// The relay accepts the browser's WebSocket and only copies
+				// encrypted bytes. It never speaks VRChat's protocol.
+				if filepath.Base(path) == "relay.go" && filepath.Clean(root) == "." {
+					continue
+				}
 				if value == "github.com/coder/websocket" || value == "github.com/gorilla/websocket" {
 					t.Errorf("%s imports a WebSocket client outside the SDK", path)
 				}

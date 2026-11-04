@@ -61,15 +61,15 @@ func TestLiveNotifications(t *testing.T) {
 }
 
 func TestLiveStreamLimits(t *testing.T) {
-	var l liveStreams
-	if !l.acquire(1) || !l.acquire(1) || l.acquire(1) {
+	var l streams
+	if !l.acquire(maxLiveStreams, liveSlot(1)) || !l.acquire(maxLiveStreams, liveSlot(1)) || l.acquire(maxLiveStreams, liveSlot(1)) {
 		t.Fatal("per-account limit not applied")
 	}
-	if !l.acquire(2) {
+	if !l.acquire(maxLiveStreams, liveSlot(2)) {
 		t.Fatal("another account was refused")
 	}
-	l.release(1)
-	if !l.acquire(1) {
+	l.release(liveSlot(1))
+	if !l.acquire(maxLiveStreams, liveSlot(1)) {
 		t.Fatal("released stream not counted down")
 	}
 }

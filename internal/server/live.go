@@ -34,34 +34,55 @@ const (
 // Pipeline is one open connection to VRChat's live feed.
 type Pipeline = vrchat.Pipeline
 
-// liveStreams counts open relays, in total and per VRCove account.
-type liveStreams struct {
-	mu         sync.Mutex
-	total      int
-	perAccount map[int64]int
+// streams counts open long-lived connections, in total and per key, so one
+// account or address cannot hold more than its share.
+type streams struct {
+	mu    sync.Mutex
+	total int
+	per   map[string]int
 }
 
-func (l *liveStreams) acquire(account int64) bool {
+// streamSlot is one key a connection counts against, with that key's limit.
+type streamSlot struct {
+	key string
+	max int
+}
+
+// acquire takes a place unless the total or any slot is already full.
+func (l *streams) acquire(total int, slots ...streamSlot) bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	if l.perAccount == nil {
-		l.perAccount = map[int64]int{}
+	if l.per == nil {
+		l.per = map[string]int{}
 	}
-	if l.total >= maxLiveStreams || l.perAccount[account] >= maxLivePerAccount {
+	if l.total >= total {
 		return false
 	}
+	for _, s := range slots {
+		if l.per[s.key] >= s.max {
+			return false
+		}
+	}
 	l.total++
-	l.perAccount[account]++
+	for _, s := range slots {
+		l.per[s.key]++
+	}
 	return true
 }
 
-func (l *liveStreams) release(account int64) {
+func (l *streams) release(slots ...streamSlot) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	l.total--
-	if l.perAccount[account]--; l.perAccount[account] <= 0 {
-		delete(l.perAccount, account)
+	for _, s := range slots {
+		if l.per[s.key]--; l.per[s.key] <= 0 {
+			delete(l.per, s.key)
+		}
 	}
+}
+
+func liveSlot(account int64) streamSlot {
+	return streamSlot{"account:" + strconv.FormatInt(account, 10), maxLivePerAccount}
 }
 
 func (s *Server) dialVRChatPipeline(ctx context.Context, auth string) (Pipeline, error) {
@@ -126,10 +147,10 @@ func (s *Server) liveNotifications(w http.ResponseWriter, r *http.Request, sessi
 	if wait := s.limiter.allowN("live:"+strconv.FormatInt(session.AccountID, 10), liveConnects, now); wait > 0 {
 		return rateLimitedError()
 	}
-	if !s.live.acquire(session.AccountID) {
+	if !s.live.acquire(maxLiveStreams, liveSlot(session.AccountID)) {
 		return errStatus(http.StatusTooManyRequests, "Live updates are already open in other VRCove windows.")
 	}
-	defer s.live.release(session.AccountID)
+	defer s.live.release(liveSlot(session.AccountID))
 	end := now.Add(liveLifetime)
 	if expires := time.UnixMilli(session.Expires); expires.Before(end) {
 		end = expires
