@@ -4,12 +4,13 @@ go 1.26.0
 
 require (
 	github.com/Sorganeil/vrcove/vrchat v0.0.0
+	github.com/coder/websocket v1.8.14
 	golang.org/x/crypto v0.57.0
+	golang.org/x/crypto/x509roots/fallback v0.0.0-20261103070834-3d426ad4de97
 	modernc.org/sqlite v1.60.1
 )
 
 require (
-	github.com/coder/websocket v1.8.14 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
