@@ -57,3 +57,4 @@ yarn-error.log*
 .deploy_key*
 # Built by scripts/build-wasm.mjs
 /public/vrcove/
+/app/lib/generated/

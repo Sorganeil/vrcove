@@ -1,2 +1,3 @@
 app/locales/
 web/dist/
+app/lib/generated/

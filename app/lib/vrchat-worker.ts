@@ -8,6 +8,9 @@
 // connection, and as a dedicated worker elsewhere.
 
 import type { WorkerReply, WorkerRequest, WorkerResponse } from './vrchat-client';
+// Go's glue for the WebAssembly client, from the toolchain that built it
+// (scripts/build-wasm.mjs). It defines globalThis.Go.
+import './generated/wasm_exec.js';
 
 type Go = { importObject: WebAssembly.Imports; run(instance: WebAssembly.Instance): Promise<void> };
 type Port = {
@@ -73,10 +76,13 @@ async function start() {
     sessionKey = crypto.getRandomValues(new Uint8Array(32));
     await write(db, 'session', await seal(wrap, sessionKey));
   }
-  await import(/* @vite-ignore */ new URL('/vrcove/wasm_exec.js', scope.location.origin).href);
   const go = new scope.Go();
   scope.vrcoveConfig = { origin: scope.location.origin, sessionKey };
-  const { instance } = await WebAssembly.instantiateStreaming(fetch('/vrcove/vrcove.wasm'), go.importObject);
+  const integrity = import.meta.env.VRCOVE_WASM_INTEGRITY;
+  const { instance } = await WebAssembly.instantiateStreaming(
+    fetch('/vrcove/vrcove.wasm', integrity ? { integrity } : {}),
+    go.importObject,
+  );
   void go.run(instance);
   for (let i = 0; !scope.vrcoveHandle; i++) {
     if (i > 100) throw new Error('VRChat client did not start');
