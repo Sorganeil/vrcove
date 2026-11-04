@@ -109,7 +109,7 @@ func TestStaticSecurityHeaders(t *testing.T) {
 	h := previewHarness(t)
 	w := h.do(httptest.NewRequest("GET", "http://localhost/", nil))
 	csp := w.Header().Get("Content-Security-Policy")
-	for _, want := range []string{"script-src 'self' https://challenges.cloudflare.com", "frame-ancestors 'none'", "object-src 'none'"} {
+	for _, want := range []string{"script-src 'self' 'wasm-unsafe-eval' https://challenges.cloudflare.com", "frame-ancestors 'none'", "object-src 'none'"} {
 		if !strings.Contains(csp, want) {
 			t.Errorf("CSP missing %q: %s", want, csp)
 		}

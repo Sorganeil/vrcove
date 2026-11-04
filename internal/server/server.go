@@ -86,6 +86,9 @@ type Server struct {
 	// Client sends every upstream request. Redirects are never followed
 	// automatically. The image proxy validates each hop itself.
 	Client *http.Client
+	// PipelineDial connects to VRChat's live feed host in browser builds,
+	// where the SDK cannot use the browser's WebSocket. See vrchat.Config.
+	PipelineDial func(ctx context.Context) (net.Conn, error)
 	now    func() time.Time
 	// live counts open notification relays. dialPipeline opens VRChat's
 	// pipeline and is replaced in tests.
@@ -298,7 +301,9 @@ func queryInt(v string, max int) int {
 // contentSecurityPolicy allows this site, Turnstile on the signup form, and
 // inline scripts carrying nonce when one is given.
 func contentSecurityPolicy(nonce string) string {
-	script := "script-src 'self' https://challenges.cloudflare.com"
+	// 'wasm-unsafe-eval' lets the VRChat worker compile its WebAssembly. It
+	// does not allow eval of JavaScript.
+	script := "script-src 'self' 'wasm-unsafe-eval' https://challenges.cloudflare.com"
 	if nonce != "" {
 		script += " 'nonce-" + nonce + "'"
 	}

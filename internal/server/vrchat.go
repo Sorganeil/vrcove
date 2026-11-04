@@ -29,7 +29,7 @@ func (s *Server) userAgent() string {
 
 // Construct from the current transport so embedders can replace Server.Client.
 func (s *Server) vrchatClient() (*vrchat.Client, error) {
-	return vrchat.New(vrchat.Config{HTTPClient: s.Client, UserAgent: s.userAgent()})
+	return vrchat.New(vrchat.Config{HTTPClient: s.Client, UserAgent: s.userAgent(), PipelineDial: s.PipelineDial})
 }
 
 // vrc applies VRCove's cooldown, session failure and persistence policies around

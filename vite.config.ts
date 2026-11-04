@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
@@ -17,13 +17,20 @@ export default defineConfig(({ mode }) => {
       react(),
       {
         name: 'keep-embed-placeholder',
-        closeBundle: () => writeFileSync(`${outDir}/.gitkeep`, ''),
+        closeBundle: () => {
+          writeFileSync(`${outDir}/.gitkeep`, '');
+          // The desktop app talks to VRChat itself and never loads the
+          // website's VRChat worker.
+          if (mode === 'desktop') rmSync(`${outDir}/vrcove`, { recursive: true, force: true });
+        },
       },
     ],
     build: { outDir, emptyOutDir: true },
+    // The VRChat worker loads Go's wasm_exec.js with a dynamic import.
+    worker: { format: 'es' },
     server: {
       // Run the Go server with PUBLIC_ORIGIN=http://localhost:5173 alongside this.
-      proxy: { '/api': process.env.VRCOVE_API_TARGET || 'http://127.0.0.1:8080' },
+      proxy: { '/api': { target: process.env.VRCOVE_API_TARGET || 'http://127.0.0.1:8080', ws: true } },
     },
   };
 });

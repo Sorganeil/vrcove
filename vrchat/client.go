@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -34,6 +35,10 @@ type Config struct {
 	// Zero values use 20 seconds and 20,000,000 bytes respectively.
 	Timeout          time.Duration
 	MaxResponseBytes int64
+	// PipelineDial returns a TLS connection to the pipeline host, negotiated
+	// for HTTP/1.1. Browser builds need it, because the browser's own
+	// WebSocket cannot use the client's transport. Other builds ignore it.
+	PipelineDial func(ctx context.Context) (net.Conn, error)
 }
 
 // Client is safe for concurrent use. Credentials are supplied per call, so one
@@ -45,6 +50,7 @@ type Client struct {
 	pipelineURL      string
 	timeout          time.Duration
 	maxResponseBytes int64
+	pipelineDial     func(ctx context.Context) (net.Conn, error)
 }
 
 func New(cfg Config) (*Client, error) {
@@ -91,7 +97,7 @@ func New(cfg Config) (*Client, error) {
 	client.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
 	return &Client{httpClient: &client, userAgent: cfg.UserAgent,
 		baseURL: strings.TrimRight(cfg.BaseURL, "/"), pipelineURL: cfg.PipelineURL,
-		timeout: cfg.Timeout, maxResponseBytes: cfg.MaxResponseBytes}, nil
+		timeout: cfg.Timeout, maxResponseBytes: cfg.MaxResponseBytes, pipelineDial: cfg.PipelineDial}, nil
 }
 
 func validEndpoint(value, secureScheme, plainScheme string) bool {

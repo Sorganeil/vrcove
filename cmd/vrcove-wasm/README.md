@@ -1,28 +1,23 @@
-# vrcove-wasm (phase 0 spike)
+# vrcove-wasm
 
-This spike runs the `vrchat/` SDK as WebAssembly in a browser Web Worker. The
-worker dials TLS itself through a WebSocket relay, so the relay carries only
-ciphertext. It fetches VRChat's public `GET /config` three times over one
-tunnel.
+The website's VRChat client. It is the server's local mode, the same code the
+desktop app runs, compiled to WebAssembly and run in a browser worker
+(`app/lib/vrchat-worker.ts`). Every VRChat request travels over TLS that starts
+and ends in the worker. The website's `/api/relay` only copies the encrypted
+bytes, so VRCove's server never sees VRChat passwords, tokens or responses.
 
-`spikerelay/` is a local test relay. It serves the page, copies bytes to
-`api.vrchat.cloud:443` or `pipeline.vrchat.cloud:443`, and logs byte counts. It
-also checks that the stream starts with a TLS handshake and contains no
-plaintext HTTP. Phase 3 replaces it with the hardened production relay.
+- VRChat API calls and the live pipeline each dial a tunnel through
+  `/api/relay`. The first message picks the host by a one-byte selector.
+- Image redirects go to signed CDN URLs that carry no credentials. The worker
+  fetches those through the website's image proxy.
+- Session cookies stay in the browser's IndexedDB, encrypted with a
+  non-extractable WebCrypto key. The page talks to the worker through
+  `app/lib/vrchat-client.ts`.
 
-## Run
+`npm run build` builds it into `public/vrcove/` with `scripts/build-wasm.mjs`.
+Run `npm run build:wasm` alone after changing Go code during development.
 
-```sh
-mkdir -p /tmp/vrcove-wasm
-cp cmd/vrcove-wasm/web/* "$(go env GOROOT)/lib/wasm/wasm_exec.js" /tmp/vrcove-wasm/
-GOOS=js GOARCH=wasm go build -trimpath -ldflags='-s -w' -o /tmp/vrcove-wasm/vrcove-wasm.wasm ./cmd/vrcove-wasm
-go run ./cmd/vrcove-wasm/spikerelay -dir /tmp/vrcove-wasm
-```
-
-Open http://localhost:18200. The page shows the worker's log, and the relay
-prints one line per tunnel when it closes.
-
-## Results, November 3, 2026
+## Phase 0 spike results, November 3, 2026
 
 Go 1.27.3, Chromium (Claude desktop browser pane), relay on the same machine.
 
@@ -52,10 +47,8 @@ library networking and TLS.
 
 ## Known gaps
 
-- `vrchat/pipeline_js.go` stubs the live pipeline. In the browser,
-  `coder/websocket` wraps the browser's WebSocket and cannot run over the
-  tunnel. Phase 4 needs a pure-Go WebSocket client that dials through the
-  tunnel `net.Conn`.
+- The spike stubbed the live pipeline. `vrchat/pipeline_js.go` now speaks
+  WebSocket with `gorilla/websocket` over a tunnel from `Config.PipelineDial`.
 - Only Chromium was tested. Safari and Firefox, mobile devices, and slow
   networks are untested.
 - Cloudflare in front of VRChat accepted Go's TLS fingerprint from this
