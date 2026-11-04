@@ -8,8 +8,6 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
-
-	_ "modernc.org/sqlite"
 )
 
 // The schema matches scripts/import-dump.py, which builds the catalog file.
