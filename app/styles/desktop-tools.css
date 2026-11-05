@@ -272,8 +272,7 @@
   border: 1px solid var(--line);
   border-radius: 6px;
   background: none;
-  color: var(--muted);
-  font-family: monospace;
+  color: var(--text);
   font-size: 12px;
   cursor: pointer;
 }
@@ -368,4 +367,32 @@
 }
 .osc-slider input {
   width: 120px;
+}
+.tool-row-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: -8px;
+  font-size: 13px;
+}
+.tool-row-heading strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.tool-row-heading .fineprint {
+  margin: 0;
+}
+.tool-tokens code {
+  color: var(--muted);
+}
+.tool-phrase {
+  border-color: var(--accent);
+  background: rgba(0, 200, 255, 0.12);
+}
+.tool-phrase.recent {
+  border: 1px dashed var(--line);
+  background: none;
+}
+.tool-phrase.recent button {
+  color: var(--muted);
 }

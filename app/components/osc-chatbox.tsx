@@ -32,18 +32,18 @@ const defaults: Settings = {
   phrases: [],
 };
 const sensors = ['media', 'cpu', 'gpu', 'ram'];
-const insertable = [
-  '{time}',
-  '{time12}',
-  '{date}',
-  '{rotate}',
-  '{media}',
-  '{cpu}',
-  '{gpu}',
-  '{ram}',
-  '{world}',
-  '{players}',
-  '{playtime}',
+const insertable: Array<[token: string, label: string]> = [
+  ['{time}', 'Time'],
+  ['{time12}', '12-hour time'],
+  ['{date}', 'Date'],
+  ['{rotate}', 'Rotating message'],
+  ['{media}', 'Now playing'],
+  ['{cpu}', 'CPU'],
+  ['{gpu}', 'GPU'],
+  ['{ram}', 'RAM'],
+  ['{world}', 'World'],
+  ['{players}', 'Players'],
+  ['{playtime}', 'Play time'],
 ];
 const usesLiveValues = /\{(media|cpu|gpu|ram|world|players|playtime)\}/;
 
@@ -65,6 +65,16 @@ function values(s: Settings, live: Record<string, string> | undefined, now: Date
     status: s.status,
     rotate: s.rotation.find((line) => line.trim()) || '',
   };
+}
+
+/* Says what the row of buttons under it is for. */
+function RowHeading({ title, hint }: { title: string; hint?: string }) {
+  return (
+    <div className="tool-row-heading">
+      <strong>{title}</strong>
+      {hint && <small className="fineprint">{hint}</small>}
+    </div>
+  );
 }
 
 /* Everything a message can do in VRChat's chatbox: one-off text, a repeating
@@ -246,6 +256,7 @@ export function OscChatbox() {
           {tr('Open in the VRChat keyboard to edit before sending')}
         </label>
       </form>
+      {settings.phrases.length > 0 && <RowHeading title={tr('Saved phrases')} />}
       {settings.phrases.length > 0 && (
         <div className="tool-phrases" aria-label={tr('Saved phrases')}>
           {settings.phrases.map((phrase) => (
@@ -265,9 +276,15 @@ export function OscChatbox() {
         </div>
       )}
       {recent.length > 0 && (
+        <RowHeading
+          title={tr('Recent messages')}
+          hint={tr('Click one to reuse it. This list clears when you leave this page.')}
+        />
+      )}
+      {recent.length > 0 && (
         <div className="tool-phrases" aria-label={tr('Recent messages')}>
           {recent.map((line) => (
-            <span className="tool-phrase" key={line}>
+            <span className="tool-phrase recent" key={line}>
               <button type="button" onClick={() => setQuick(line)}>
                 {line}
               </button>
@@ -275,6 +292,7 @@ export function OscChatbox() {
           ))}
         </div>
       )}
+      <RowHeading title={tr('Presets')} hint={tr('Click one to fill in the Message box.')} />
       <div className="result-actions tool-presets" aria-label={tr('Presets')}>
         <button
           className="standard-button"
@@ -334,10 +352,14 @@ export function OscChatbox() {
           placeholder={tr('Write a message, or use a preset.')}
         />
       </div>
+      <RowHeading
+        title={tr('Add a live value')}
+        hint={tr('Click one to add it to your message. People see the real value, not the code.')}
+      />
       <div className="tool-tokens" aria-label={tr('Add a live value')}>
-        {insertable.map((token) => (
+        {insertable.map(([token, label]) => (
           <button key={token} type="button" disabled={locked} onClick={() => insert(token)}>
-            {token}
+            {tr(label)} <code>{token}</code>
           </button>
         ))}
       </div>
@@ -380,7 +402,9 @@ export function OscChatbox() {
             />
           </label>
           <small className="fineprint">
-            {tr('Add {rotate} to your message to show these in turn, one with each message.')}
+            {tr(
+              'How to use: type your messages above, one per line. Add {rotate} to the Message box where they should show. Click Start automatic messages. Each message that sends uses the next line.',
+            )}
           </small>
           <label>
             {tr('Message while AFK')}
