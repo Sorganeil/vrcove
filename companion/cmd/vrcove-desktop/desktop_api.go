@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -213,6 +214,18 @@ func (d *desktop) serveUpdate(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			writeJSON(w, http.StatusOK, st)
+			return
+		case "restart":
+			if d.restart == nil {
+				writeJSON(w, http.StatusServiceUnavailable, map[string]string{"error": "Could not restart VRCove. Quit from the tray and open it again."})
+				return
+			}
+			if err := d.restart(); err != nil {
+				log.Print("could not restart VRCove: ", err)
+				writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "Could not restart VRCove. Quit from the tray and open it again."})
+				return
+			}
+			writeJSON(w, http.StatusOK, d.updater.Status())
 			return
 		default:
 			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Unknown update action."})

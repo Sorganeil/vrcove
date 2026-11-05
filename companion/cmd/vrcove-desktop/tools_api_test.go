@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net"
 	"net/url"
@@ -354,6 +355,23 @@ func freeUDPPort(t *testing.T) int {
 	}
 	defer probe.Close()
 	return probe.LocalAddr().(*net.UDPAddr).Port
+}
+
+func TestDesktopRestartAction(t *testing.T) {
+	site, _ := url.Parse("https://vrcove.example")
+	d := newTestDesktop(t, site)
+	if w := do(d, "POST", "/api/desktop/update", `{"action":"restart"}`); w.Code != 503 {
+		t.Fatalf("without a restarter=%d %s", w.Code, w.Body)
+	}
+	restarts := 0
+	d.restart = func() error { restarts++; return nil }
+	if w := do(d, "POST", "/api/desktop/update", `{"action":"restart"}`); w.Code != 200 || restarts != 1 {
+		t.Fatalf("restart=%d %s, restarts=%d", w.Code, w.Body, restarts)
+	}
+	d.restart = func() error { return errors.New("missing executable") }
+	if w := do(d, "POST", "/api/desktop/update", `{"action":"restart"}`); w.Code != 500 || strings.Contains(w.Body.String(), "missing executable") {
+		t.Fatalf("failed restart=%d %s", w.Code, w.Body)
+	}
 }
 
 func TestDesktopExtractionUsesOnlyNativeSelections(t *testing.T) {

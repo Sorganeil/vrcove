@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Download, ExternalLink, LoaderCircle, RefreshCw } from 'lucide-react';
+import { Download, ExternalLink, LoaderCircle, RefreshCw, RotateCw } from 'lucide-react';
 import { api } from '../lib/api';
 import { t as tr, useLocale } from '../lib/i18n';
 import { appVersion, desktop } from '../lib/platform';
@@ -23,7 +23,7 @@ export default function DesktopUpdateSettings({ notify }: { notify: (message: st
   useLocale();
   const [status, setStatus] = useState<UpdateStatus | null>(null);
   const [autostart, setAutostart] = useState(false);
-  const [busy, setBusy] = useState<'check' | 'install' | 'autostart' | ''>('');
+  const [busy, setBusy] = useState<'check' | 'install' | 'restart' | 'autostart' | ''>('');
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -58,6 +58,18 @@ export default function DesktopUpdateSettings({ notify }: { notify: (message: st
     } catch (e) {
       setError((e as Error).message);
     } finally {
+      setBusy('');
+    }
+  }
+
+  async function restart() {
+    setBusy('restart');
+    setError('');
+    try {
+      await api('/desktop/update', { action: 'restart' });
+      // The app is closing, so the button stays busy until the new copy opens.
+    } catch (e) {
+      setError((e as Error).message);
       setBusy('');
     }
   }
@@ -157,6 +169,12 @@ export default function DesktopUpdateSettings({ notify }: { notify: (message: st
                 <Download size={14} />
               )}
               {tr(busy === 'install' || status?.installing ? 'Installing update...' : 'Install update')}
+            </button>
+          )}
+          {status?.installed && (
+            <button className="standard-button primary" disabled={busy !== ''} onClick={() => void restart()}>
+              {busy === 'restart' ? <LoaderCircle size={14} className="spin" /> : <RotateCw size={14} />}
+              {tr(busy === 'restart' ? 'Restarting...' : 'Restart now')}
             </button>
           )}
           {status?.releaseUrl && /^https:\/\//.test(status.releaseUrl) && (

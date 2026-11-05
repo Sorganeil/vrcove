@@ -13,8 +13,10 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -32,12 +34,24 @@ var frontendFiles embed.FS
 // server through VRCOVE_SITE.
 const defaultSite = "https://vrcove.st"
 
+// restartDelay gives the restart request time to answer the window.
+const restartDelay = 200 * time.Millisecond
+
 func main() {
 	if len(os.Args) > 1 && os.Args[1] == "--version" {
 		fmt.Println(buildinfo.DesktopSummary())
 		return
 	}
 	updater.CleanupOldExecutable()
+	// This runs last, after every other deferred cleanup. The path is read now
+	// because an update replaces the file while the app is running.
+	var relaunch atomic.Bool
+	executable := currentExecutable()
+	defer func() {
+		if relaunch.Load() {
+			startAgain(executable)
+		}
+	}()
 	site, err := url.Parse(defaultSite)
 	if v := os.Getenv("VRCOVE_SITE"); v != "" {
 		site, err = url.Parse(v)
@@ -123,6 +137,20 @@ func main() {
 		},
 		Linux: application.LinuxOptions{ProgramName: "vrcove"},
 	})
+	// The new copy starts once this one has quit: the single instance lock would
+	// otherwise turn it into a request to show this window.
+	restart := func() {
+		relaunch.Store(true)
+		app.Quit()
+	}
+	handler.restart = func() error {
+		if _, err := os.Stat(executable); err != nil {
+			return err
+		}
+		// Quit after the reply has reached the window.
+		time.AfterFunc(restartDelay, restart)
+		return nil
+	}
 	window = app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:            "VRCove",
 		Width:            1280,
@@ -173,6 +201,7 @@ func main() {
 		window.ExecJS("history.pushState(null,'','/settings');dispatchEvent(new PopStateEvent('popstate'))")
 	})
 	menu.AddSeparator()
+	menu.Add("Restart").OnClick(func(*application.Context) { restart() })
 	menu.Add("Quit").OnClick(func(*application.Context) { app.Quit() })
 	tray.SetMenu(menu)
 	tray.OnClick(func() {
@@ -182,5 +211,27 @@ func main() {
 
 	if err := app.Run(); err != nil {
 		log.Fatal(err)
+	}
+}
+
+// currentExecutable is the path to start again, with symlinks resolved as the
+// updater does when it replaces the file.
+func currentExecutable() string {
+	path, err := os.Executable()
+	if err != nil {
+		return ""
+	}
+	if resolved, err := filepath.EvalSymlinks(path); err == nil {
+		return resolved
+	}
+	return path
+}
+
+// startAgain launches a new copy of the app with the same arguments.
+func startAgain(executable string) {
+	cmd := exec.Command(executable, os.Args[1:]...)
+	cmd.Env = os.Environ()
+	if err := cmd.Start(); err != nil {
+		log.Print("could not restart VRCove: ", err)
 	}
 }

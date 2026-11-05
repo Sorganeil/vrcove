@@ -915,6 +915,8 @@
     "Search parameters": "Buscar parámetros",
     "Show read-only parameters": "Mostrar parámetros de solo lectura",
     "No parameters match.": "Ningún parámetro coincide.",
+    "Restarting...": "Reiniciando...",
+    "Restart now": "Reiniciar ahora",
     "Username checker, OSC chatbox, avatar parameter control and Unity package extractor.": "Comprobador de nombres de usuario, chatbox OSC, control de parámetros del avatar y extractor de paquetes de Unity."
   },
   "fr": {
@@ -1833,6 +1835,8 @@
     "Search parameters": "Rechercher des paramètres",
     "Show read-only parameters": "Afficher les paramètres en lecture seule",
     "No parameters match.": "Aucun paramètre ne correspond.",
+    "Restarting...": "Redémarrage...",
+    "Restart now": "Redémarrer maintenant",
     "Username checker, OSC chatbox, avatar parameter control and Unity package extractor.": "Vérificateur de noms d’utilisateur, chatbox OSC, contrôle des paramètres d’avatar et extracteur de paquets Unity."
   },
   "de": {
@@ -2751,6 +2755,8 @@
     "Search parameters": "Parameter suchen",
     "Show read-only parameters": "Schreibgeschützte Parameter anzeigen",
     "No parameters match.": "Keine passenden Parameter.",
+    "Restarting...": "Wird neu gestartet...",
+    "Restart now": "Jetzt neu starten",
     "Username checker, OSC chatbox, avatar parameter control and Unity package extractor.": "Benutzernamen-Prüfer, OSC-Chatbox, Steuerung von Avatar-Parametern und Unity-Paket-Entpacker."
   },
   "ja": {
@@ -3669,6 +3675,8 @@
     "Search parameters": "パラメーターを検索",
     "Show read-only parameters": "読み取り専用パラメーターを表示",
     "No parameters match.": "一致するパラメーターはありません。",
+    "Restarting...": "再起動しています...",
+    "Restart now": "今すぐ再起動",
     "Username checker, OSC chatbox, avatar parameter control and Unity package extractor.": "ユーザー名チェッカー、OSC チャットボックス、アバターパラメーター操作、Unity パッケージ展開ツール。"
   },
   "ru": {
@@ -4587,6 +4595,8 @@
     "Search parameters": "Поиск параметров",
     "Show read-only parameters": "Показать параметры только для чтения",
     "No parameters match.": "Подходящих параметров нет.",
+    "Restarting...": "Перезапуск...",
+    "Restart now": "Перезапустить",
     "Username checker, OSC chatbox, avatar parameter control and Unity package extractor.": "Проверка имён пользователей, чатбокс OSC, управление параметрами аватара и распаковщик пакетов Unity."
   },
   "uk": {
@@ -5505,6 +5515,8 @@
     "Search parameters": "Пошук параметрів",
     "Show read-only parameters": "Показати параметри лише для читання",
     "No parameters match.": "Відповідних параметрів немає.",
+    "Restarting...": "Перезапуск...",
+    "Restart now": "Перезапустити",
     "Username checker, OSC chatbox, avatar parameter control and Unity package extractor.": "Перевірка імен користувачів, чатбокс OSC, керування параметрами аватара та розпакувальник пакетів Unity."
   },
   "zh-CN": {
@@ -6423,6 +6435,8 @@
     "Search parameters": "搜索参数",
     "Show read-only parameters": "显示只读参数",
     "No parameters match.": "没有匹配的参数。",
+    "Restarting...": "正在重启...",
+    "Restart now": "立即重启",
     "Username checker, OSC chatbox, avatar parameter control and Unity package extractor.": "用户名检查器、OSC 聊天框、虚拟形象参数控制和 Unity 包提取器。"
   },
   "ko": {
@@ -7341,6 +7355,8 @@
     "Search parameters": "파라미터 검색",
     "Show read-only parameters": "읽기 전용 파라미터 표시",
     "No parameters match.": "일치하는 파라미터가 없습니다.",
+    "Restarting...": "다시 시작하는 중...",
+    "Restart now": "지금 다시 시작",
     "Username checker, OSC chatbox, avatar parameter control and Unity package extractor.": "사용자 이름 확인기, OSC 채팅창, 아바타 파라미터 제어, Unity 패키지 추출기."
   }
 }

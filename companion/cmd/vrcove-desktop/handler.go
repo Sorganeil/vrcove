@@ -45,6 +45,7 @@ type desktop struct {
 	toolContext   context.Context
 	osc           oscLink
 	updater       *updater.Updater
+	restart       func() error
 	autostart     *autostart.Manager
 	accountMu     sync.Mutex
 }

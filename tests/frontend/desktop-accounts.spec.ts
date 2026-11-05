@@ -114,6 +114,7 @@ test('saved accounts switch, reconnect, add with 2FA and remove without a VRCove
 });
 
 test('desktop settings check for GitHub releases and install verified updates', async ({ page }) => {
+  let restarts = 0;
   let state = {
     currentVersion: 'v0.2.0',
     latestVersion: 'v0.2.0',
@@ -135,6 +136,8 @@ test('desktop settings check for GitHub releases and install verified updates', 
         state = { ...state, latestVersion: 'v0.3.0', available: true, checkedAt: Date.now() };
       } else if (action === 'install') {
         state = { ...state, available: false, installed: true };
+      } else if (action === 'restart') {
+        restarts++;
       }
     }
     await r.fulfill({ json: state });
@@ -149,4 +152,7 @@ test('desktop settings check for GitHub releases and install verified updates', 
   await expect(
     panel.getByText('Update v0.3.0 is installed. Restart VRCove to use the new version.', { exact: true }),
   ).toBeVisible();
+  await panel.getByRole('button', { name: 'Restart now', exact: true }).click();
+  await expect(panel.getByRole('button', { name: 'Restarting...', exact: true })).toBeDisabled();
+  expect(restarts).toBe(1);
 });
