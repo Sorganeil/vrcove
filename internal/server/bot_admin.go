@@ -78,8 +78,13 @@ func (s *Server) botStatus() map[string]any {
 	status := map[string]any{
 		"state": state, "username": bot.Username, "displayName": s.bot.displayName, "userId": s.bot.userID,
 		"problem": s.bot.problem, "passwordSaved": s.bot.saved.Password != "", "canRetry": bot.Password != "" && !s.bot.signedOut,
-		"loggerEnabled": s.cfg.Logger != nil, "methods": []string{}, "signedIn": int64(0), "nextSignIn": int64(0),
-		"rateLimitedFor": int64(s.backoff.remaining(backoffKey(s.bot.session()), s.now()).Seconds()),
+		"loggerEnabled": s.cfg.Logger != nil, "methods": []string{}, "signedIn": int64(0), "nextSignIn": int64(0), "rateLimitedFor": int64(0),
+	}
+	// remaining never goes below a second, so it only means something during a
+	// cooldown.
+	key := backoffKey(s.bot.session())
+	if s.backoff.coolingDown(key, s.now()) || s.backoff.coolingDown(serverKey, s.now()) {
+		status["rateLimitedFor"] = int64(s.backoff.remaining(key, s.now()).Seconds())
 	}
 	if p := s.bot.pending; p != nil {
 		status["methods"], status["username"] = p.methods, p.login.Username

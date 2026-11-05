@@ -290,6 +290,36 @@ func TestBotSignInAttemptsAreLimited(t *testing.T) {
 	}
 }
 
+func TestStatusReportsOnlyARealRateLimit(t *testing.T) {
+	now := time.Now()
+	h := newLoggerHarness(t)
+	h.srv.now = func() time.Time { return now }
+	owner := h.signup("frog", "owner passphrase")
+	h.promote("frog", roleOwner)
+	signInBot(t, h)
+	limitedFor := func() float64 {
+		t.Helper()
+		_, data := h.botAction(owner, `{"action":"cancel"}`)
+		return data["rateLimitedFor"].(float64)
+	}
+	if got := limitedFor(); got != 0 {
+		t.Fatalf("no 429 yet, but limited for %v", got)
+	}
+	h.srv.backoff.limited("u:"+testBotUser, 30*time.Second, now)
+	if got := limitedFor(); got != 30 {
+		t.Fatalf("after a 429: %v", got)
+	}
+	now = now.Add(31 * time.Second)
+	if got := limitedFor(); got != 0 {
+		t.Fatalf("after the cooldown: %v", got)
+	}
+	// A limit on the whole server address stops the bot's sign-ins as well.
+	h.srv.backoff.limited(serverKey, 20*time.Second, now)
+	if got := limitedFor(); got != 20 {
+		t.Fatalf("address-wide limit: %v", got)
+	}
+}
+
 func TestLoggerStartsWithoutABotSignIn(t *testing.T) {
 	h := newLoggerHarness(t)
 	h.srv.cfg.Logger.Bot = BotConfig{}

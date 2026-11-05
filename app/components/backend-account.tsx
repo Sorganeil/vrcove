@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { KeyRound, LoaderCircle, LogOut, RefreshCw, ShieldCheck } from 'lucide-react';
 import { api } from '../lib/api';
 import { t as tr, useLocale } from '../lib/i18n';
@@ -39,6 +39,14 @@ export function BackendAccount({ notify }: { notify: (s: string) => void }) {
   const [code, setCode] = useState('');
   const [replacing, setReplacing] = useState(false);
   const status: BackendStatus | null = resource.data;
+  const { reload } = resource;
+  const limitedFor = status?.rateLimitedFor ?? 0;
+  // The notice clears itself once VRChat's limit has passed.
+  useEffect(() => {
+    if (!limitedFor) return;
+    const timer = window.setTimeout(reload, (limitedFor + 1) * 1000);
+    return () => clearTimeout(timer);
+  }, [limitedFor, reload]);
   if (!status) return <p className="fineprint">{resource.error || tr('Loading…')}</p>;
 
   async function act(action: string, body: object = {}, message = '') {
@@ -139,7 +147,7 @@ export function BackendAccount({ notify }: { notify: (s: string) => void }) {
         )}
         {status.rateLimitedFor > 0 && (
           <p className="admin-note">
-            {tr('VRChat is rate limiting this account for {seconds} more seconds.', {
+            {tr('VRChat is rate limiting this account. Checks resume in about {seconds}s.', {
               seconds: status.rateLimitedFor,
             })}
           </p>
