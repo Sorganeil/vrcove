@@ -18,7 +18,8 @@ import (
 // `vrcove set-role` command on the server. Owners can make users admins.
 // admins and owners can review reports and removal requests and suspend, ban
 // or delete accounts with a lower role. Admin routes answer 404 to everyone
-// else, so the panel stays hidden. Every action is recorded in moderation_log.
+// else, so the panel stays hidden. Owners also manage the backend VRChat
+// account. Every action is recorded in moderation_log.
 
 const (
 	roleUser  = "user"
@@ -247,6 +248,10 @@ func (s *Server) admin(w http.ResponseWriter, r *http.Request, p string, a *acco
 	}
 	post := r.Method == http.MethodPost
 	switch {
+	case p == "bot" && a.Role == roleOwner && !post:
+		return s.adminBotStatus(w, r)
+	case p == "bot" && a.Role == roleOwner && post:
+		return s.adminBot(w, r, a)
 	case p == "summary" && !post:
 		return s.adminSummary(w, r, a)
 	case p == "users" && !post:

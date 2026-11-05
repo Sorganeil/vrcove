@@ -259,3 +259,29 @@
 .admin-remove .form-error {
   margin: 0;
 }
+.backend-details {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 6px 16px;
+  margin: 0;
+  font-size: 13px;
+}
+.backend-details dt {
+  color: var(--muted);
+}
+.backend-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.backend-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 420px;
+}
+.backend-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}

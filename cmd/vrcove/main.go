@@ -184,10 +184,12 @@ func main() {
 	}
 }
 
+// botConfig reads the bot's optional sign-in. Without one, an owner signs the
+// bot in from the admin panel.
 func botConfig() server.BotConfig {
 	bot := server.BotConfig{Username: os.Getenv("BOT_USERNAME"), Password: os.Getenv("BOT_PASSWORD")}
-	if bot.Username == "" || bot.Password == "" {
-		log.Fatal("the logger needs BOT_USERNAME and BOT_PASSWORD for its VRChat bot account")
+	if (bot.Username == "") != (bot.Password == "") {
+		log.Fatal("BOT_USERNAME and BOT_PASSWORD must be set together")
 	}
 	return bot
 }
@@ -213,6 +215,9 @@ func botLogin() {
 		log.Fatal(err)
 	}
 	bot := botConfig()
+	if bot.Username == "" {
+		log.Fatal("bot-login needs BOT_USERNAME and BOT_PASSWORD. To sign in without them, use the admin panel.")
+	}
 	input := bufio.NewReader(os.Stdin)
 	name, err := srv.BotLogin(context.Background(), bot.Username, bot.Password, func(method string) (string, error) {
 		if method == "emailOtp" {

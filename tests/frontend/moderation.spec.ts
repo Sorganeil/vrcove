@@ -260,3 +260,82 @@ test('staff can remove an avatar directly from the removal tab', async ({ page }
   // The test server has no catalog writer, so the request reaches the server and is refused there.
   await expect(page.getByText('Catalog changes are not enabled on this deployment.')).toBeVisible();
 });
+
+test('owners manage the backend account, and admins never see it', async ({ browser }) => {
+  let status: Record<string, unknown> = {
+    state: 'needs-sign-in',
+    username: '',
+    displayName: '',
+    userId: '',
+    problem: '',
+    passwordSaved: false,
+    canRetry: false,
+    loggerEnabled: true,
+    methods: [],
+    signedIn: 0,
+    nextSignIn: 0,
+    rateLimitedFor: 0,
+  };
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  const name = await signup(page);
+  setRole(name, 'owner');
+  const bodies: Array<Record<string, string>> = [];
+  await page.route('**/api/cove/admin/bot', async (r) => {
+    if (r.request().method() === 'POST') {
+      const body = r.request().postDataJSON();
+      bodies.push(body);
+      if (body.action === 'login' && body.password !== 'right password')
+        return r.fulfill({
+          status: 400,
+          json: { error: 'VRChat did not accept that username or password.' },
+        });
+      if (body.action === 'login')
+        status = { ...status, state: 'code', username: body.username, methods: ['emailOtp', 'totp'] };
+      if (body.action === 'verify')
+        status = {
+          ...status,
+          state: 'active',
+          displayName: 'VRCove Bot',
+          userId: 'usr_00000000-0000-0000-0000-00000000b07a',
+          passwordSaved: true,
+          signedIn: 1760000000,
+          methods: [],
+        };
+      if (body.action === 'logout')
+        status = { ...status, state: 'signed-out', displayName: '', userId: '', passwordSaved: false };
+    }
+    await r.fulfill({ json: status });
+  });
+  page.on('dialog', (dialog) => dialog.accept());
+  await page.goto('/admin');
+  await page.getByRole('tab', { name: 'Backend account' }).click();
+  await expect(page.getByText('Needs sign-in')).toBeVisible();
+  const username = page.getByLabel('VRChat username or email');
+  const password = page.getByLabel('Password', { exact: true });
+  await username.fill('vrcove_bot');
+  await password.fill('wrong password');
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('did not accept');
+  await password.fill('right password');
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await expect(page.getByText('Enter the code VRChat sent for vrcove_bot.')).toBeVisible();
+  await page.getByLabel('Code type').selectOption('totp');
+  await page.getByLabel('Code', { exact: true }).fill('123456');
+  await page.getByRole('button', { name: 'Verify code' }).click();
+  await expect(page.getByText('VRCove Bot')).toBeVisible();
+  await expect(page.getByText('Uses the password saved here')).toBeVisible();
+  expect(bodies.at(-1)).toEqual({ action: 'verify', method: 'totp', code: '123456' });
+  await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+  await expect(page.getByText('Signed out', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Sign in again' })).toBeHidden();
+
+  // The tab isn't offered to admins, and the server hides the route from them.
+  setRole(name, 'admin');
+  await page.unroute('**/api/cove/admin/bot');
+  await page.goto('/admin');
+  await expect(page.getByRole('tab', { name: /Reports/ })).toBeVisible();
+  await expect(page.getByRole('tab', { name: 'Backend account' })).toBeHidden();
+  expect((await page.request.get(origin + '/api/cove/admin/bot')).status()).toBe(404);
+  await context.close();
+});

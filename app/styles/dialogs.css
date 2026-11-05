@@ -260,7 +260,9 @@
 }
 .login-content input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
 .login-content select,
-.confirm-content select {
+.confirm-content select,
+.backend-form input,
+.backend-form select {
   width: 100%;
   height: 43px;
   padding: 0 11px;

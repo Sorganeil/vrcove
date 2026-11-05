@@ -17,12 +17,14 @@ import { useResource } from '../lib/use-resource';
 import { appLink, covePath, entityPath, type EntityKind } from '../lib/routes';
 import { reportReasons } from '../components/moderation';
 import { Stars } from '../components/reviews';
+import { BackendAccount } from '../components/backend-account';
 
 const tabs = [
   ['reports', 'Reports'],
   ['requests', 'Removal requests'],
   ['users', 'Users'],
   ['activity', 'Activity'],
+  ['backend', 'Backend account'],
 ] as const;
 type Tab = (typeof tabs)[number][0];
 
@@ -59,6 +61,7 @@ export default function Admin({ notify }: { notify: (s: string) => void }) {
     requests: s.openRequests,
     users: s.users,
     activity: null,
+    backend: null,
   };
   return (
     <section className="admin-page" aria-labelledby="admin-title">
@@ -75,22 +78,25 @@ export default function Admin({ notify }: { notify: (s: string) => void }) {
         </div>
       </div>
       <div className="admin-tabs" role="tablist">
-        {tabs.map(([value, label]) => (
-          <button
-            key={value}
-            role="tab"
-            aria-selected={tab === value}
-            className={tab === value ? 'active' : ''}
-            onClick={() => setTab(value)}
-          >
-            {tr(label)}
-            {counts[value] !== null && <small>{counts[value]}</small>}
-          </button>
-        ))}
+        {tabs
+          .filter(([value]) => value !== 'backend' || s.role === 'owner')
+          .map(([value, label]) => (
+            <button
+              key={value}
+              role="tab"
+              aria-selected={tab === value}
+              className={tab === value ? 'active' : ''}
+              onClick={() => setTab(value)}
+            >
+              {tr(label)}
+              {counts[value] !== null && <small>{counts[value]}</small>}
+            </button>
+          ))}
       </div>
       {tab === 'reports' && <Reports notify={notify} changed={summary.reload} />}
       {tab === 'requests' && <Requests notify={notify} changed={summary.reload} />}
       {tab === 'users' && <Users notify={notify} role={s.role} changed={summary.reload} />}
+      {tab === 'backend' && s.role === 'owner' && <BackendAccount notify={notify} />}
       {tab === 'activity' && (
         <ol className="admin-list admin-log">
           {s.log.length === 0 && <li className="fineprint">{tr('No moderation actions yet.')}</li>}

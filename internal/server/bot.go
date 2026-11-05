@@ -17,7 +17,8 @@ import (
 // The bot is a VRChat account the operator owns. It checks logger
 // submissions, so the server never needs a user's VRChat session for them.
 // Its cookies are sealed under ACCOUNT_KEY in the accounts database, so a
-// restart does not need a new email code.
+// restart does not need a new email code. Owners manage it in the admin panel
+// (bot_admin.go) or with `vrcove bot-login`.
 
 // BotConfig is the bot account's VRChat sign-in.
 type BotConfig struct{ Username, Password string }
@@ -25,7 +26,7 @@ type BotConfig struct{ Username, Password string }
 const (
 	botAAD = "vrcove-bot-session-v1"
 	// botLoginGap spaces automatic sign-ins. When VRChat asks for a new email
-	// code, the bot waits for `vrcove bot-login` instead of mailing one per
+	// code, the bot waits for an owner to sign it in instead of mailing one per
 	// request.
 	botLoginGap = time.Hour
 )
@@ -37,12 +38,30 @@ type botState struct {
 	tokens     vrchat.Tokens
 	userID     string
 	loginAfter time.Time
+	// displayName and signedIn describe the session for the admin panel.
+	displayName string
+	signedIn    time.Time
+	// saved is the sign-in an owner entered in the admin panel. It replaces
+	// the environment's and is empty when the two match.
+	saved BotConfig
+	// signedOut stops automatic sign-ins until an owner signs in again.
+	signedOut bool
+	// pending is a sign-in waiting for a two-factor code. It stays apart from
+	// tokens, which always hold a usable session or none.
+	pending *botPending
+	// problem is why the last automatic sign-in failed, for the admin panel.
+	problem string
 }
 
 type botRecord struct {
 	UserID        string `json:"userId"`
 	Auth          string `json:"auth,omitempty"`
 	TwoFactorAuth string `json:"twoFactorAuth,omitempty"`
+	DisplayName   string `json:"displayName,omitempty"`
+	SignedIn      int64  `json:"signedIn,omitempty"`
+	Username      string `json:"username,omitempty"`
+	Password      string `json:"password,omitempty"`
+	SignedOut     bool   `json:"signedOut,omitempty"`
 }
 
 func (b *botState) session() *Session {
@@ -77,12 +96,24 @@ func (s *Server) loadBot(ctx context.Context) error {
 	}
 	s.bot.tokens = vrchat.Tokens{Auth: rec.Auth, TwoFactorAuth: rec.TwoFactorAuth}
 	s.bot.userID = rec.UserID
+	s.bot.displayName = rec.DisplayName
+	s.bot.signedIn = time.Time{}
+	if rec.SignedIn != 0 {
+		s.bot.signedIn = time.Unix(rec.SignedIn, 0)
+	}
+	s.bot.saved = BotConfig{Username: rec.Username, Password: rec.Password}
+	s.bot.signedOut = rec.SignedOut
 	return nil
 }
 
 // saveBot stores the bot's current cookies. Callers hold mu.
 func (s *Server) saveBot(ctx context.Context) error {
-	plain, err := json.Marshal(botRecord{s.bot.userID, s.bot.tokens.Auth, s.bot.tokens.TwoFactorAuth})
+	rec := botRecord{UserID: s.bot.userID, Auth: s.bot.tokens.Auth, TwoFactorAuth: s.bot.tokens.TwoFactorAuth, DisplayName: s.bot.displayName,
+		Username: s.bot.saved.Username, Password: s.bot.saved.Password, SignedOut: s.bot.signedOut}
+	if !s.bot.signedIn.IsZero() {
+		rec.SignedIn = s.bot.signedIn.Unix()
+	}
+	plain, err := json.Marshal(rec)
 	if err != nil {
 		return err
 	}
@@ -108,23 +139,37 @@ func (s *Server) botReady(ctx context.Context) error {
 		s.bot.loginAfter = time.Time{}
 		return nil
 	}
-	if s.now().Before(s.bot.loginAfter) {
+	bot := s.botCredentials()
+	if s.bot.signedOut || bot.Username == "" || s.now().Before(s.bot.loginAfter) {
 		return errBotUnavailable
 	}
 	s.bot.loginAfter = s.now().Add(botLoginGap)
-	bot := s.cfg.Logger.Bot
 	pending, err := s.botLogin(ctx, bot.Username, bot.Password)
 	if err != nil {
+		s.bot.problem = botProblemFailed
 		log.Printf("VRChat bot sign-in failed: %v", err)
 		return errBotUnavailable
 	}
 	if pending != nil {
 		s.bot.tokens.Auth = ""
-		log.Printf("VRChat bot needs a two-factor code (%v). Run `vrcove bot-login` on the server.", pending)
+		s.bot.problem = botProblemCode
+		log.Printf("VRChat bot needs a two-factor code (%v). Sign it in from the admin panel or run `vrcove bot-login` on the server.", pending)
 		return errBotUnavailable
 	}
-	s.bot.loginAfter = time.Time{}
+	s.bot.loginAfter, s.bot.problem = time.Time{}, ""
 	return nil
+}
+
+// botCredentials is the sign-in for automatic sign-ins: the one saved in the
+// admin panel, or else the environment's. Callers hold mu.
+func (s *Server) botCredentials() BotConfig {
+	if s.bot.saved.Username != "" {
+		return s.bot.saved
+	}
+	if s.cfg.Logger != nil {
+		return s.cfg.Logger.Bot
+	}
+	return BotConfig{}
 }
 
 // botLogin signs the bot in. When VRChat asks for two-factor verification it
@@ -151,7 +196,7 @@ func (s *Server) botLogin(ctx context.Context, username, password string) ([]str
 		s.bot.tokens, s.bot.userID = tokens, ""
 		return methods, nil
 	}
-	s.bot.tokens, s.bot.userID = tokens, field(user, "id")
+	s.bot.tokens, s.bot.userID, s.bot.displayName, s.bot.signedIn = tokens, field(user, "id"), field(user, "displayName"), s.now()
 	return nil, s.saveBot(ctx)
 }
 
@@ -203,6 +248,9 @@ func (s *Server) BotLogin(ctx context.Context, username, password string, code f
 	if s.bot.userID = field(user, "id"); s.bot.userID == "" {
 		return "", errors.New("VRChat did not return the bot's account")
 	}
+	// The command line signs in with the environment's account.
+	s.bot.displayName, s.bot.signedIn, s.bot.saved, s.bot.signedOut = field(user, "displayName"), s.now(), BotConfig{}, false
+	s.bot.pending, s.bot.problem, s.bot.loginAfter = nil, "", time.Time{}
 	if err := s.saveBot(ctx); err != nil {
 		return "", err
 	}

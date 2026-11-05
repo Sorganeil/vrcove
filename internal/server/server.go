@@ -109,7 +109,7 @@ func New(cfg Config, db *sql.DB, static fs.FS) (*Server, error) {
 	if cfg.SessionKey != nil && len(cfg.SessionKey) != 32 {
 		return nil, errors.New("SESSION_KEY must be a base64-encoded 32-byte key")
 	}
-	if cfg.Logger != nil && (cfg.Logger.Catalog == nil || cfg.Accounts == nil || cfg.Contact == "" || cfg.Logger.Bot.Username == "" || cfg.Logger.Bot.Password == "") {
+	if cfg.Logger != nil && (cfg.Logger.Catalog == nil || cfg.Accounts == nil || cfg.Contact == "") {
 		return nil, errors.New("logger ingestion needs accounts, a writable catalog, operator contact and a bot account")
 	}
 	var keys accountKeys
