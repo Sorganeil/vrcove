@@ -85,6 +85,7 @@ func main() {
 	go handler.readLogs(ctx)
 	go handler.runLive(ctx)
 	go handler.runChatbox(ctx)
+	go handler.runChatSensors(ctx)
 	if buildinfo.Version != "dev" {
 		go func() {
 			select {

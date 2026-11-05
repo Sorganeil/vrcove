@@ -32,7 +32,7 @@ joins, leaves, avatar changes and videos from VRChat's logs. There's also a
 friend activity feed and a screenshot browser that shows the world and people
 from each photo. Desktop notifications work with the window closed.
 
-Tools includes a username checker, OSC chatbox and Unity package extractor.
+Tools includes a username checker, OSC chatbox, avatar parameter control and Unity package extractor.
 The app stores this local data only on your computer.
 
 ## Build

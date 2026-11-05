@@ -65,7 +65,7 @@ The app also has:
 - Screenshots with the world and people who were there.
 - Desktop notifications that keep working when you close the window and leave the app running in the tray.
 - An avatar logger that reads avatar IDs from VRChat's local analytics cache. It checks public avatars using your local VRChat session, then sends only their IDs to VRCove, which checks them again with its own VRChat account before adding them to search.
-- A username checker, OSC chatbox and Unity package extractor.
+- A username checker, OSC tools and Unity package extractor. The OSC chatbox can repeat a message with live values such as the song playing, your world and your CPU use, rotate messages, change when you're AFK and open text in VRChat's keyboard. Avatar parameters let you toggle and adjust the avatar you're wearing.
 - Saved VRChat accounts with account switching.
 - Updates you can install in the app after it checks that the download's checksum matches the release.
 

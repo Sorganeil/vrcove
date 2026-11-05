@@ -236,3 +236,47 @@ func TestDatabaseIsPrivate(t *testing.T) {
 		t.Fatalf("database mode = %v", info)
 	}
 }
+
+func TestPresent(t *testing.T) {
+	ctx := context.Background()
+	s, err := Open(filepath.Join(t.TempDir(), "history.sqlite"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+	if p, err := s.Present(ctx); p != nil || err != nil {
+		t.Fatalf("empty history=%+v %v", p, err)
+	}
+	const minute = int64(60_000)
+	visit := func(id int64, world string, joined, left int64) {
+		t.Helper()
+		var leftAt any
+		if left != 0 {
+			leftAt = left
+		}
+		if _, err := s.db.Exec(`INSERT INTO visits (id, location, world_id, world_name, joined, left_at) VALUES (?, '', '', ?, ?, ?)`, id, world, joined, leftAt); err != nil {
+			t.Fatal(err)
+		}
+	}
+	visit(1, "Yesterday", 100*minute, 110*minute)
+	// Twenty minutes later a session starts, moving between worlds.
+	visit(2, "First", 130*minute, 140*minute)
+	visit(3, "Second", 142*minute, 150*minute)
+	visit(4, "Current", 151*minute, 0)
+	for name, left := range map[string]any{"Me": nil, "Friend": nil, "Gone": 152 * minute} {
+		if _, err := s.db.Exec(`INSERT INTO encounters (visit_id, user_id, display_name, joined, left_at) VALUES (4, '', ?, ?, ?)`, name, 151*minute, left); err != nil {
+			t.Fatal(err)
+		}
+	}
+	p, err := s.Present(ctx)
+	if err != nil || p == nil || p.World != "Current" || p.Players != 2 || p.Since != 130*minute {
+		t.Fatalf("present=%+v %v", p, err)
+	}
+	// After leaving, the player isn't in an instance.
+	if _, err := s.db.Exec(`UPDATE visits SET left_at = ? WHERE id = 4`, 160*minute); err != nil {
+		t.Fatal(err)
+	}
+	if p, err := s.Present(ctx); p != nil || err != nil {
+		t.Fatalf("after leaving=%+v %v", p, err)
+	}
+}

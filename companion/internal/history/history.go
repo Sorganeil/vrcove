@@ -35,6 +35,17 @@ CREATE TABLE IF NOT EXISTS friends (owner TEXT NOT NULL DEFAULT '', user_id TEXT
 	status_description TEXT NOT NULL, location TEXT NOT NULL, online INTEGER NOT NULL, PRIMARY KEY(owner,user_id));
 `
 
+// sessionGap is the longest break between visits in one play session.
+const sessionGap = 5 * time.Minute
+
+// Presence is what the game log says about the current VRChat session.
+type Presence struct {
+	World   string
+	Players int
+	// Since is when the play session started, in Unix milliseconds.
+	Since int64
+}
+
 // Store is the local history database.
 type Store struct {
 	db *sql.DB
@@ -132,6 +143,43 @@ func (s *Store) ClaimLegacyFeed(ctx context.Context, owner string) error {
 }
 
 func (s *Store) Close() error { return s.db.Close() }
+
+// Present reports the instance the player is in, or nil when they aren't in
+// one. A session continues across visits with short gaps between them.
+func (s *Store) Present(ctx context.Context) (*Presence, error) {
+	rows, err := s.db.QueryContext(ctx, `SELECT id, world_name, joined, left_at FROM visits ORDER BY joined DESC LIMIT 200`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var presence *Presence
+	var visit int64
+	for rows.Next() {
+		var id, joined int64
+		var name string
+		var left sql.NullInt64
+		if err := rows.Scan(&id, &name, &joined, &left); err != nil {
+			return nil, err
+		}
+		if presence == nil {
+			if left.Valid {
+				return nil, nil
+			}
+			presence, visit = &Presence{World: name, Since: joined}, id
+			continue
+		}
+		if !left.Valid || presence.Since-left.Int64 > sessionGap.Milliseconds() {
+			break
+		}
+		presence.Since = joined
+	}
+	if err := rows.Err(); err != nil || presence == nil {
+		return nil, err
+	}
+	rows.Close()
+	err = s.db.QueryRowContext(ctx, `SELECT count(*) FROM encounters WHERE visit_id = ? AND left_at IS NULL`, visit).Scan(&presence.Players)
+	return presence, err
+}
 
 // Visit is one stay in an instance and the people seen there.
 type Visit struct {

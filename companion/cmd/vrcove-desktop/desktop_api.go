@@ -24,6 +24,8 @@ func (d *desktop) serveDesktop(w http.ResponseWriter, r *http.Request) {
 		d.serveUsernameCheck(w, r)
 	case "/api/desktop/tools/chatbox":
 		d.serveChatbox(w, r)
+	case "/api/desktop/tools/osc":
+		d.serveOSC(w, r)
 	case "/api/desktop/tools/extract":
 		d.serveExtract(w, r)
 	case "/api/desktop/update":

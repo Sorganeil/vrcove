@@ -43,6 +43,7 @@ type desktop struct {
 	choosePackage func() (string, error)
 	chooseFolder  func() (string, error)
 	toolContext   context.Context
+	osc           oscLink
 	updater       *updater.Updater
 	autostart     *autostart.Manager
 	accountMu     sync.Mutex

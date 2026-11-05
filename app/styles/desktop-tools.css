@@ -225,3 +225,147 @@
   color: #d9eaf6;
   font-size: 14px;
 }
+.tool-quick-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tool-quick-row {
+  display: flex;
+  gap: 8px;
+}
+.tool-quick-row input {
+  flex: 1;
+  min-width: 0;
+}
+.tool-phrases,
+.tool-tokens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tool-phrase {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 12px;
+}
+.tool-phrase button {
+  padding: 4px 10px;
+  border: 0;
+  background: none;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.tool-phrase button + button {
+  display: inline-flex;
+  padding: 4px 8px 4px 0;
+  color: var(--muted);
+}
+.tool-tokens button {
+  padding: 3px 7px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: none;
+  color: var(--muted);
+  font-family: monospace;
+  font-size: 12px;
+  cursor: pointer;
+}
+.tool-tokens button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.tool-option-stack {
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+.tool-option-stack label {
+  flex: none;
+  width: 100%;
+}
+.desktop-tools-column {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+.osc-avatar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
+.osc-connect {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+}
+.osc-connect label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+.osc-connect label {
+  width: 110px;
+}
+.osc-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.osc-filter input[type='search'] {
+  flex: 1;
+  min-width: 180px;
+}
+.osc-parameters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0 24px;
+  max-height: 420px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+.osc-parameters li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 42px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+.osc-parameters li > span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.osc-parameters small {
+  margin-left: 8px;
+  color: var(--muted);
+}
+.osc-parameters output {
+  color: var(--muted);
+  font-size: 12px;
+}
+.osc-parameters li > input[type='number'] {
+  flex: 0 0 84px;
+  height: 34px;
+}
+.osc-slider {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.osc-slider input {
+  width: 120px;
+}

@@ -40,7 +40,7 @@ const features = [
     icon: Wrench,
     title: 'Tools',
     points: [
-      'Username checker, OSC chatbox and Unity package extractor.',
+      'Username checker, OSC chatbox, avatar parameter control and Unity package extractor.',
       'Updates are offered in the app and installed only after their checksums match the release.',
     ],
   },
