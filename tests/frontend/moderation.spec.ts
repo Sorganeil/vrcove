@@ -327,6 +327,8 @@ test('owners manage the backend account, and admins never see it', async ({ brow
   await expect(page.getByText('Uses the password saved here')).toBeVisible();
   await expect(page.getByText(/rate limiting/)).toBeHidden();
   expect(bodies.at(-1)).toEqual({ action: 'verify', method: 'totp', code: '123456' });
+  await page.getByRole('button', { name: 'Check session' }).click();
+  await expect(page.getByText('Session is working. VRChat confirmed VRCove Bot.')).toBeVisible();
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
   await expect(page.getByText('Signed out', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Sign in again' })).toBeHidden();

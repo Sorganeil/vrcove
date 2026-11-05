@@ -57,6 +57,12 @@ export function BackendAccount({ notify }: { notify: (s: string) => void }) {
       setPassword('');
       setCode('');
       if (next.state === 'active' && action !== 'check') setReplacing(false);
+      if (action === 'check')
+        notify(
+          next.state === 'active'
+            ? tr('Session is working. VRChat confirmed {name}.', { name: next.displayName || next.username })
+            : tr('The session has ended. Sign in again.'),
+        );
       if (message) notify(message);
       resource.reload();
     } catch (e) {
@@ -248,11 +254,7 @@ export function BackendAccount({ notify }: { notify: (s: string) => void }) {
         )}
         {active && !replacing && (
           <div className="result-actions">
-            <button
-              className="standard-button"
-              disabled={!!busy}
-              onClick={() => void act('check', {}, tr('Session checked'))}
-            >
+            <button className="standard-button" disabled={!!busy} onClick={() => void act('check')}>
               {busy === 'check' ? <LoaderCircle size={13} className="spin" /> : <RefreshCw size={13} />}
               {tr('Check session')}
             </button>
